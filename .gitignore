@@ -1,0 +1,7 @@
+# The generated Go project `hive build`/`hive run` writes beside the
+# entrypoint, and the native executable it leaves there.
+main.hive-build/
+main
+main.exe
+
+*.log
