@@ -186,18 +186,16 @@ func highlightsView(lang: Str): ui.View {
 	if lang == "pt" {
 		return ui.column([ui.gap(8)], [
 			highlightRow("Um único executável — nada mais para instalar, nenhum runtime para configurar"),
-			highlightRow("Todo índice e slice de vetor é comprovado dentro dos limites em tempo de compilação"),
+			highlightRow("Sem erros em tempo de execução e sem surpresas — um programa que compila é um programa que roda"),
 			highlightRow("Tabelas são um tipo nativo da linguagem, não um import de biblioteca"),
 			highlightRow("HTTP, WebSockets, SQL, criptografia, uma UI e atores distribuídos — tudo na biblioteca padrão"),
-			highlightRow("Valores se comportam como valores: dois nomes nunca observam as escritas um do outro, a menos que ambos sejam mut"),
 		])
 	}
 	return ui.column([ui.gap(8)], [
 		highlightRow("One executable — nothing else to install, no runtime to configure"),
-		highlightRow("Every vector index and slice proved in range at compile time"),
+		highlightRow("No runtime errors and no surprises — a program that compiles is a program that runs"),
 		highlightRow("Tables are a built-in type, not a library import"),
 		highlightRow("HTTP, WebSockets, SQL, crypto, a UI and distributed actors — all in the standard library"),
-		highlightRow("Values behave like values: two names never observe each other's writes, unless both say mut"),
 	])
 }
 
@@ -448,7 +446,7 @@ func notFoundText(lang: Str): Str {
 // The content of the tour, one feature at a time. Every code example below
 // is a complete program: copy it into a `.hive` file and `hive run` it.
 
-func slides(): Slide[37] {
+func slides(): Slide[38] {
 	return [
 		Slide(
 			title: "Hello, World",
@@ -1846,6 +1844,96 @@ proc main(): void {
 		echo "o outro nó respondeu: {reply}"
 	}
 }`),
+			],
+		),
+		Slide(
+			title: "Containers",
+			titlePt: "Contêineres",
+			explanation: "`hive container entrypoint.hive` writes a Dockerfile for the program, into the folder the command was run in — which is also the build's context. Nothing has to be installed to build the image but Docker itself: the first stage downloads Go and the compiler's latest release for the platform being built for — amd64 on an ordinary machine, arm64 on an Apple-silicon one, so the build is native either way — and compiles the program with the two of them. The second stage is the executable and nothing else, on distroless/static: no Go, no compiler, not even a shell.\n\nThe parts of the file that are not a template are read off the program rather than guessed at. A hive.net.httpServe(8080, ...) becomes an EXPOSE 8080 that says in a comment where the number came from; an import that names a repository puts git in the build stage, since the compiler clones it while the image builds; a program that opens a database says why go mod tidy runs before anything compiles. Everything beside the Dockerfile goes into the build, so a .dockerignore is what narrows that.\n\nWhat comes out is an ordinary Dockerfile, and editing it is expected. A Dockerfile already in the folder is never written over — ours is called Dockerfile-hive-container instead, and the command says which of the two it wrote. This tour is served out of an image built exactly this way.",
+			explanationPt: "`hive container entrypoint.hive` escreve um Dockerfile para o programa, na pasta em que o comando foi rodado — que é também o contexto do build. Nada precisa estar instalado para construir a imagem além do próprio Docker: o primeiro estágio baixa o Go e o último lançamento do compilador para a plataforma para a qual se está construindo — amd64 numa máquina comum, arm64 numa de silício Apple, então o build é nativo de qualquer jeito — e compila o programa com os dois. O segundo estágio é o executável e nada mais, sobre distroless/static: sem Go, sem compilador, nem sequer um shell.\n\nAs partes do arquivo que não são um template são lidas do programa em vez de adivinhadas. Um hive.net.httpServe(8080, ...) vira um EXPOSE 8080 que diz num comentário de onde o número veio; um import que nomeia um repositório coloca git no estágio de build, já que o compilador o clona enquanto a imagem é construída; um programa que abre um banco de dados diz por que go mod tidy roda antes de qualquer coisa ser compilada. Tudo que está ao lado do Dockerfile entra no build, então um .dockerignore é o que estreita isso.\n\nO que sai é um Dockerfile comum, e editá-lo é esperado. Um Dockerfile que já esteja na pasta nunca é sobrescrito — o nosso se chama Dockerfile-hive-container em vez disso, e o comando diz qual dos dois escreveu. Este tour é servido a partir de uma imagem construída exatamente assim.",
+			examples: [
+				Example(caption: "Writing it, and running what it wrote", captionPt: "Escrevendo, e rodando o que foi escrito", code: `$ hive container main.hive
+Wrote Dockerfile for main.hive (0s)
+$ docker build -t main .
+$ docker run --rm -p 8080:8080 main`, codePt: `$ hive container main.hive
+Wrote Dockerfile for main.hive (0s)
+$ docker build -t main .
+$ docker run --rm -p 8080:8080 main`),
+				Example(caption: "What it writes", captionPt: "O que ele escreve", code: `# syntax=docker/dockerfile:1
+#
+# Builds and runs main.hive, from nothing but this folder.
+#
+#   docker build -t main .
+#   docker run --rm -p 8080:8080 main
+
+##############################################################################
+# Stage 1 — download Go and the compiler, then build
+##############################################################################
+FROM debian:bookworm-slim AS builder
+
+# What Docker is building for: amd64 on an ordinary machine, arm64 on an
+# Apple-silicon one or a Graviton.
+ARG TARGETARCH
+
+# ... Go itself, then the compiler's latest release for that architecture ...
+
+WORKDIR /app
+
+# The whole folder, because a program is its entrypoint and whatever that
+# imported. A .dockerignore is what narrows this.
+COPY . .
+
+RUN hivec build /app/main.hive \
+ && test -x /app/main
+
+##############################################################################
+# Stage 2 — runtime
+##############################################################################
+FROM gcr.io/distroless/static-debian12 AS runtime
+WORKDIR /app
+COPY --from=builder /app/main /usr/local/bin/main
+
+# 8080 is where this program serves: hive.net.httpServe(8080, ...) says so.
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/local/bin/main"]`, codePt: `# syntax=docker/dockerfile:1
+#
+# Builds and runs main.hive, from nothing but this folder.
+#
+#   docker build -t main .
+#   docker run --rm -p 8080:8080 main
+
+##############################################################################
+# Stage 1 — download Go and the compiler, then build
+##############################################################################
+FROM debian:bookworm-slim AS builder
+
+# What Docker is building for: amd64 on an ordinary machine, arm64 on an
+# Apple-silicon one or a Graviton.
+ARG TARGETARCH
+
+# ... Go itself, then the compiler's latest release for that architecture ...
+
+WORKDIR /app
+
+# The whole folder, because a program is its entrypoint and whatever that
+# imported. A .dockerignore is what narrows this.
+COPY . .
+
+RUN hivec build /app/main.hive \
+ && test -x /app/main
+
+##############################################################################
+# Stage 2 — runtime
+##############################################################################
+FROM gcr.io/distroless/static-debian12 AS runtime
+WORKDIR /app
+COPY --from=builder /app/main /usr/local/bin/main
+
+# 8080 is where this program serves: hive.net.httpServe(8080, ...) says so.
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/local/bin/main"]`),
 			],
 		),
 		Slide(
