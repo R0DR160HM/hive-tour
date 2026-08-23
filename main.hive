@@ -9,11 +9,17 @@
 //
 // The interface is built with `hive.ui`: the sidebar, the heading, the
 // explanation and the prev/next links are all `View`s, rendered by
-// `ui.page`. The one thing the widget set has no answer for is a
-// monospaced, boxed code sample, so that alone is written as literal HTML
-// and spliced into the page in place of a marker view — everything else
-// stays a view all the way down.
+// `ui.page`. Two things the widget set has no answer for are spliced into
+// the finished document as literal HTML: a monospaced, boxed code sample,
+// which goes in place of a marker view, and the `<link>` that names the tab
+// icon, which goes in the head, where nothing is on show and so nothing is
+// a view. Everything else stays a view all the way down.
+//
+// The mark the home screen shows, and the one the tab gets, both live in
+// ./logo, which holds the drawing and nothing else — the tour is prose, and
+// a page of path coordinates in the middle of it would read as neither.
 import hive.ui
+import ./logo
 
 type Example {
 	caption:   Str
@@ -42,6 +48,16 @@ proc handle(request: hive.net.HttpRequest): hive.net.HttpResponse {
 
 	if path == "/" {
 		return homeResponse(lang)
+	}
+
+	// The two framings of the mark, at the two paths that ask for them: the
+	// home screen's `<img>`, and whatever a browser makes of the `<link>` in
+	// the head. Neither depends on the language, so neither reads `lang`.
+	if path == "/hive-logo.svg" {
+		return svgResponse(logo.svg())
+	}
+	if path == "/favicon.svg" {
+		return svgResponse(logo.icon())
 	}
 
 	all := slides()
@@ -104,11 +120,39 @@ func codeMarkerTag(): Str {
 	return "<span class=\"h-text\">" + codeMarker() + "</span>"
 }
 
+// Every page this server sends, and the one line of it no view can carry.
+// `ui.page` writes a whole document — charset, viewport, title, stylesheet
+// — and the tab icon belongs in its head, which is the half of a page
+// nobody looks at. So it is spliced the way a code sample is: split the
+// document on a tag that is certainly in it, and join it back with ours in
+// front of that tag.
+func document(title: Str, view: ui.View): Str {
+	page := ui.page(title, view)
+	return join(split(page, "</head>"), iconLinkTag() + "</head>")
+}
+
+// An SVG icon rather than the .ico a browser guesses at: one drawing, drawn
+// at whatever size the tab it lands in happens to be.
+func iconLinkTag(): Str {
+	return "<link rel=\"icon\" type=\"image/svg+xml\" href=\"/favicon.svg\">"
+}
+
+// The mark, either framing of it. A day of caching, because the drawing is
+// part of the executable: it cannot change without a new binary, and until
+// one ships there is nothing here worth asking for twice.
+func svgResponse(svg: Str): hive.net.HttpResponse {
+	headers := [
+		["Content-Type", "image/svg+xml; charset=utf-8"],
+		["Cache-Control", "public, max-age=86400"],
+	]
+	return hive.net.HttpResponse(200, headers, svg)
+}
+
 func renderSlide(slide: Slide, idx: Int, all: Slide[], lang: Str): hive.net.HttpResponse {
 	total := len(all)
 	path := "/{idx + 1}"
 	top := ui.row([], [sidebarView(all, idx, lang, path), headerColumn(slide, idx, total, lang)])
-	page := ui.page(slideTitle(slide, lang) + pageTitleSuffix(lang), top)
+	page := document(slideTitle(slide, lang) + pageTitleSuffix(lang), top)
 	spliced := examplesHtml(slide.examples, lang) + ui.html(bottomView(slide, idx, total, lang, path))
 	body := join(split(page, codeMarkerTag()), spliced)
 	return hive.net.HttpResponse(200, [["Content-Type", "text/html; charset=utf-8"]], body)
@@ -134,8 +178,16 @@ func slideExplanation(slide: Slide, lang: Str): Str {
 func homeResponse(lang: Str): hive.net.HttpResponse {
 	all := slides()
 	content := ui.column([ui.gap(20), ui.pad(40), ui.grow(1), ui.width(680)], [
-		ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], homeKicker(lang)),
-		ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], "Hive"),
+		// The gap is small because the drawing brings its own: the artwork is
+		// a square with the bee inside it, so a fifth of the width beside the
+		// name is margin the mark already paid for.
+		ui.row([ui.gap(8), ui.align(ui.Align.Center())], [
+			ui.image([ui.width(128)], "/hive-logo.svg", logoAlt(lang)),
+			ui.column([ui.gap(4)], [
+				ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], homeKicker(lang)),
+				ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], "Hive"),
+			]),
+		]),
 		ui.text([], homeParagraphOne(lang)),
 		ui.text([], homeParagraphTwo(lang)),
 		highlightsView(lang),
@@ -147,7 +199,7 @@ func homeResponse(lang: Str): hive.net.HttpResponse {
 		]),
 	])
 	top := ui.row([], [sidebarView(all, -1, lang, "/"), content])
-	body := ui.page(homePageTitle(lang), top)
+	body := document(homePageTitle(lang), top)
 	return hive.net.HttpResponse(200, [["Content-Type", "text/html; charset=utf-8"]], body)
 }
 
@@ -208,7 +260,7 @@ func notFoundResponse(lang: Str, path: Str): hive.net.HttpResponse {
 		ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourPlain(lang)),
 	])
 	top := ui.row([], [sidebarView(all, -1, lang, path), content])
-	body := ui.page(notFoundPageTitle(lang), top)
+	body := document(notFoundPageTitle(lang), top)
 	return hive.net.HttpResponse(404, [["Content-Type", "text/html; charset=utf-8"]], body)
 }
 
@@ -367,6 +419,13 @@ func tourTitle(lang: Str): Str {
 func pageTitleSuffix(lang: Str): Str {
 	if lang == "pt" { return " — O Tour do Hive" }
 	return " — The Hive Tour"
+}
+
+// What the mark is, for whoever is not being shown it. The name is right
+// beside it in either language, so what is left to say is the picture.
+func logoAlt(lang: Str): Str {
+	if lang == "pt" { return "O logo do Hive: uma abelha sobre um favo de mel" }
+	return "The Hive logo: a bee on a honeycomb"
 }
 
 func homePageTitle(lang: Str): Str {
