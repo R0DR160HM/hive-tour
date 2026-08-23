@@ -506,7 +506,7 @@ func notFoundText(lang: Str): Str {
 // The content of the tour, one feature at a time. Every code example below
 // is a complete program: copy it into a `.hive` file and `hive run` it.
 
-func slides(): Slide[48] {
+func slides(): Slide[49] {
 	return [
 		Slide(
 			title: "Hello, World",
@@ -1141,8 +1141,8 @@ proc main(): void {
 			title: "A length is a promise",
 			titlePt: "Um tamanho é uma promessa",
 			download: false,
-			explanation: "A declared static length is a promise, and it is kept everywhere: every value that lands in a Str[3] slot has to be a vector of exactly three — an initialiser, a later assignment, an argument, a field of a constructed value, a returned value — and a length the compiler cannot see is rejected too, which is why split can never fill one. Because the promise holds at every call site it is never lost, so a Str[3] can be indexed unguarded even after being reassigned, and so can a Str[3] parameter inside the callee.\n\nAn inferred length is weaker. mut v := [\"a\", \"b\", \"c\"] is a Str[3] observed rather than promised: writing through the name keeps it, but any rebinding costs it — even a rebinding to the same length, and even one inside a branch that may not run. A proof that holds only sometimes is not a proof. Declare the type when you want the promise enforced, and [dyn] when you want the freedom and will guard your indexes.\n\nA length the compiler does know survives everything that cannot lose it. Concatenation adds the two lengths, map keeps its input's — a transform changes elements, not how many — and sort keeps it too, since a comparator moves elements rather than removing any. filter and filterMap deliberately claim nothing: what is knowable about them is a maximum, and a maximum can never put an index in range, because a filter that keeps nothing is always a possibility.",
-			explanationPt: "Um tamanho estático declarado é uma promessa, e ela é mantida em todo lugar: todo valor que chega em um espaço Str[3] precisa ser um vetor de exatamente três — um inicializador, uma atribuição posterior, um argumento, um campo de um valor construído, um valor retornado — e um tamanho que o compilador não consegue ver também é recusado, que é por que split nunca pode preencher um. Como a promessa vale em todo local de chamada, ela nunca se perde, então um Str[3] pode ser indexado sem guarda mesmo depois de ser reatribuído, e um parâmetro Str[3] também pode, dentro de quem foi chamado.\n\nUm tamanho inferido é mais fraco. mut v := [\"a\", \"b\", \"c\"] é um Str[3] observado, não prometido: escrever através do nome o mantém, mas qualquer reatribuição o custa — mesmo uma reatribuição para o mesmo tamanho, e mesmo uma dentro de um ramo que pode nem rodar. Uma prova que só vale às vezes não é uma prova. Declare o tipo quando quiser a promessa cobrada, e [dyn] quando quiser a liberdade e for guardar seus índices.\n\nUm tamanho que o compilador conhece sobrevive a tudo que não pode perdê-lo. A concatenação soma os dois tamanhos, map mantém o da sua entrada — uma transformação muda os elementos, não quantos são — e sort também mantém, já que um comparador move elementos em vez de remover algum. filter e filterMap deliberadamente não afirmam nada: o que se pode saber deles é um máximo, e um máximo nunca pode colocar um índice na faixa, porque um filtro que não guarda nada é sempre uma possibilidade.",
+			explanation: "A declared static length is a promise, and it is kept everywhere: every value that lands in a Str[3] slot has to be a vector of exactly three — an initialiser, a later assignment, an argument, a field of a constructed value, a returned value — and a length the compiler cannot see is rejected too, which is why split can never fill one. Because the promise holds at every call site it is never lost, so a Str[3] can be indexed unguarded even after being reassigned, and so can a Str[3] parameter inside the callee. A field is the same: a Str[3] field is enforced wherever a value reaches it, construction included, so nothing that happens to the record around it can change how many it holds — assign a whole new record and the field is still exactly three.\n\nAn inferred length is weaker. mut v := [\"a\", \"b\", \"c\"] is a Str[3] observed rather than promised: writing through the name keeps it, but any rebinding costs it — even a rebinding to the same length, and even one inside a branch that may not run. A proof that holds only sometimes is not a proof. Declare the type when you want the promise enforced, and [dyn] when you want the freedom and will guard your indexes.\n\nWhat a guard proves is weaker again, and in the same way. if 2 < len(box.items) is proved about the value the field held at that moment, so replacing the field — or the record around it — costs it, even inside the very branch the guard opened. The two rules pull in opposite directions on the same expression and both are worth knowing: what the declaration says about a field survives everything, and what a guard found out about one survives only as long as the value it looked at.\n\nA length the compiler does know survives everything that cannot lose it. Concatenation adds the two lengths, map keeps its input's — a transform changes elements, not how many — and sort keeps it too, since a comparator moves elements rather than removing any. filter and filterMap deliberately claim nothing: what is knowable about them is a maximum, and a maximum can never put an index in range, because a filter that keeps nothing is always a possibility.",
+			explanationPt: "Um tamanho estático declarado é uma promessa, e ela é mantida em todo lugar: todo valor que chega em um espaço Str[3] precisa ser um vetor de exatamente três — um inicializador, uma atribuição posterior, um argumento, um campo de um valor construído, um valor retornado — e um tamanho que o compilador não consegue ver também é recusado, que é por que split nunca pode preencher um. Como a promessa vale em todo local de chamada, ela nunca se perde, então um Str[3] pode ser indexado sem guarda mesmo depois de ser reatribuído, e um parâmetro Str[3] também pode, dentro de quem foi chamado. Um campo é a mesma coisa: um campo Str[3] é cobrado em todo lugar onde um valor chega nele, inclusive na construção, então nada que aconteça com o registro em volta pode mudar quantos ele guarda — atribua um registro inteiramente novo e o campo continua sendo exatamente três.\n\nUm tamanho inferido é mais fraco. mut v := [\"a\", \"b\", \"c\"] é um Str[3] observado, não prometido: escrever através do nome o mantém, mas qualquer reatribuição o custa — mesmo uma reatribuição para o mesmo tamanho, e mesmo uma dentro de um ramo que pode nem rodar. Uma prova que só vale às vezes não é uma prova. Declare o tipo quando quiser a promessa cobrada, e [dyn] quando quiser a liberdade e for guardar seus índices.\n\nO que uma guarda prova é mais fraco ainda, e da mesma maneira. if 2 < len(box.items) é provado sobre o valor que o campo guardava naquele instante, então substituir o campo — ou o registro em volta dele — custa a prova, mesmo dentro do próprio ramo que a guarda abriu. As duas regras puxam em direções opostas sobre a mesma expressão e vale conhecer ambas: o que a declaração diz sobre um campo sobrevive a tudo, e o que uma guarda descobriu sobre um campo sobrevive só enquanto durar o valor que ela olhou.\n\nUm tamanho que o compilador conhece sobrevive a tudo que não pode perdê-lo. A concatenação soma os dois tamanhos, map mantém o da sua entrada — uma transformação muda os elementos, não quantos são — e sort também mantém, já que um comparador move elementos em vez de remover algum. filter e filterMap deliberadamente não afirmam nada: o que se pode saber deles é um máximo, e um máximo nunca pode colocar um índice na faixa, porque um filtro que não guarda nada é sempre uma possibilidade.",
 			examples: [
 				Example(caption: "A declared length is kept", captionPt: "Um tamanho declarado é mantido", code: `proc main(): void {
 	mut Str[3] v = ["a", "b", "c"]
@@ -1200,6 +1200,47 @@ proc main(): void {
 	echo "{doubled[1]} {ordered[1]}"
 
 	// filter e filterMap não afirmam nada, então seus resultados sempre precisam.
+}`),
+				Example(caption: "A field's length is a promise too", captionPt: "O tamanho de um campo também é uma promessa", code: `type Reading {
+	sectors: Float[3]     // three, in every Reading there will ever be
+	notes:   Str[dyn]     // any number, in each one separately
+}
+
+func slower(was: Reading): Reading {
+	return Reading([was.sectors[0] + 0.1, was.sectors[1], was.sectors[2]], was.notes)
+}
+
+proc main(): void {
+	mut Reading lap = Reading([31.4, 28.9, 33.2], ["clean"])
+	echo lap.sectors[2]        // no guard: the declaration promised three
+
+	lap = slower(lap)          // a whole new record...
+	echo lap.sectors[2]        // ...and still three, so still no guard
+
+	// The other way round for a [dyn] field, where only a guard can say:
+	if lap.notes bounds 0 {
+		echo lap.notes[0]
+	}
+}`, codePt: `type Reading {
+	sectors: Float[3]     // três, em toda Reading que existir
+	notes:   Str[dyn]     // quantos forem, em cada uma separadamente
+}
+
+func slower(was: Reading): Reading {
+	return Reading([was.sectors[0] + 0.1, was.sectors[1], was.sectors[2]], was.notes)
+}
+
+proc main(): void {
+	mut Reading lap = Reading([31.4, 28.9, 33.2], ["limpa"])
+	echo lap.sectors[2]        // sem guarda: a declaração prometeu três
+
+	lap = slower(lap)          // um registro inteiramente novo...
+	echo lap.sectors[2]        // ...e ainda três, então ainda sem guarda
+
+	// O contrário para um campo [dyn], onde só uma guarda pode dizer:
+	if lap.notes bounds 0 {
+		echo lap.notes[0]
+	}
 }`),
 			],
 		),
@@ -2317,8 +2358,8 @@ proc main(): void {
 			title: "SQL",
 			titlePt: "SQL",
 			download: false,
-			explanation: "A query declaration is a func whose body is inline SQL and whose return type describes its rows. Columns are matched to fields by name, not position, so reordering a SELECT can never silently remap them, and values are always bound as parameters — never spliced into the text — so nothing a caller supplies can change what the statement means. connect opens a single connection and pool a whole pool of them, both answering with a Result<SqlConnection, SqlError>; close lets one go. SQL assembled at run time, rather than declared as a query, goes through run raw instead — untyped by construction, and easy to grep for.\n\nThe return type does more than name the row: it decides the shape of the whole result, so you can read that off the declaration without looking at the SQL at all. A declared row type comes back as Result<Row[dyn], SqlError>. A single scalar vector — Str[dyn], Int[dyn] — needs no row type at all and comes back as that column. And void marks a statement rather than a query, coming back as the number of rows it touched.\n\nBecause columns are matched by name, name them: a column whose name differs from its field needs an alias (SELECT u.name AS author), and a row type holds scalars only. A SELECT * against a declared row type type-checks but has told the mapper nothing, so the first row of the wrong width comes back as a Result.Error saying how many columns it expected and how many it got.",
-			explanationPt: "Uma declaração query é um func cujo corpo é SQL inline e cujo tipo de retorno descreve suas linhas. Colunas são associadas a campos pelo nome, não pela posição, então reordenar um SELECT nunca pode remapeá-las silenciosamente, e valores são sempre vinculados como parâmetros — nunca inseridos diretamente no texto — então nada que quem chama fornecer pode mudar o que a instrução significa. connect abre uma única conexão e pool abre um pool inteiro delas, ambos respondendo com um Result<SqlConnection, SqlError>; close libera uma. SQL montado em tempo de execução, em vez de declarado como uma query, passa por run raw em vez disso — sem tipo por construção, e fácil de encontrar com grep.\n\nO tipo de retorno faz mais do que nomear a linha: ele decide o formato do resultado inteiro, então dá para ler isso na declaração sem olhar o SQL. Um tipo de linha declarado volta como Result<Row[dyn], SqlError>. Um vetor de um escalar só — Str[dyn], Int[dyn] — não precisa de tipo de linha algum e volta como aquela coluna. E void marca uma instrução em vez de uma consulta, voltando como o número de linhas que ela tocou.\n\nComo as colunas são associadas pelo nome, nomeie-as: uma coluna cujo nome difere do campo precisa de um alias (SELECT u.name AS author), e um tipo de linha guarda apenas escalares. Um SELECT * contra um tipo de linha declarado passa na checagem de tipos mas não disse nada ao mapeador, então a primeira linha de largura errada volta como um Result.Error dizendo quantas colunas ele esperava e quantas recebeu.",
+			explanation: "A query declaration is a func whose body is inline SQL and whose return type describes its rows. Columns are matched to fields by name, not position, so reordering a SELECT can never silently remap them, and values are always bound as parameters — never spliced into the text — so nothing a caller supplies can change what the statement means. connect opens a single connection and pool a whole pool of them, both answering with a Result<SqlConnection, SqlError>; close lets one go. SQL assembled at run time, rather than declared as a query, goes through run raw instead — untyped by construction, and easy to grep for.\n\nThe return type does more than name the row: it decides the shape of the whole result, so you can read that off the declaration without looking at the SQL at all. A declared row type comes back as Result<Row[dyn], SqlError>. A single scalar vector — Str[dyn], Int[dyn] — needs no row type at all and comes back as that column. And void marks a statement rather than a query, coming back as the number of rows it touched.\n\nBecause columns are matched by name, name them — and the compiler holds you to it. A column whose name differs from its field needs an alias (SELECT u.name AS author), a row type holds scalars only, and SELECT * against a declared row type is a compile error. It says neither how many columns come back nor what they are called, so nothing can line them up against the fields; and what it stands for changes the day somebody adds a column to the table, which would turn a query that compiled and worked into rows that no longer fit, in a program nobody edited. The rule is about the result and only the result, so count(*), a * 2, a star inside a subquery and the select list of a void statement all still compile — and so does SELECT * into a Table, which is rows of cells and has no field names to disagree with.",
+			explanationPt: "Uma declaração query é um func cujo corpo é SQL inline e cujo tipo de retorno descreve suas linhas. Colunas são associadas a campos pelo nome, não pela posição, então reordenar um SELECT nunca pode remapeá-las silenciosamente, e valores são sempre vinculados como parâmetros — nunca inseridos diretamente no texto — então nada que quem chama fornecer pode mudar o que a instrução significa. connect abre uma única conexão e pool abre um pool inteiro delas, ambos respondendo com um Result<SqlConnection, SqlError>; close libera uma. SQL montado em tempo de execução, em vez de declarado como uma query, passa por run raw em vez disso — sem tipo por construção, e fácil de encontrar com grep.\n\nO tipo de retorno faz mais do que nomear a linha: ele decide o formato do resultado inteiro, então dá para ler isso na declaração sem olhar o SQL. Um tipo de linha declarado volta como Result<Row[dyn], SqlError>. Um vetor de um escalar só — Str[dyn], Int[dyn] — não precisa de tipo de linha algum e volta como aquela coluna. E void marca uma instrução em vez de uma consulta, voltando como o número de linhas que ela tocou.\n\nComo as colunas são associadas pelo nome, nomeie-as — e o compilador cobra isso. Uma coluna cujo nome difere do campo precisa de um alias (SELECT u.name AS author), um tipo de linha guarda apenas escalares, e SELECT * contra um tipo de linha declarado é um erro de compilação. Ele não diz nem quantas colunas voltam nem como se chamam, então nada consegue alinhá-las aos campos; e o que ele representa muda no dia em que alguém adiciona uma coluna à tabela, o que transformaria uma consulta que compilava e funcionava em linhas que não cabem mais, num programa que ninguém editou. A regra é sobre o resultado e somente sobre o resultado, então count(*), a * 2, uma estrela dentro de uma subconsulta e a lista de seleção de uma instrução void continuam compilando — e SELECT * para uma Table também, que é linhas de células e não tem nomes de campo com que discordar.",
 			examples: [
 				Example(caption: "A row type", captionPt: "Um tipo de linha", code: `type User { id: Int, name: Str }
 
@@ -2567,8 +2608,8 @@ proc main(): void {
 			title: "The UI module",
 			titlePt: "O módulo de UI",
 			download: false,
-			explanation: "hive.ui builds an interface as a value: a View is a tree of widgets, and every one of them takes the same two things, its attributes and then its own payload. row and column lay out children; text, image, icon and link show something; button, input, textarea, checkbox and select ask for something; table shows a Table, and spacer, spinner, none and overlay round out the set. Attributes are just as closed a set: gap, pad, width, height, grow, align, justify and scroll lay out; size, heading, tone and background style; disabled, busy, placeholder, hint and kind describe state; and on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick and onSort carry an event, for a window rather than this kind of page. Align, Justify, TextSize, Tone, Axis, InputKind and Icon are the enumerations behind them, reached like any other library type.\n\nhtml(view) renders a tree as an HTML fragment, and page(title, view) as a whole document with a stylesheet already built in, light and dark alike — which is exactly what an httpServe handler can answer a request with directly, and what every screen in this tour but its code samples is. The same tree, shown instead by window(title, view, update, state), becomes a live page: update is a fold over its events, the same shape a hive.syslink handler folds over a mailbox, so a window has an address and needs no mutex of its own.\n\nThat address is also why there is no command type. Every language built this way needs an answer to \"the update wants to fetch something, and must not block the screen while it does\", and most of them invent a type for it — a Cmd, a task, an effect the runtime interprets. Hive needs none, because it already has two things that add up to one: update is a proc, so it may act, and hive.syslink.self(envelope) is the window's own address, so work started with async can send its answer back as an ordinary message.\n\nAnd because a view is a value rather than a template, an interface is testable without a browser. html is the same renderer a served page uses, so a test can render a view and read the markup that comes out — which is the cheapest place there is to check that a disabled button really is disabled, and that somebody else's text cannot smuggle a script tag into your page.\n\nA scene is the one widget that only a window can draw. box, sphere, cylinder, ground, label and line are its shapes, positioned with at and turn and coloured with paint; eye, aim, lens and fog place and dress the camera; grab and crosshair capture the mouse, and onFrame, onKeyDown, onKeyUp, onLook and onGrab are the events a scene alone reports. A served page renders a scene's box empty — there is no socket for frames to travel down — so the two examples below are shown as code only: open either in a window to actually see it.",
-			explanationPt: "hive.ui constrói uma interface como um valor: uma View é uma árvore de widgets, e cada um deles recebe as mesmas duas coisas, seus atributos e depois sua própria carga. row e column organizam filhos; text, image, icon e link mostram algo; button, input, textarea, checkbox e select pedem algo; table mostra uma Table, e spacer, spinner, none e overlay completam o conjunto. Os atributos são um conjunto igualmente fechado: gap, pad, width, height, grow, align, justify e scroll organizam; size, heading, tone e background estilizam; disabled, busy, placeholder, hint e kind descrevem estado; e on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick e onSort carregam um evento, para uma window e não para este tipo de página. Align, Justify, TextSize, Tone, Axis, InputKind e Icon são as enumerações por trás deles, acessadas como qualquer outro tipo da biblioteca.\n\nhtml(view) renderiza uma árvore como um fragmento HTML, e page(title, view) como um documento inteiro com uma stylesheet já embutida, claro e escuro igualmente — que é exatamente o que um handler de httpServe pode usar para responder a uma requisição diretamente, e o que toda tela deste tour, exceto suas amostras de código, é. A mesma árvore, mostrada em vez disso por window(title, view, update, state), se torna uma página viva: update é um fold sobre seus eventos, a mesma forma que um handler de hive.syslink faz fold sobre uma caixa de mensagens, então uma window tem um endereço e não precisa de mutex próprio.\n\nEsse endereço é também por que não existe um tipo de comando. Toda linguagem construída assim precisa de uma resposta para \"o update quer buscar algo, e não pode travar a tela enquanto busca\", e a maioria delas inventa um tipo para isso — um Cmd, uma task, um efeito que o runtime interpreta. Hive não precisa de nenhum, porque já tem duas coisas que somadas dão uma: update é um proc, então pode agir, e hive.syslink.self(envelope) é o endereço da própria window, então o trabalho iniciado com async pode mandar sua resposta de volta como uma mensagem comum.\n\nE como uma view é um valor e não um template, uma interface dá para testar sem navegador. html é o mesmo renderizador que uma página servida usa, então um teste pode renderizar uma view e ler o markup que sai — que é o lugar mais barato que existe para conferir que um botão desabilitado está mesmo desabilitado, e que o texto de outra pessoa não consegue contrabandear uma tag de script para dentro da sua página.\n\nUma scene é o único widget que somente uma window consegue desenhar. box, sphere, cylinder, ground, label e line são suas formas, posicionadas com at e turn e coloridas com paint; eye, aim, lens e fog posicionam e ajustam a câmera; grab e crosshair capturam o mouse, e onFrame, onKeyDown, onKeyUp, onLook e onGrab são os eventos que somente uma scene reporta. Uma página servida renderiza a caixa de uma scene vazia — não há um socket para os frames viajarem — então os dois exemplos abaixo são mostrados apenas como código: abra qualquer um deles em uma window para realmente ver.",
+			explanation: "hive.ui builds an interface as a value: a View is a tree of widgets, and every one of them takes the same two things, its attributes and then its own payload. row and column lay out children; text, image, icon and link show something; button, input, textarea, checkbox and select ask for something; table shows a Table, and spacer, spinner, none and overlay round out the set. Attributes are just as closed a set: gap, pad, width, height, grow, align, justify and scroll lay out; size, heading, tone and background style; disabled, busy, placeholder, hint and kind describe state; and on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick and onSort carry an event, for a window rather than this kind of page. Align, Justify, TextSize, Tone, Axis, InputKind and Icon are the enumerations behind them, reached like any other library type.\n\nhtml(view) renders a tree as an HTML fragment, and page(title, view) as a whole document with a stylesheet already built in, light and dark alike — which is exactly what an httpServe handler can answer a request with directly, and what every screen in this tour but its code samples is. The same tree, shown instead by window(title, view, update, state), becomes a live page: update is a fold over its events, the same shape a hive.syslink handler folds over a mailbox, so a window has an address and needs no mutex of its own.\n\nThat address is also why there is no command type. Every language built this way needs an answer to \"the update wants to fetch something, and must not block the screen while it does\", and most of them invent a type for it — a Cmd, a task, an effect the runtime interprets. Hive needs none, because it already has two things that add up to one: update is a proc, so it may act, and hive.syslink.self(envelope) is the window's own address, so work started with async can send its answer back as an ordinary message.\n\nAnd because a view is a value rather than a template, an interface is testable without a browser. html is the same renderer a served page uses, so a test can render a view and read the markup that comes out — which is the cheapest place there is to check that a disabled button really is disabled, and that somebody else's text cannot smuggle a script tag into your page.\n\nOne widget is missing from all of that, and it has the next slide to itself: scene, which draws in three dimensions and which only a window can draw.",
+			explanationPt: "hive.ui constrói uma interface como um valor: uma View é uma árvore de widgets, e cada um deles recebe as mesmas duas coisas, seus atributos e depois sua própria carga. row e column organizam filhos; text, image, icon e link mostram algo; button, input, textarea, checkbox e select pedem algo; table mostra uma Table, e spacer, spinner, none e overlay completam o conjunto. Os atributos são um conjunto igualmente fechado: gap, pad, width, height, grow, align, justify e scroll organizam; size, heading, tone e background estilizam; disabled, busy, placeholder, hint e kind descrevem estado; e on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick e onSort carregam um evento, para uma window e não para este tipo de página. Align, Justify, TextSize, Tone, Axis, InputKind e Icon são as enumerações por trás deles, acessadas como qualquer outro tipo da biblioteca.\n\nhtml(view) renderiza uma árvore como um fragmento HTML, e page(title, view) como um documento inteiro com uma stylesheet já embutida, claro e escuro igualmente — que é exatamente o que um handler de httpServe pode usar para responder a uma requisição diretamente, e o que toda tela deste tour, exceto suas amostras de código, é. A mesma árvore, mostrada em vez disso por window(title, view, update, state), se torna uma página viva: update é um fold sobre seus eventos, a mesma forma que um handler de hive.syslink faz fold sobre uma caixa de mensagens, então uma window tem um endereço e não precisa de mutex próprio.\n\nEsse endereço é também por que não existe um tipo de comando. Toda linguagem construída assim precisa de uma resposta para \"o update quer buscar algo, e não pode travar a tela enquanto busca\", e a maioria delas inventa um tipo para isso — um Cmd, uma task, um efeito que o runtime interpreta. Hive não precisa de nenhum, porque já tem duas coisas que somadas dão uma: update é um proc, então pode agir, e hive.syslink.self(envelope) é o endereço da própria window, então o trabalho iniciado com async pode mandar sua resposta de volta como uma mensagem comum.\n\nE como uma view é um valor e não um template, uma interface dá para testar sem navegador. html é o mesmo renderizador que uma página servida usa, então um teste pode renderizar uma view e ler o markup que sai — que é o lugar mais barato que existe para conferir que um botão desabilitado está mesmo desabilitado, e que o texto de outra pessoa não consegue contrabandear uma tag de script para dentro da sua página.\n\nUm widget ficou de fora de tudo isso, e tem o próximo slide só para ele: scene, que desenha em três dimensões e que somente uma window consegue desenhar.",
 			examples: [
 				Example(caption: "A page, served directly", captionPt: "Uma página, servida diretamente", code: `proc main(): void {
 	view := hive.ui.column([hive.ui.pad(24), hive.ui.gap(12)], [
@@ -2735,16 +2776,43 @@ test "o corpo de um post não contrabandeia markup para a página" {
 	page := ui.html(view(Model(["<script>steal()</script>"], "")))
 	assert indexOf(page, "<script>") is Result.Error(_)
 }`),
+			],
+		),
+		Slide(
+			title: "Three dimensions",
+			titlePt: "Três dimensões",
+			download: false,
+			explanation: "A scene is the one widget only a window can draw, and it is a module of its own — hive.ui.scene — because it is the one thing in the standard library that carries a download: a pinned three.js, fetched on the first build that needs it and cached ever after. A window that draws no scene links none of it. A scene is a value like every other view: a camera, a sky, and a vector of shapes, rebuilt by an ordinary func from the state as often as there are frames. Nothing here is a handle — no mesh to keep, no material to allocate, no canvas to hold — so a program answers what is there right now, and never what has changed.\n\nbox, sphere, cylinder, cone, ground, label and line are the shapes, and each takes its dimensions as its payload rather than as attributes, because they are what the shape is: a sphere without a radius is not a sphere with a default one. cone takes both of its radii rather than only the base — a cone in the world is hardly ever the perfect one, a track marker is snub-nosed and a nose cone ends in a blade, and a shape that could only be the perfect one gets composed around rather than used. Nought at the top is the perfect one; a top equal to the bottom is a cylinder. ground already lies flat, so a floor costs no rotation and turn still means everywhere what it means anywhere; label always faces the viewer, because one you can read from one side only is not a label; and line takes no position at all, since a line is between two places and has no third to call its own.\n\nat, turn and paint place and colour a shape. surface says what it is made of, which is a different question from what colour it is: Turf, Gravel, Tarmac, Kerb, Planks, Staves, Speckle, Metal, Carbon and Gloss, each drawn over whatever colour the shape already is — so one pattern serves a red kerb and a blue one, and Gloss adds no pattern at all. Where a shape says nothing its kind decides: a ground is Turf, a cylinder or a cone is Staves, a sphere is Speckle, and everything else is Planks. And a colour carrying an alpha is translucent — Tone.RGBA(r, g, b, a), or an eight-digit Tone.HEX — drawn see-through and writing no depth, which is how a ghost, a tinted screen or the plume behind something gets drawn.\n\neye, aim, lens, fog, background, grab and crosshair go on the scene itself rather than on a shape: where the camera is and where it looks, how wide the lens is, how far you can see, the sky the fog fades into, and whether the window should hold the mouse. Lighting is deliberately not something a scene describes — the rig is fixed, chosen so that a solid painted a colour comes out that colour with a shaded side — so what makes a scene dark is its palette rather than a setting turned down. The events are a scene's own: onFrame reports how many milliseconds the last frame took, onKeyDown and onKeyUp a key's name, onLook how far the mouse moved, onGrab whether the window has the pointer, and onPad a gamepad.\n\nA gamepad is the one input a browser will not tell you about: there is no event for a stick moving, only a snapshot you have to ask for. So the runtime reads the pads once a frame and posts what changed — which makes a button on a pad the same kind of thing as a key going down, rather than a second way of hearing about input. onPad reports three things: which pad, which control on it, and where that control now is. One shape covers the whole device, because a button is a control that is only ever 0 or 1. leftX, leftY, rightX and rightY are the sticks; lt and rt the triggers; a, b, x, y, lb, rb, up, down, left, right, back, start, guide, lstick and rstick the buttons; and anything past those is reported by number. here is the pad itself: 1 when it arrives, 2 when it arrives with a layout the browser could not name, and 0 when it goes — and a pad being unplugged lets go of everything it was holding first, so a car whose controller ran flat mid-corner does not keep turning. A dead zone is applied before the event is sent, and nothing is sent until a control has actually moved, because a stick at rest is never quite at rest.\n\nA served page renders a scene's box empty — there is no socket for frames to travel down — so the examples below are shown as code only: open one in a window to actually see it.",
+			explanationPt: "Uma scene é o único widget que somente uma window consegue desenhar, e é um módulo à parte — hive.ui.scene — porque é a única coisa na biblioteca padrão que carrega um download: um three.js fixado, buscado na primeira compilação que precisa dele e guardado em cache dali em diante. Uma window que não desenha nenhuma scene não linka nada disso. Uma scene é um valor como qualquer outra view: uma câmera, um céu e um vetor de formas, reconstruído por um func comum a partir do estado tantas vezes quantos forem os frames. Nada aqui é um handle — nenhuma malha para guardar, nenhum material para alocar, nenhum canvas para segurar — então um programa responde o que está ali agora, e nunca o que mudou.\n\nbox, sphere, cylinder, cone, ground, label e line são as formas, e cada uma recebe suas dimensões como carga e não como atributos, porque elas são o que a forma é: uma esfera sem raio não é uma esfera com um raio padrão. cone recebe os seus dois raios em vez de só o da base — um cone no mundo quase nunca é o perfeito, um cone de sinalização é rombudo e o bico de um carro termina em lâmina, e uma forma que só pudesse ser a perfeita acaba sendo contornada em vez de usada. Zero no topo é a perfeita; um topo igual à base é um cilindro. ground já está deitado, então um chão não custa rotação nenhuma e turn continua significando em todo lugar o que significa em qualquer lugar; label sempre encara quem olha, porque uma que só dá para ler de um lado não é uma label; e line não recebe posição alguma, já que uma linha fica entre dois lugares e não tem um terceiro para chamar de seu.\n\nat, turn e paint posicionam e colorem uma forma. surface diz do que ela é feita, que é uma pergunta diferente de qual é a cor dela: Turf, Gravel, Tarmac, Kerb, Planks, Staves, Speckle, Metal, Carbon e Gloss, cada uma desenhada por cima da cor que a forma já tem — então um padrão só serve para um zebrado vermelho e para um azul, e Gloss não acrescenta padrão nenhum. Onde a forma não diz nada, o tipo dela decide: um ground é Turf, um cylinder ou um cone é Staves, uma sphere é Speckle, e todo o resto é Planks. E uma cor que carrega alpha é translúcida — Tone.RGBA(r, g, b, a), ou um Tone.HEX de oito dígitos — desenhada vazada e sem escrever profundidade, que é como se desenha um fantasma, um vidro colorido ou o rastro atrás de alguma coisa.\n\neye, aim, lens, fog, background, grab e crosshair vão na própria scene, e não em uma forma: onde a câmera está e para onde olha, quão aberta é a lente, até onde se enxerga, o céu no qual a névoa se dissolve, e se a window deve segurar o mouse. Iluminação deliberadamente não é algo que uma scene descreve — o conjunto é fixo, escolhido para que um sólido pintado de uma cor saia daquela cor com um lado sombreado — então o que deixa uma scene escura é a paleta dela, e não uma configuração abaixada. Os eventos são só da scene: onFrame reporta quantos milissegundos o último frame levou, onKeyDown e onKeyUp o nome de uma tecla, onLook o quanto o mouse andou, onGrab se a window está com o ponteiro, e onPad um gamepad.\n\nUm gamepad é a única entrada sobre a qual um navegador não avisa: não existe evento para um analógico se mexer, só um retrato que você precisa pedir. Então o runtime lê os controles uma vez por frame e publica o que mudou — o que faz de um botão de controle a mesma coisa que uma tecla sendo pressionada, em vez de um segundo jeito de ouvir sobre entrada. onPad reporta três coisas: qual controle, qual comando dele, e onde esse comando está agora. Uma forma só cobre o aparelho inteiro, porque um botão é um comando que só é 0 ou 1. leftX, leftY, rightX e rightY são os analógicos; lt e rt os gatilhos; a, b, x, y, lb, rb, up, down, left, right, back, start, guide, lstick e rstick os botões; e qualquer coisa além disso é reportada por número. here é o próprio controle: 1 quando ele chega, 2 quando chega com um layout que o navegador não soube nomear, e 0 quando ele vai embora — e um controle desconectado solta antes tudo que estava segurando, então um carro cujo controle ficou sem bateria no meio da curva não continua virando. Uma zona morta é aplicada antes de o evento ser enviado, e nada é enviado até um comando ter de fato se mexido, porque um analógico parado nunca está totalmente parado.\n\nUma página servida renderiza a caixa de uma scene vazia — não há socket por onde os frames viajem — então os exemplos abaixo são mostrados apenas como código: abra um deles em uma window para realmente ver.",
+			examples: [
 				Example(caption: "A 3D scene, in a window", captionPt: "Uma cena 3D, em uma window", code: `type Msg { Tick }
 
 func view(model: Int): hive.ui.View {
 	shapes := [
 		hive.ui.ground([hive.ui.paint(hive.ui.Tone.HEX("#2d5c34"))], 20.0, 20.0),
 		hive.ui.box(
-			[hive.ui.at(0.0, 0.5, -3.0), hive.ui.paint(hive.ui.Tone.HEX("#b5651d"))],
+			[
+				hive.ui.at(0.0, 0.5, -3.0),
+				hive.ui.paint(hive.ui.Tone.HEX("#b5651d")),
+				hive.ui.surface(hive.ui.Surface.Planks()),
+			],
 			1.0, 1.0, 1.0,
 		),
 		hive.ui.sphere([hive.ui.at(2.0, 1.0, -4.0), hive.ui.paint(hive.ui.Tone.HEX("#e0c341"))], 1.0),
+		// A cone takes both radii: nought at the top is the pointed one.
+		hive.ui.cone(
+			[
+				hive.ui.at(-2.0, 0.4, -3.0),
+				hive.ui.paint(hive.ui.Tone.HEX("#ff5a1f")),
+				hive.ui.surface(hive.ui.Surface.Gloss()),
+			],
+			0.0, 0.4, 0.8,
+		),
+		// And a colour with an alpha is drawn see-through.
+		hive.ui.box(
+			[hive.ui.at(0.0, 1.2, -1.5), hive.ui.paint(hive.ui.Tone.RGBA(120, 200, 255, 96))],
+			3.0, 2.0, 0.2,
+		),
 	]
 	return hive.ui.scene(
 		[hive.ui.grow(1), hive.ui.eye(0.0, 1.6, 4.0), hive.ui.aim(0.0, 0.0), hive.ui.lens(70), hive.ui.fog(60)],
@@ -2764,10 +2832,28 @@ func view(model: Int): hive.ui.View {
 	shapes := [
 		hive.ui.ground([hive.ui.paint(hive.ui.Tone.HEX("#2d5c34"))], 20.0, 20.0),
 		hive.ui.box(
-			[hive.ui.at(0.0, 0.5, -3.0), hive.ui.paint(hive.ui.Tone.HEX("#b5651d"))],
+			[
+				hive.ui.at(0.0, 0.5, -3.0),
+				hive.ui.paint(hive.ui.Tone.HEX("#b5651d")),
+				hive.ui.surface(hive.ui.Surface.Planks()),
+			],
 			1.0, 1.0, 1.0,
 		),
 		hive.ui.sphere([hive.ui.at(2.0, 1.0, -4.0), hive.ui.paint(hive.ui.Tone.HEX("#e0c341"))], 1.0),
+		// Um cone recebe os dois raios: zero no topo é o pontudo.
+		hive.ui.cone(
+			[
+				hive.ui.at(-2.0, 0.4, -3.0),
+				hive.ui.paint(hive.ui.Tone.HEX("#ff5a1f")),
+				hive.ui.surface(hive.ui.Surface.Gloss()),
+			],
+			0.0, 0.4, 0.8,
+		),
+		// E uma cor com alpha é desenhada translúcida.
+		hive.ui.box(
+			[hive.ui.at(0.0, 1.2, -1.5), hive.ui.paint(hive.ui.Tone.RGBA(120, 200, 255, 96))],
+			3.0, 2.0, 0.2,
+		),
 	]
 	return hive.ui.scene(
 		[hive.ui.grow(1), hive.ui.eye(0.0, 1.6, 4.0), hive.ui.aim(0.0, 0.0), hive.ui.lens(70), hive.ui.fog(60)],
@@ -2850,6 +2936,127 @@ proc spin(angle: Float, msg: Msg, envelope: hive.syslink.Envelope): Float {
 
 proc main(): void {
 	hive.ui.window("Uma caixa girando", view, spin, 0.0)
+}`),
+				Example(caption: "Driving it with a gamepad", captionPt: "Dirigindo com um gamepad", code: `type Msg {
+	Tick { ms: Int }
+	Padded { pad: Int, control: Str, at: Float }
+}
+
+type Kart {
+	x:        Float
+	z:        Float
+	steer:    Float
+	throttle: Float
+}
+
+func view(kart: Kart): hive.ui.View {
+	return hive.ui.scene(
+		[
+			hive.ui.grow(1),
+			hive.ui.eye(kart.x, 4.0, kart.z + 9.0),
+			hive.ui.aim(0.0, -0.25),
+			hive.ui.lens(70),
+			hive.ui.onFrame(Msg.Tick(_)),
+			hive.ui.onPad(Msg.Padded(_, _, _)),
+		],
+		[
+			hive.ui.ground(
+				[hive.ui.paint(hive.ui.Tone.HEX("#61686f")), hive.ui.surface(hive.ui.Surface.Tarmac())],
+				120.0, 120.0,
+			),
+			hive.ui.box(
+				[
+					hive.ui.at(kart.x, 0.4, kart.z),
+					hive.ui.paint(hive.ui.Tone.HEX("#00d2be")),
+					hive.ui.surface(hive.ui.Surface.Gloss()),
+				],
+				1.6, 0.6, 3.4,
+			),
+		],
+	)
+}
+
+// A stick and a trigger arrive through the same hole and are told apart by
+// name, because a button is a control that is only ever 0 or 1. Nothing is
+// held on to here that the pad did not say: onPad reports what *changed*,
+// so the model remembers the last position of each control it cares about.
+proc drive(kart: Kart, msg: Msg, envelope: hive.syslink.Envelope): Kart {
+	mut Kart it = kart
+	if msg is Msg.Padded(pad, control, at) {
+		if control == "leftX" { it.steer = at }
+		if control == "rt" { it.throttle = at }
+		return it
+	}
+	if msg is Msg.Tick(ms) {
+		step := hive.conv.itf(ms) / 1000.0
+		it.x = it.x + it.steer * it.throttle * 16.0 * step
+		it.z = it.z - it.throttle * 16.0 * step
+	}
+	return it
+}
+
+proc main(): void {
+	hive.ui.window("A pad", view, drive, Kart(0.0, 0.0, 0.0, 0.0))
+}`, codePt: `type Msg {
+	Tick { ms: Int }
+	Padded { pad: Int, control: Str, at: Float }
+}
+
+type Kart {
+	x:        Float
+	z:        Float
+	steer:    Float
+	throttle: Float
+}
+
+func view(kart: Kart): hive.ui.View {
+	return hive.ui.scene(
+		[
+			hive.ui.grow(1),
+			hive.ui.eye(kart.x, 4.0, kart.z + 9.0),
+			hive.ui.aim(0.0, -0.25),
+			hive.ui.lens(70),
+			hive.ui.onFrame(Msg.Tick(_)),
+			hive.ui.onPad(Msg.Padded(_, _, _)),
+		],
+		[
+			hive.ui.ground(
+				[hive.ui.paint(hive.ui.Tone.HEX("#61686f")), hive.ui.surface(hive.ui.Surface.Tarmac())],
+				120.0, 120.0,
+			),
+			hive.ui.box(
+				[
+					hive.ui.at(kart.x, 0.4, kart.z),
+					hive.ui.paint(hive.ui.Tone.HEX("#00d2be")),
+					hive.ui.surface(hive.ui.Surface.Gloss()),
+				],
+				1.6, 0.6, 3.4,
+			),
+		],
+	)
+}
+
+// Um analógico e um gatilho chegam pelo mesmo buraco e são distinguidos pelo
+// nome, porque um botão é um comando que só é 0 ou 1. Nada é guardado aqui
+// que o controle não tenha dito: onPad reporta o que *mudou*, então o modelo
+// lembra a última posição de cada comando que lhe interessa.
+proc drive(kart: Kart, msg: Msg, envelope: hive.syslink.Envelope): Kart {
+	mut Kart it = kart
+	if msg is Msg.Padded(pad, control, at) {
+		if control == "leftX" { it.steer = at }
+		if control == "rt" { it.throttle = at }
+		return it
+	}
+	if msg is Msg.Tick(ms) {
+		step := hive.conv.itf(ms) / 1000.0
+		it.x = it.x + it.steer * it.throttle * 16.0 * step
+		it.z = it.z - it.throttle * 16.0 * step
+	}
+	return it
+}
+
+proc main(): void {
+	hive.ui.window("Um controle", view, drive, Kart(0.0, 0.0, 0.0, 0.0))
 }`),
 			],
 		),
