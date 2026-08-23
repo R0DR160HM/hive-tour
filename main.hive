@@ -28,6 +28,7 @@ type Slide {
 	explanation:   Str
 	explanationPt: Str
 	examples:      Example[dyn]
+	download:      Bool
 }
 
 proc main(): void {
@@ -274,8 +275,8 @@ func headerColumn(slide: Slide, idx: Int, total: Int, lang: Str): ui.View {
 }
 
 // What follows the code examples: the explanation, one paragraph per view
-// so each wraps on its own, a download link on the tour's last slide, and
-// the prev/next pager. Rendered separately with `ui.html` and spliced in
+// so each wraps on its own, a download link on the two slides that ask for
+// one, and the prev/next pager. Rendered separately with `ui.html` and spliced in
 // right after the examples, so it still ends up inside the same column the
 // header opened.
 func bottomView(slide: Slide, idx: Int, total: Int, lang: Str, path: Str): ui.View {
@@ -283,7 +284,7 @@ func bottomView(slide: Slide, idx: Int, total: Int, lang: Str, path: Str): ui.Vi
 	for each para in split(slideExplanation(slide, lang), "\n\n") {
 		append(blocks, ui.text([], para))
 	}
-	if idx + 1 == total {
+	if slide.download {
 		append(blocks, ui.row([ui.gap(12)], [downloadLinkView(lang), repoLinkView(lang)]))
 	}
 
@@ -446,11 +447,12 @@ func notFoundText(lang: Str): Str {
 // The content of the tour, one feature at a time. Every code example below
 // is a complete program: copy it into a `.hive` file and `hive run` it.
 
-func slides(): Slide[38] {
+func slides(): Slide[48] {
 	return [
 		Slide(
 			title: "Hello, World",
 			titlePt: "Olá, Mundo",
+			download: false,
 			explanation: "Every Hive program starts at proc main(): void, in the file handed to `hive run` or `hive build`. echo prints a value and appends a newline, converting whatever it is given to text the way it would be shown.",
 			explanationPt: "Todo programa Hive começa em proc main(): void, no arquivo passado para `hive run` ou `hive build`. echo imprime um valor e adiciona uma nova linha, convertendo o que quer que receba em texto da mesma forma que seria exibido.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
@@ -460,8 +462,35 @@ func slides(): Slide[38] {
 }`)],
 		),
 		Slide(
+			title: "Running these examples",
+			titlePt: "Rodando estes exemplos",
+			download: true,
+			explanation: "Every example from here on is a complete program: put it in a file ending in .hive, and one command runs it. The compiler is a single executable with nothing to install beside it — no runtime, no package manager, no project file — so the download link below is the whole of the setup.\n\nhive check reads a program and reports what is wrong with it without building anything, which is why it is the one worth reaching for first. hive run compiles and runs in a single step, hive build leaves a native executable behind, hive test runs a file's tests and reports coverage, and hive container writes a Dockerfile that builds and runs the program. Every pass reports as much as it can find rather than stopping at the first thing, so a program with six mistakes is a program whose author gets told about six.",
+			explanationPt: "Todo exemplo daqui em diante é um programa completo: coloque-o em um arquivo terminado em .hive, e um comando o roda. O compilador é um único executável sem nada para instalar ao lado dele — sem runtime, sem gerenciador de pacotes, sem arquivo de projeto — então o link de download abaixo é toda a configuração que existe.\n\nhive check lê um programa e reporta o que há de errado nele sem construir nada, e é por isso que vale a pena recorrer a ele primeiro. hive run compila e roda em um único passo, hive build deixa um executável nativo pronto, hive test roda os testes de um arquivo e reporta a cobertura, e hive container escreve um Dockerfile que constrói e roda o programa. Toda passagem reporta tudo que consegue encontrar em vez de parar na primeira coisa, então um programa com seis erros é um programa cujo autor é avisado sobre os seis.",
+			examples: [Example(caption: "", captionPt: "", code: `$ printf 'proc main(): void {\n\techo "it works"\n}\n' > hello.hive
+
+$ hive check hello.hive
+No problems found in hello.hive (0s)
+
+$ hive run hello.hive
+it works
+
+$ hive build hello.hive
+Compiled hello.hive -> hello (0s)`, codePt: `$ printf 'proc main(): void {\n\techo "funciona"\n}\n' > hello.hive
+
+$ hive check hello.hive
+No problems found in hello.hive (0s)
+
+$ hive run hello.hive
+funciona
+
+$ hive build hello.hive
+Compiled hello.hive -> hello (0s)`)],
+		),
+		Slide(
 			title: "Comments",
 			titlePt: "Comentários",
+			download: false,
 			explanation: "A comment runs from // to the end of the line, and nothing more. There is no block comment form in Hive itself — inside a query body, which is SQL rather than Hive, SQL's own -- and /* */ are recognised instead.",
 			explanationPt: "Um comentário vai de // até o fim da linha, e nada mais. Não existe forma de comentário em bloco no próprio Hive — dentro do corpo de uma query, que é SQL e não Hive, os -- e /* */ do próprio SQL são reconhecidos em seu lugar.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
@@ -477,6 +506,7 @@ func slides(): Slide[38] {
 		Slide(
 			title: "Names have shapes",
 			titlePt: "Nomes têm formas",
+			download: false,
 			explanation: "A name's spelling says what it is, and each shape is enforced where the name is declared. camelCase names variables, parameters, fields and every proc/func/query. PascalCase names types, their variants, and atoms. UPPER_CASE is how a constant is written: a variable nothing reassigns. Keywords are lower case, and only lower case — a keyword spelled in another casing, like Proc or IF, is a compile error naming both readings rather than a usable identifier.",
 			explanationPt: "A grafia de um nome diz o que ele é, e cada forma é obrigatória no lugar onde o nome é declarado. camelCase nomeia variáveis, parâmetros, campos e todo proc/func/query. PascalCase nomeia tipos, suas variantes e átomos. UPPER_CASE é como se escreve uma constante: uma variável que nada reatribui. Palavras-chave são em minúsculas, e somente em minúsculas — uma palavra-chave grafada de outra forma, como Proc ou IF, é um erro de compilação que aponta as duas leituras em vez de um identificador utilizável.",
 			examples: [Example(caption: "", captionPt: "", code: `type Shape {
@@ -504,6 +534,7 @@ proc main(): void {
 		Slide(
 			title: "Variables and constants",
 			titlePt: "Variáveis e constantes",
+			download: false,
 			explanation: ":= infers a type from the value, including a static vector length. A type written out front with = states it instead, which is the only way to say [dyn], or to give a value nothing else says the shape of somewhere to land. A binding is immutable unless it says mut, and a mut variable may never be spelled UPPER_CASE — that shape is reserved for something nothing reassigns.",
 			explanationPt: ":= infere um tipo a partir do valor, incluindo um tamanho estático de vetor. Um tipo escrito explicitamente na frente com = o declara em vez disso, que é a única forma de dizer [dyn], ou de dar a um valor que nada mais define a forma de um lugar para chegar. Uma ligação é imutável a menos que diga mut, e uma variável mut nunca pode ser grafada em UPPER_CASE — essa forma é reservada para algo que nada reatribui.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
@@ -529,6 +560,7 @@ proc main(): void {
 		Slide(
 			title: "Scalar types",
 			titlePt: "Tipos escalares",
+			download: false,
 			explanation: "Str holds UTF-8 text. Int is a 64-bit signed integer whose overflow wraps silently. Float is a 64-bit float. Bool is true or false. Atom is an interned symbol, written #Name — a label, not a condition, so `if flag` is a compile error when flag is an Atom. void is a return type only; there is no void value, field or element. There is no implicit numeric widening anywhere: an Int never becomes a Float on its own.",
 			explanationPt: "Str guarda texto UTF-8. Int é um inteiro de 64 bits com sinal cujo overflow dá a volta silenciosamente. Float é um float de 64 bits. Bool é true ou false. Atom é um símbolo internado, escrito #Nome — um rótulo, não uma condição, então `if flag` é um erro de compilação quando flag é um Atom. void é apenas um tipo de retorno; não existe valor, campo ou elemento void. Não há ampliação numérica implícita em lugar nenhum: um Int nunca se torna um Float por conta própria.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
@@ -552,6 +584,7 @@ proc main(): void {
 		Slide(
 			title: "Strings",
 			titlePt: "Strings",
+			download: false,
 			explanation: "A double-quoted string interpolates with \{expression} and escapes with \\n, \\t, \\\", \\\\, and \\\{ for a literal brace. A backtick string is raw: no escapes and no interpolation at all, so it is the natural way to hold a block of text — or, as on this very page, a block of Hive source — untouched. Its indentation is stripped at compile time down to the shortest common margin.",
 			explanationPt: "Uma string entre aspas duplas interpola com \{expressão} e usa escapes com \\n, \\t, \\\", \\\\, e \\\{ para uma chave literal. Uma string entre crases é bruta: sem escapes e sem interpolação alguma, o que a torna a forma natural de guardar um bloco de texto — ou, como nesta própria página, um bloco de código-fonte Hive — intacto. Sua indentação é removida em tempo de compilação até a menor margem em comum.",
 			examples: [
@@ -580,8 +613,333 @@ proc main(): void {
 			],
 		),
 		Slide(
+			title: "Operators",
+			titlePt: "Operadores",
+			download: false,
+			explanation: "+ adds two numbers, concatenates two Str, and joins two vectors into a new one whose length is the two lengths added. - * / % ** are the rest of the arithmetic, and unary - is the only prefix operator in the language. == and != compare any two values of one type structurally — element by element down a vector, field by field through a declared type, and ignoring the order a map's keys were set in — while comparing two values of different types is a compile error rather than a silent false. < > <= >= order Int, Float and Str. && and || short-circuit, and both take a Bool and nothing else: there is no truthiness in Hive, so an Int, a Str, an Atom or a vector is not a condition.\n\nThere is no unary !. The only prefix operator is -, and ! exists solely as the first character of !=. That is a deliberate consequence of `is` being an expression: most conditions worth negating are matches, and `is` has no negated form either — the else is where the other case goes. A mutable number steps with the compound assignments += -= *= /= and with ++ and --, each one shorthand for the matching x = x <op> ….\n\nNone of these ever converts a number behind your back: an Int does not become a Float, so hive.math.max(0, health) is a compile error rather than a surprise, and hive.conv.itf is how you widen one on purpose.",
+			explanationPt: "+ soma dois números, concatena dois Str, e junta dois vetores em um novo cujo tamanho é a soma dos dois tamanhos. - * / % ** são o resto da aritmética, e o - unário é o único operador prefixo da linguagem. == e != comparam quaisquer dois valores de um mesmo tipo estruturalmente — elemento por elemento ao longo de um vetor, campo por campo através de um tipo declarado, e ignorando a ordem em que as chaves de um mapa foram definidas — enquanto comparar dois valores de tipos diferentes é um erro de compilação, não um false silencioso. < > <= >= ordenam Int, Float e Str. && e || fazem curto-circuito, e ambos recebem um Bool e nada mais: não existe truthiness em Hive, então um Int, uma Str, um Atom ou um vetor não é uma condição.\n\nNão existe ! unário. O único operador prefixo é -, e ! existe apenas como o primeiro caractere de !=. Isso é uma consequência deliberada de `is` ser uma expressão: a maioria das condições que valem a pena negar são casamentos, e `is` também não tem forma negada — o else é onde o outro caso vai. Um número mutável avança com as atribuições compostas += -= *= /= e com ++ e --, cada uma sendo um atalho para o x = x <op> … correspondente.\n\nNenhum deles converte um número pelas suas costas: um Int não vira um Float, então hive.math.max(0, health) é um erro de compilação em vez de uma surpresa, e hive.conv.itf é como se amplia um de propósito.",
+			examples: [
+				Example(caption: "Arithmetic and comparison", captionPt: "Aritmética e comparação", code: `proc main(): void {
+	echo 7 + 3 * 2        // 13 — * binds tighter than +
+	echo 7 / 2            // 3 — Int division truncates
+	echo 7 % 2            // 1 — the remainder
+	echo 2 ** 10          // 1024
+	echo -7               // the only prefix operator there is
+
+	echo 3 < 4            // ordering: Int, Float and Str
+	echo "bee" == "bee"   // structural equality
+	echo [1, 2] != [2, 1]
+}`, codePt: `proc main(): void {
+	echo 7 + 3 * 2        // 13 — * liga mais forte que +
+	echo 7 / 2            // 3 — divisão de Int trunca
+	echo 7 % 2            // 1 — o resto
+	echo 2 ** 10          // 1024
+	echo -7               // o único operador prefixo que existe
+
+	echo 3 < 4            // ordenação: Int, Float e Str
+	echo "bee" == "bee"   // igualdade estrutural
+	echo [1, 2] != [2, 1]
+}`),
+				Example(caption: "Text and vectors join with the same +", captionPt: "Texto e vetores se juntam com o mesmo +", code: `proc main(): void {
+	echo "hive" + " " + "tour"   // Str: concatenation
+	echo [1, 2] + [3]             // vectors: a new one, the lengths added
+}`, codePt: `proc main(): void {
+	echo "hive" + " " + "tour"   // Str: concatenação
+	echo [1, 2] + [3]             // vetores: um novo, os tamanhos somados
+}`),
+				Example(caption: "Logic, and the missing !", captionPt: "Lógica, e o ! que falta", code: `proc main(): void {
+	ready := true
+	warm := false
+
+	echo ready && warm
+	echo ready || warm
+
+	// There is no unary `+"`"+`!`+"`"+`: a negated condition is written by comparing,
+	// or by matching the case you did not want.
+	if warm == false { echo "not warm" }
+	if indexOf([1, 2], 3) is Result.Error(_) { echo "not there" }
+}`, codePt: `proc main(): void {
+	ready := true
+	warm := false
+
+	echo ready && warm
+	echo ready || warm
+
+	// Não existe `+"`"+`!`+"`"+` unário: uma condição negada se escreve comparando,
+	// ou casando o caso que você não queria.
+	if warm == false { echo "não está quente" }
+	if indexOf([1, 2], 3) is Result.Error(_) { echo "não está lá" }
+}`),
+				Example(caption: "Stepping a number", captionPt: "Avançando um número", code: `proc main(): void {
+	mut n := 10
+	n += 5
+	n -= 3
+	n *= 2
+	n /= 4
+	n++
+	n--
+	echo n     // 6
+}`, codePt: `proc main(): void {
+	mut n := 10
+	n += 5
+	n -= 3
+	n *= 2
+	n /= 4
+	n++
+	n--
+	echo n     // 6
+}`),
+			],
+		),
+		Slide(
+			title: "Arithmetic at the edges",
+			titlePt: "Aritmética nas bordas",
+			download: false,
+			explanation: "Most of arithmetic is unsurprising. These are the cases worth stating exactly, and what they have in common is that each one is a value rather than a crash. Division and remainder by zero both answer with 0. Int overflow wraps, two's-complement and silently — which is what makes 2 ** 100 come back as 0, since ** on Int is repeated multiplication and wraps the same way. A negative Int exponent has no integral answer, so it yields 0 rather than a fraction, while n ** 0 is 1. A remainder takes the sign of its dividend, so -7 % 3 is -1. Float arithmetic does reach non-finite values, so 10.0 ** 400.0 is +Inf; for the mathematical answer to a power, work in Float, where ** is real exponentiation.\n\nOne case in the whole language is unspecified: converting a Float that is +Inf, -Inf, NaN or simply too large into an Int, through hive.conv.ceil, floor or round. Go leaves that conversion implementation-dependent and Hive does not paper over it, so the answer may differ between Go versions and architectures. Non-finite values reach a program through Float overflow and through hive.conv.stf(\"Inf\"), so check the range you expect before converting if it matters.",
+			explanationPt: "A maior parte da aritmética não surpreende. Estes são os casos que valem ser ditos com exatidão, e o que eles têm em comum é que cada um é um valor, e não uma falha. Divisão e resto por zero respondem ambos com 0. Overflow de Int dá a volta, em complemento de dois e silenciosamente — que é o que faz 2 ** 100 voltar como 0, já que ** sobre Int é multiplicação repetida e dá a volta da mesma forma. Um expoente Int negativo não tem resposta inteira, então produz 0 em vez de uma fração, enquanto n ** 0 é 1. Um resto toma o sinal do seu dividendo, então -7 % 3 é -1. A aritmética de Float alcança valores não finitos, então 10.0 ** 400.0 é +Inf; para a resposta matemática de uma potência, trabalhe em Float, onde ** é exponenciação de verdade.\n\nUm caso na linguagem inteira é não especificado: converter um Float que seja +Inf, -Inf, NaN ou simplesmente grande demais em um Int, através de hive.conv.ceil, floor ou round. O Go deixa essa conversão dependente da implementação e o Hive não disfarça isso, então a resposta pode diferir entre versões do Go e arquiteturas. Valores não finitos chegam a um programa por overflow de Float e por hive.conv.stf(\"Inf\"), então confira a faixa que você espera antes de converter, se isso importa.",
+			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
+	echo 1 / 0          // 0 — division by zero is a value, not a crash
+	echo 5 % 0          // 0
+	echo -7 % 3         // -1 — the remainder takes the sign of the dividend
+	echo 2 ** 100       // 0 — Int overflow wraps, two's-complement, silently
+	echo 2 ** -1        // 0 — a negative Int exponent has no integral answer
+	echo 2 ** 0         // 1
+	echo 10.0 ** 400.0  // +Inf — Float arithmetic does reach non-finite values
+}`, codePt: `proc main(): void {
+	echo 1 / 0          // 0 — divisão por zero é um valor, não uma falha
+	echo 5 % 0          // 0
+	echo -7 % 3         // -1 — o resto toma o sinal do dividendo
+	echo 2 ** 100       // 0 — overflow de Int dá a volta, silenciosamente
+	echo 2 ** -1        // 0 — um expoente Int negativo não tem resposta inteira
+	echo 2 ** 0         // 1
+	echo 10.0 ** 400.0  // +Inf — Float alcança valores não finitos
+}`)],
+		),
+		Slide(
+			title: "Control flow",
+			titlePt: "Controle de fluxo",
+			download: false,
+			explanation: "if, else if and else take a Bool, and only a Bool — an Atom is not a condition, and neither is an Int, a Str or a vector. Names bound by an `is` in the condition are in scope in that branch's body, and in the rest of the same condition after &&.\n\nThere are two loops. The counting one is for i := 0; i < 10; i++, whose counter is scoped to the loop and implicitly mutable, so it needs no mut — and any of its three clauses may be left out, which is how a while loop is written. The iterating one is for each name in values: it walks a vector binding each element to an immutable name, and because it never indexes it needs no bounds proof at all. for each name: T in values overrides the inferred element type. break leaves the innermost enclosing loop and continue skips to its next iteration; either one outside a loop is a compile error.\n\nEvery non-void callable has to return on every path, and a callable that does not is rejected by name rather than quietly handed a zero value. A path terminates by ending in return, in assert or panic, in an if/else whose every branch terminates, or in an else-less if/else if chain that covers its subject's whole type.",
+			explanationPt: "if, else if e else recebem um Bool, e somente um Bool — um Atom não é uma condição, e um Int, uma Str ou um vetor também não. Nomes vinculados por um `is` na condição estão no escopo do corpo daquele ramo, e no resto da mesma condição depois de &&.\n\nExistem dois laços. O de contagem é for i := 0; i < 10; i++, cujo contador tem escopo do laço e é implicitamente mutável, então não precisa de mut — e qualquer uma de suas três cláusulas pode ser omitida, que é como se escreve um laço while. O de iteração é for each name in values: ele percorre um vetor vinculando cada elemento a um nome imutável, e como nunca indexa, não precisa de prova de limites alguma. for each name: T in values sobrepõe o tipo de elemento inferido. break sai do laço mais interno e continue pula para a próxima iteração dele; qualquer um dos dois fora de um laço é um erro de compilação.\n\nTodo callable não-void precisa retornar em todo caminho, e um que não retorna é recusado pelo nome em vez de receber silenciosamente um valor zero. Um caminho termina acabando em return, em assert ou panic, em um if/else cujos ramos todos terminam, ou em uma cadeia if/else if sem else que cobre o tipo inteiro do seu sujeito.",
+			examples: [
+				Example(caption: "if, else if, else", captionPt: "if, else if, else", code: `proc main(): void {
+	frames := 7
+
+	if frames > 10 {
+		echo "a strong colony"
+	} else if frames > 3 {
+		echo "coming along"
+	} else {
+		echo "needs feeding"
+	}
+}`, codePt: `proc main(): void {
+	frames := 7
+
+	if frames > 10 {
+		echo "uma colônia forte"
+	} else if frames > 3 {
+		echo "vai indo"
+	} else {
+		echo "precisa de alimento"
+	}
+}`),
+				Example(caption: "The counting loop", captionPt: "O laço de contagem", code: `proc main(): void {
+	for i := 0; i < 3; i++ {
+		echo "frame {i}"
+	}
+
+	// Any clause may be left out. With only a condition, it is a while loop.
+	mut left := 3
+	for ; left > 0; {
+		left -= 1
+	}
+	echo left
+}`, codePt: `proc main(): void {
+	for i := 0; i < 3; i++ {
+		echo "quadro {i}"
+	}
+
+	// Qualquer cláusula pode ser omitida. Só com condição, é um laço while.
+	mut left := 3
+	for ; left > 0; {
+		left -= 1
+	}
+	echo left
+}`),
+				Example(caption: "for each: walking a vector", captionPt: "for each: percorrendo um vetor", code: `proc main(): void {
+	hives := ["north", "south", "orchard"]
+
+	for each name in hives {
+		echo name
+	}
+
+	for each name: Str in hives {   // the annotation overrides inference
+		echo len(name)
+	}
+}`, codePt: `proc main(): void {
+	hives := ["north", "south", "orchard"]
+
+	for each name in hives {
+		echo name
+	}
+
+	for each name: Str in hives {   // a anotação sobrepõe a inferência
+		echo len(name)
+	}
+}`),
+				Example(caption: "break and continue", captionPt: "break e continue", code: `proc main(): void {
+	for each name in ["north", "", "south", "orchard"] {
+		if name == "" {
+			continue          // skip to the next one
+		}
+		if name == "south" {
+			break             // leave the loop entirely
+		}
+		echo name
+	}
+}`, codePt: `proc main(): void {
+	for each name in ["north", "", "south", "orchard"] {
+		if name == "" {
+			continue          // pula para o próximo
+		}
+		if name == "south" {
+			break             // sai do laço por completo
+		}
+		echo name
+	}
+}`),
+				Example(caption: "Every path must return", captionPt: "Todo caminho precisa retornar", code: `func grade(frames: Int): Str {
+	if frames > 10 {
+		return "strong"
+	} else if frames > 3 {
+		return "growing"
+	}
+	return "weak"    // without this tail, the func does not compile
+}
+
+proc main(): void {
+	echo grade(7)
+}`, codePt: `func grade(frames: Int): Str {
+	if frames > 10 {
+		return "forte"
+	} else if frames > 3 {
+		return "crescendo"
+	}
+	return "fraca"   // sem esta última linha, o func não compila
+}
+
+proc main(): void {
+	echo grade(7)
+}`),
+			],
+		),
+		Slide(
+			title: "assert and panic",
+			titlePt: "assert e panic",
+			download: false,
+			explanation: "assert cond says: this must hold. What happens when it does not is decided by where it is written. In ordinary code a failed assertion has proved the program wrong, so the program stops. Inside a test it has proved the test wrong, so the failure is recorded and every test after it still runs. Either way its operands are evaluated exactly once, whether it holds or not.\n\nA recorded failure quotes the condition's own source text and, for a comparison, prints both sides — which is why a test needs no assertion vocabulary beyond this one word. There is no assertEquals, no expect, no matcher library: the compiler already has the text of what you wrote and the static types of its parts, so it can say what the two sides came out as without being told how.\n\npanic value stops the program immediately, rendering value exactly the way echo would — so panic err prints an error's message, and an atom prints its name rather than its number. Unlike assert it always fires, and it takes any value rather than only a Bool. Because it never returns, a branch or a tail ending in panic counts as a terminating path, which is what lets it close off a tail the type system cannot see is unreachable. The one exception to \"stops the program\" is inside a hive.syslink service, where a panic kills only that service and leaves the node running.",
+			explanationPt: "assert cond diz: isto precisa valer. O que acontece quando não vale é decidido por onde ele está escrito. Em código comum, uma asserção que falha provou que o programa está errado, então o programa para. Dentro de um test, ela provou que o teste está errado, então a falha é registrada e todo teste depois dele ainda roda. De qualquer forma, seus operandos são avaliados exatamente uma vez, valendo ou não.\n\nUma falha registrada cita o próprio texto-fonte da condição e, no caso de uma comparação, imprime os dois lados — que é por que um teste não precisa de vocabulário de asserção além dessa única palavra. Não existe assertEquals, não existe expect, não existe biblioteca de matchers: o compilador já tem o texto do que você escreveu e os tipos estáticos das suas partes, então consegue dizer no que os dois lados deram sem que ninguém lhe explique como.\n\npanic value para o programa na hora, renderizando value exatamente como o echo faria — então panic err imprime a mensagem de um erro, e um átomo imprime seu nome em vez do seu número. Diferente de assert, ele sempre dispara, e recebe qualquer valor em vez de apenas um Bool. Como nunca retorna, um ramo ou um final que termina em panic conta como caminho que termina, que é o que permite fechar um final que o sistema de tipos não consegue ver que é inalcançável. A única exceção a \"para o programa\" é dentro de um serviço hive.syslink, onde um panic mata apenas aquele serviço e deixa o nó rodando.",
+			examples: [
+				Example(caption: "In ordinary code, it stops the program", captionPt: "Em código comum, ele para o programa", code: `func total(prices: Int[]): Int {
+	mut sum := 0
+	for each p in prices { sum += p }
+	return sum
+}
+
+proc main(): void {
+	assert total([3, 4]) == 7    // holds: nothing happens
+	echo "the basket adds up"
+	assert total([3, 4]) == 8    // does not: the program stops, here
+	echo "never reached"
+}`, codePt: `func total(prices: Int[]): Int {
+	mut sum := 0
+	for each p in prices { sum += p }
+	return sum
+}
+
+proc main(): void {
+	assert total([3, 4]) == 7    // vale: nada acontece
+	echo "o carrinho fecha a conta"
+	assert total([3, 4]) == 8    // não vale: o programa para, aqui
+	echo "nunca alcançado"
+}`),
+				Example(caption: "panic closes off an impossible tail", captionPt: "panic fecha um final impossível", code: `type Shape {
+	Circle    { radius: Int }
+	Rectangle { width: Int, height: Int }
+}
+
+func area(shape: Shape): Int {
+	if shape is Shape.Circle(r)            { return 3 * r * r }
+	else if shape is Shape.Rectangle(w, h) { return w * h }
+	panic "a shape with no area: {shape}"
+}
+
+proc main(): void {
+	echo area(Shape.Circle(2))
+}`, codePt: `type Shape {
+	Circle    { radius: Int }
+	Rectangle { width: Int, height: Int }
+}
+
+func area(shape: Shape): Int {
+	if shape is Shape.Circle(r)            { return 3 * r * r }
+	else if shape is Shape.Rectangle(w, h) { return w * h }
+	panic "uma forma sem área: {shape}"
+}
+
+proc main(): void {
+	echo area(Shape.Circle(2))
+}`),
+				Example(caption: "In a test, it records and carries on", captionPt: "Em um test, ele registra e segue em frente", code: `func total(prices: Int[]): Int {
+	mut sum := 0
+	for each p in prices { sum += p }
+	return sum
+}
+
+test "an empty basket costs nothing" {
+	Int[0] empty = []
+	assert total(empty) == 0
+}
+
+test "this one is wrong on purpose" {
+	assert total([3, 4]) == 8
+}`, codePt: `func total(prices: Int[]): Int {
+	mut sum := 0
+	for each p in prices { sum += p }
+	return sum
+}
+
+test "um carrinho vazio não custa nada" {
+	Int[0] empty = []
+	assert total(empty) == 0
+}
+
+test "este está errado de propósito" {
+	assert total([3, 4]) == 8
+}`),
+				Example(caption: "What that failure prints", captionPt: "O que essa falha imprime", code: `$ hive test basket.hive
+  PASS  an empty basket costs nothing
+  FAIL  this one is wrong on purpose
+        assert total(...) == 8
+          left:  7
+          right: 8
+
+  2 tests: 1 passed, 1 failed
+  coverage: 100.0% of statements (7/7)`, codePt: `$ hive test basket.hive
+  PASS  um carrinho vazio não custa nada
+  FAIL  este está errado de propósito
+        assert total(...) == 8
+          left:  7
+          right: 8
+
+  2 tests: 1 passed, 1 failed
+  coverage: 100.0% of statements (7/7)`),
+			],
+		),
+		Slide(
 			title: "Vectors",
 			titlePt: "Vetores",
+			download: false,
 			explanation: "A vector is memory-contiguous and homogeneous. Str[3] is static: exactly three, always. Str[dyn] is dynamic: it promises nothing about its length and is the only kind append works on. Str[] is a parameter-only spelling that accepts either. A variable or field must say which of the two real kinds it holds — that promise is what the bounds checker rests on. + concatenates into a new vector; == compares structurally, element by element.",
 			explanationPt: "Um vetor é contíguo na memória e homogêneo. Str[3] é estático: exatamente três, sempre. Str[dyn] é dinâmico: não promete nada sobre seu tamanho e é o único tipo sobre o qual append funciona. Str[] é uma grafia só para parâmetros que aceita qualquer um dos dois. Uma variável ou campo precisa dizer qual dos dois tipos reais ela guarda — essa promessa é o que sustenta o verificador de limites. + concatena em um novo vetor; == compara estruturalmente, elemento por elemento.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
@@ -605,6 +963,7 @@ proc main(): void {
 		Slide(
 			title: "Builtins",
 			titlePt: "Funções nativas",
+			download: false,
 			explanation: "These are always in scope, with no import needed. len counts a vector's elements or a Str's characters; bytes counts a vector's backing storage or a Str's UTF-8 bytes. append and prepend grow a mutable dynamic vector at either end; drop removes a range and hands back exactly what it removed. join concatenates a vector of Str with a separator between each pair, and split is its inverse. indexOf finds the first equal element and, unlike a bare -1, an Ok index is always safe to use unguarded. row and column pull a Table's row or column by its first cell or its top cell. map, filter and filterMap each walk a vector with a func — map transforms every element, filter keeps the ones a predicate says yes to, filterMap does both in one pass — and sort puts a vector in order, in place when it stands alone as a statement over a mut vector.\n\nA declaration of your own — a func, proc, query or type sharing one of these names — wins over the builtin at every bare call, which stays reachable as hive.<name>.",
 			explanationPt: "Estas estão sempre no escopo, sem precisar de import. len conta os elementos de um vetor ou os caracteres de uma Str; bytes conta o armazenamento de um vetor ou os bytes UTF-8 de uma Str. append e prepend fazem crescer um vetor dinâmico mutável em uma das pontas; drop remove um intervalo e devolve exatamente o que removeu. join concatena um vetor de Str com um separador entre cada par, e split é o seu inverso. indexOf encontra o primeiro elemento igual e, diferente de um -1 solto, um índice Ok é sempre seguro de usar sem guarda. row e column extraem a linha ou coluna de uma Table pela primeira célula ou pela célula do topo. map, filter e filterMap cada um percorre um vetor com um func — map transforma cada elemento, filter mantém os que um predicado diz que sim, filterMap faz as duas coisas em uma passada — e sort põe um vetor em ordem, no lugar quando aparece isolado como instrução sobre um vetor mut.\n\nUma declaração sua — um func, proc, query ou type com um desses nomes — vence a função nativa em toda chamada sem qualificação, que continua acessível como hive.<nome>.",
 			examples: [
@@ -700,6 +1059,7 @@ proc main(): void {
 		Slide(
 			title: "Bounds, proved at compile time",
 			titlePt: "Limites, comprovados em tempo de compilação",
+			download: false,
 			explanation: "A dedicated flow-sensitive pass proves every index and slice in range before the program ever runs. A literal index into a known length compiles outright; a computed index has to sit under a guard the pass can read, such as `if v bounds i \{ v[i] }` — sugar for `i >= 0 && i < len(v)`. Anything the pass cannot prove safe is a compile error, not a runtime panic — `echo v[len(v) - 1]` on its own is rejected outright, computed index and all. This very server leans on it: the slide number from the URL is checked with exactly this guard before it ever indexes the list of slides.",
 			explanationPt: "Uma passagem dedicada e sensível ao fluxo comprova que todo índice e slice está dentro dos limites antes mesmo do programa rodar. Um índice literal dentro de um tamanho conhecido compila sem mais nada; um índice calculado precisa estar sob uma guarda que a passagem saiba ler, como `if v bounds i \{ v[i] }` — açúcar sintático para `i >= 0 && i < len(v)`. Tudo que a passagem não conseguir provar seguro é um erro de compilação, não um panic em tempo de execução — `echo v[len(v) - 1]` sozinho já é rejeitado de cara, índice calculado e tudo. Este mesmo servidor se apoia nisso: o número do slide vindo da URL é verificado com exatamente essa guarda antes de indexar a lista de slides.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
@@ -719,8 +1079,75 @@ proc main(): void {
 }`)],
 		),
 		Slide(
+			title: "A length is a promise",
+			titlePt: "Um tamanho é uma promessa",
+			download: false,
+			explanation: "A declared static length is a promise, and it is kept everywhere: every value that lands in a Str[3] slot has to be a vector of exactly three — an initialiser, a later assignment, an argument, a field of a constructed value, a returned value — and a length the compiler cannot see is rejected too, which is why split can never fill one. Because the promise holds at every call site it is never lost, so a Str[3] can be indexed unguarded even after being reassigned, and so can a Str[3] parameter inside the callee.\n\nAn inferred length is weaker. mut v := [\"a\", \"b\", \"c\"] is a Str[3] observed rather than promised: writing through the name keeps it, but any rebinding costs it — even a rebinding to the same length, and even one inside a branch that may not run. A proof that holds only sometimes is not a proof. Declare the type when you want the promise enforced, and [dyn] when you want the freedom and will guard your indexes.\n\nA length the compiler does know survives everything that cannot lose it. Concatenation adds the two lengths, map keeps its input's — a transform changes elements, not how many — and sort keeps it too, since a comparator moves elements rather than removing any. filter and filterMap deliberately claim nothing: what is knowable about them is a maximum, and a maximum can never put an index in range, because a filter that keeps nothing is always a possibility.",
+			explanationPt: "Um tamanho estático declarado é uma promessa, e ela é mantida em todo lugar: todo valor que chega em um espaço Str[3] precisa ser um vetor de exatamente três — um inicializador, uma atribuição posterior, um argumento, um campo de um valor construído, um valor retornado — e um tamanho que o compilador não consegue ver também é recusado, que é por que split nunca pode preencher um. Como a promessa vale em todo local de chamada, ela nunca se perde, então um Str[3] pode ser indexado sem guarda mesmo depois de ser reatribuído, e um parâmetro Str[3] também pode, dentro de quem foi chamado.\n\nUm tamanho inferido é mais fraco. mut v := [\"a\", \"b\", \"c\"] é um Str[3] observado, não prometido: escrever através do nome o mantém, mas qualquer reatribuição o custa — mesmo uma reatribuição para o mesmo tamanho, e mesmo uma dentro de um ramo que pode nem rodar. Uma prova que só vale às vezes não é uma prova. Declare o tipo quando quiser a promessa cobrada, e [dyn] quando quiser a liberdade e for guardar seus índices.\n\nUm tamanho que o compilador conhece sobrevive a tudo que não pode perdê-lo. A concatenação soma os dois tamanhos, map mantém o da sua entrada — uma transformação muda os elementos, não quantos são — e sort também mantém, já que um comparador move elementos em vez de remover algum. filter e filterMap deliberadamente não afirmam nada: o que se pode saber deles é um máximo, e um máximo nunca pode colocar um índice na faixa, porque um filtro que não guarda nada é sempre uma possibilidade.",
+			examples: [
+				Example(caption: "A declared length is kept", captionPt: "Um tamanho declarado é mantido", code: `proc main(): void {
+	mut Str[3] v = ["a", "b", "c"]
+	v = ["x", "y", "z"]   // still exactly three: the promise is kept
+	echo v[2]              // no guard needed, here or ever
+
+	// v = ["x"]           // compile error: `+"`"+`v`+"`"+` is declared Str[3]
+}`, codePt: `proc main(): void {
+	mut Str[3] v = ["a", "b", "c"]
+	v = ["x", "y", "z"]   // ainda exatamente três: a promessa é mantida
+	echo v[2]              // sem guarda, aqui ou em qualquer lugar
+
+	// v = ["x"]           // erro de compilação: `+"`"+`v`+"`"+` é declarado Str[3]
+}`),
+				Example(caption: "An inferred one is not", captionPt: "Um inferido não é", code: `proc main(): void {
+	mut v := ["a", "b", "c"]   // Str[3], observed rather than promised
+	v[0] = "x"                  // a write through the name keeps the length
+	echo v[2]
+
+	// v = ["x", "y", "z"]      // ...but any rebinding costs the proof, even
+	// echo v[2]                // to the same length: `+"`"+`v`+"`"+` has no length now
+}`, codePt: `proc main(): void {
+	mut v := ["a", "b", "c"]   // Str[3], observado e não prometido
+	v[0] = "x"                  // escrever através do nome mantém o tamanho
+	echo v[2]
+
+	// v = ["x", "y", "z"]      // ...mas qualquer reatribuição custa a prova,
+	// echo v[2]                // até para o mesmo tamanho: `+"`"+`v`+"`"+` não tem tamanho
+}`),
+				Example(caption: "What a known length survives", captionPt: "O que um tamanho conhecido sobrevive", code: `func twice(n: Int): Int { return n * 2 }
+
+proc main(): void {
+	Int[2] a = [2, 1]
+	Int[8] b = [1, 2, 3, 4, 5, 6, 7, 8]
+
+	both := a + b            // ten elements: the lengths add
+	echo both[9]              // no guard needed
+
+	doubled := map(a, twice)  // still two
+	ordered := sort(a)        // still two
+	echo "{doubled[1]} {ordered[1]}"
+
+	// filter and filterMap claim nothing, so their results always need one.
+}`, codePt: `func twice(n: Int): Int { return n * 2 }
+
+proc main(): void {
+	Int[2] a = [2, 1]
+	Int[8] b = [1, 2, 3, 4, 5, 6, 7, 8]
+
+	both := a + b            // dez elementos: os tamanhos somam
+	echo both[9]              // sem precisar de guarda
+
+	doubled := map(a, twice)  // ainda dois
+	ordered := sort(a)        // ainda dois
+	echo "{doubled[1]} {ordered[1]}"
+
+	// filter e filterMap não afirmam nada, então seus resultados sempre precisam.
+}`),
+			],
+		),
+		Slide(
 			title: "Tables and CSV",
 			titlePt: "Tabelas e CSV",
+			download: false,
 			explanation: "Table is an alias for Str[dyn][dyn]: a vector of rows of cells. It is what `using` yields from a CSV, what a raw SQL query answers with, and what hive.map.toTable builds. A bare `using \"path\"` reads a comma-separated file; adding `as csv separating by \"<sep>\"` picks a different delimiter, such as a tab for a TSV — and every form answers with a Result, so the source says exactly which reader the build needs to link in.",
 			explanationPt: "Table é um alias para Str[dyn][dyn]: um vetor de linhas de células. É o que `using` produz a partir de um CSV, o que uma query SQL bruta devolve, e o que hive.map.toTable constrói. Um `using \"caminho\"` simples lê um arquivo separado por vírgulas; acrescentar `as csv separating by \"<sep>\"` escolhe outro delimitador, como uma tabulação para um TSV — e toda forma devolve um Result, então o código diz exatamente qual leitor o build precisa vincular.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
@@ -746,6 +1173,7 @@ proc main(): void {
 		Slide(
 			title: "Result<T, E>",
 			titlePt: "Result<T, E>",
+			download: false,
 			explanation: "Result is the language's one built-in generic union, and it is how every fallible operation reports itself: Result.Ok(value) or Result.Error(payload). Matching both variants with `is` is exhaustive, which lets a function written over a Result skip a dead else branch entirely.",
 			explanationPt: "Result é a única união genérica nativa da linguagem, e é como toda operação falível se reporta: Result.Ok(valor) ou Result.Error(carga). Combinar as duas variantes com `is` é exaustivo, o que permite que uma função escrita sobre um Result dispense por completo um else morto.",
 			examples: [Example(caption: "", captionPt: "", code: `func half(n: Int): Result<Int, Str> {
@@ -769,6 +1197,7 @@ proc main(): void {
 		Slide(
 			title: "Declared types",
 			titlePt: "Tipos declarados",
+			download: false,
 			explanation: "A type with no variants is a struct; with variants, a tagged union. A field declared outside any variant is added to every variant. A value is built by calling the type or the variant: User(1, \"ada\"), Shape.Circle(5). There is no subtyping and no interface — a variant is a way of building and matching a union, not a type of its own.",
 			explanationPt: "Um type sem variantes é um struct; com variantes, uma união com tag. Um campo declarado fora de qualquer variante é adicionado a todas as variantes. Um valor é construído chamando o type ou a variante: User(1, \"ada\"), Shape.Circle(5). Não existe subtipagem nem interface — uma variante é uma forma de construir e combinar uma união, não um tipo próprio.",
 			examples: [
@@ -813,8 +1242,9 @@ proc main(): void {
 		Slide(
 			title: "Pattern matching with is",
 			titlePt: "Casamento de padrões com is",
-			explanation: "`is` checks a value against a pattern and yields a Bool, narrowing it and binding names usable right away — in the rest of the condition after &&, and in the branch body. There is no match statement; every match is an ordinary if/else if chain. Four kinds of pattern exist: a variant, a Result, a vector matched positionally with an optional ...rest, and a string template whose \{holes} bind the text between literal pieces.",
-			explanationPt: "`is` verifica um valor contra um padrão e produz um Bool, estreitando-o e vinculando nomes que já podem ser usados — no resto da condição depois de &&, e no corpo do ramo. Não existe instrução match; toda combinação é uma cadeia comum de if/else if. Existem quatro tipos de padrão: uma variante, um Result, um vetor combinado posicionalmente com um ...rest opcional, e um template de string cujos \{buracos} vinculam o texto entre os trechos literais.",
+			download: false,
+			explanation: "`is` checks a value against a pattern and yields a Bool, narrowing it and binding names usable right away — in the rest of the condition after &&, and in the branch body. There is no match statement; every match is an ordinary if/else if chain. Four kinds of pattern exist: a variant, a Result, a vector matched positionally with an optional ...rest, and a string template whose \{holes} bind the text between literal pieces.\n\nA string pattern refuses two things, both compile errors and both for the same reason: a pattern has to have one unambiguous reading. Two holes may not sit side by side — with no literal text between them there is nothing to say where one ends and the next begins — and a hole has to be a plain binding name, so \{a.b} or \{len(x)} is refused. A pattern binds; it does not compute.",
+			explanationPt: "`is` verifica um valor contra um padrão e produz um Bool, estreitando-o e vinculando nomes que já podem ser usados — no resto da condição depois de &&, e no corpo do ramo. Não existe instrução match; toda combinação é uma cadeia comum de if/else if. Existem quatro tipos de padrão: uma variante, um Result, um vetor combinado posicionalmente com um ...rest opcional, e um template de string cujos \{buracos} vinculam o texto entre os trechos literais.\n\nUm padrão de string recusa duas coisas, as duas erros de compilação e as duas pelo mesmo motivo: um padrão precisa ter uma leitura só. Dois buracos não podem ficar lado a lado — sem texto literal entre eles não há como dizer onde um termina e o outro começa — e um buraco precisa ser um nome de vínculo simples, então \{a.b} ou \{len(x)} é recusado. Um padrão vincula; ele não calcula.",
 			examples: [
 				Example(caption: "Variant patterns", captionPt: "Padrões de variante", code: `type Shape {
 	Circle    { radius: Int }
@@ -847,15 +1277,28 @@ proc main(): void {
 				Example(caption: "String patterns", captionPt: "Padrões de string", code: `proc main(): void {
 	path := "/users/42/posts/7"
 	if path is "/users/{id}/posts/{postId}" { echo "{id} / {postId}" }
+
+	// Refused: two holes with no literal text between them.
+	// if path is "/users/{id}{name}" { }
+	//
+	// Refused: a hole binds, it does not compute.
+	// if path is "/users/{len(path)}" { }
 }`, codePt: `proc main(): void {
 	path := "/users/42/posts/7"
 	if path is "/users/{id}/posts/{postId}" { echo "{id} / {postId}" }
+
+	// Recusado: dois buracos sem texto literal entre eles.
+	// if path is "/users/{id}{name}" { }
+	//
+	// Recusado: um buraco vincula, não calcula.
+	// if path is "/users/{len(path)}" { }
 }`),
 			],
 		),
 		Slide(
 			title: "func vs proc",
 			titlePt: "func vs proc",
+			download: false,
 			explanation: "Both may perform I/O — echo, using, hive.net are all fine in either. The difference is what each may touch: a func cannot declare a mutex parameter (v: mut T) and cannot call a proc, so it can never write to storage its caller can see. A proc may do everything a func may, plus hold a mutex and call other procs. Programs start at proc main(): void. Nothing about the declaration says how a call runs — that is decided entirely at the call site.",
 			explanationPt: "Ambos podem fazer I/O — echo, using, hive.net funcionam nos dois. A diferença é o que cada um pode tocar: um func não pode declarar um parâmetro mutex (v: mut T) e não pode chamar um proc, então nunca pode escrever em um armazenamento que quem o chamou consiga ver. Um proc pode fazer tudo que um func faz, além de guardar um mutex e chamar outros procs. Programas começam em proc main(): void. Nada na declaração diz como uma chamada roda — isso é decidido totalmente no local da chamada.",
 			examples: [
@@ -892,10 +1335,51 @@ proc main(): void {
 			],
 		),
 		Slide(
+			title: "Named arguments",
+			titlePt: "Argumentos nomeados",
+			download: false,
+			explanation: "Funcs, procs, queries and type constructors — the builtin ones included — all accept their arguments by name. A named argument may appear anywhere in the list; only the unnamed ones need to be in order, and they fill whichever parameters the named ones did not claim. A name has to exist and may not repeat, and once named arguments are used at all the call has to cover the full parameter list — so there is no way for one to read as a default that quietly went missing.\n\nThe tour you are reading is written that way itself: every screen of it is a Slide(title: …, titlePt: …, explanation: …) rather than five strings in a row whose meaning depends on counting them.",
+			explanationPt: "Funcs, procs, queries e construtores de tipo — incluindo os nativos — todos aceitam seus argumentos por nome. Um argumento nomeado pode aparecer em qualquer lugar da lista; só os não nomeados precisam estar em ordem, e eles preenchem os parâmetros que os nomeados não reivindicaram. Um nome precisa existir e não pode se repetir, e uma vez que argumentos nomeados sejam usados, a chamada precisa cobrir a lista inteira de parâmetros — então não há como um deles ser lido como um padrão que sumiu silenciosamente.\n\nO tour que você está lendo é escrito assim: cada tela dele é um Slide(title: …, titlePt: …, explanation: …) em vez de cinco strings em sequência cujo significado depende de contá-las.",
+			examples: [Example(caption: "", captionPt: "", code: `type Colony {
+	name:   Str
+	apiary: Str
+	frames: Int
+}
+
+func banner(text: Str, width: Int, fill: Str): Str {
+	return fill + " " + text + " " + fill + " ({width})"
+}
+
+proc main(): void {
+	echo banner(width: 40, text: "Hive", fill: "~")   // any order, once all are named
+	echo banner("Hive", fill: "~", width: 40)          // the unnamed one goes first
+
+	c := Colony(name: "north", apiary: "orchard", frames: 11)
+	echo c.frames
+}`, codePt: `type Colony {
+	name:   Str
+	apiary: Str
+	frames: Int
+}
+
+func banner(text: Str, width: Int, fill: Str): Str {
+	return fill + " " + text + " " + fill + " ({width})"
+}
+
+proc main(): void {
+	echo banner(width: 40, text: "Hive", fill: "~")   // qualquer ordem, se todos nomeados
+	echo banner("Hive", fill: "~", width: 40)          // o não nomeado vem primeiro
+
+	c := Colony(name: "north", apiary: "orchard", frames: 11)
+	echo c.frames
+}`)],
+		),
+		Slide(
 			title: "First-class functions",
 			titlePt: "Funções de primeira classe",
-			explanation: "A callable is a value: a bare name on its own (f := takes) or a partial application with _ holes (handler(_, db)), each hole becoming a parameter in order. A func value may be used where a proc is expected, never the reverse. Three things cannot become values: a generic callable, one with a mutex parameter, and one with a statically-sized parameter beyond a single immutable binding.",
-			explanationPt: "Algo chamável é um valor: um nome solto por si só (f := toma) ou uma aplicação parcial com buracos _ (handler(_, db)), cada buraco se tornando um parâmetro em ordem. Um valor func pode ser usado onde um proc é esperado, nunca o contrário. Três coisas não podem se tornar valores: um chamável genérico, um com parâmetro mutex, e um com parâmetro de tamanho estático além de uma única ligação imutável.",
+			download: false,
+			explanation: "A callable is a value: a bare name on its own (f := takes) or a partial application with _ holes (handler(_, db)), each hole becoming a parameter in order. A func value may be used where a proc is expected, never the reverse. Three things cannot become values: a generic callable, one with a mutex parameter, and one with a statically-sized parameter beyond a single immutable binding.\n\nIts type is written like a declaration with the name dropped — func(Int): Int, proc(hive.net.HttpRequest): hive.net.HttpResponse — and that spelling is usable as a parameter, as a return, and as a variable's own type. The func/proc split is preserved through it: a func value fills a proc slot and not the other way round, and a func still cannot call a proc value it is handed. mut may not appear in a function type at all, since a value has no call site to take a mutex from.",
+			explanationPt: "Algo chamável é um valor: um nome solto por si só (f := toma) ou uma aplicação parcial com buracos _ (handler(_, db)), cada buraco se tornando um parâmetro em ordem. Um valor func pode ser usado onde um proc é esperado, nunca o contrário. Três coisas não podem se tornar valores: um chamável genérico, um com parâmetro mutex, e um com parâmetro de tamanho estático além de uma única ligação imutável.\n\nSeu tipo se escreve como uma declaração sem o nome — func(Int): Int, proc(hive.net.HttpRequest): hive.net.HttpResponse — e essa grafia serve como parâmetro, como retorno e como tipo de uma variável. A divisão func/proc é preservada através dele: um valor func preenche um espaço de proc e não o contrário, e um func continua não podendo chamar um valor proc que recebeu. mut não pode aparecer em um tipo de função, já que um valor não tem local de chamada de onde tomar um mutex.",
 			examples: [
 				Example(caption: "A bare reference, and map", captionPt: "Uma referência solta, e map", code: `func double(n: Int): Int { return n * 2 }
 
@@ -919,11 +1403,43 @@ proc main(): void {
 	addFive := add(5, _)   // _ se torna o parâmetro
 	echo addFive(10)
 }`),
+				Example(caption: "Writing the type down", captionPt: "Escrevendo o tipo", code: `func double(n: Int): Int { return n * 2 }
+func shout(s: Str): Str { return s + "!" }
+
+func applyTwice(f: func(Int): Int, n: Int): Int {   // as a parameter
+	return f(f(n))
+}
+
+func picked(loud: Bool): func(Str): Str {            // as a return
+	return shout
+}
+
+proc main(): void {
+	func(Int): Int step = double                      // as a variable's type
+	echo applyTwice(step, 5)
+	echo picked(true)("hive")
+}`, codePt: `func double(n: Int): Int { return n * 2 }
+func shout(s: Str): Str { return s + "!" }
+
+func applyTwice(f: func(Int): Int, n: Int): Int {   // como parâmetro
+	return f(f(n))
+}
+
+func picked(loud: Bool): func(Str): Str {            // como retorno
+	return shout
+}
+
+proc main(): void {
+	func(Int): Int step = double                      // como tipo de variável
+	echo applyTwice(step, 5)
+	echo picked(true)("hive")
+}`),
 			],
 		),
 		Slide(
 			title: "Mutability and value semantics",
 			titlePt: "Mutabilidade e semântica de valor",
+			download: false,
 			explanation: "Variables are immutable unless marked mut. Vectors, tables, maps and the declared types built from them are value types: two names for one value never observe each other's writes — unless both are mut, which is how sharing is opted into. A mutex parameter (v: mut T) is the one place storage crosses a call boundary on purpose, and only a proc may declare one; whether a call shares the caller's storage or a copy depends on whether the caller waits for it there or fires it with async.",
 			explanationPt: "Variáveis são imutáveis a menos que marcadas com mut. Vetores, tabelas, maps e os tipos declarados construídos a partir deles são tipos de valor: dois nomes para um mesmo valor nunca observam as escritas um do outro — a menos que ambos sejam mut, que é como o compartilhamento é escolhido. Um parâmetro mutex (v: mut T) é o único lugar em que o armazenamento cruza uma fronteira de chamada de propósito, e só um proc pode declarar um; se uma chamada compartilha o armazenamento de quem a chamou ou uma cópia depende de quem a chamou esperar por ela ali ou disparar com async.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
@@ -947,8 +1463,9 @@ proc main(): void {
 		Slide(
 			title: "Concurrency",
 			titlePt: "Concorrência",
-			explanation: "Every call blocks its caller by default — there is no async func, no Future. What a call means is decided where it is written: f(x) waits; async f(x) fires and forgets; x := async f(x) starts it and waits only when x is read; await [f(a), f(b)] starts every call on its own thread and is one barrier resolving to a fully-typed vector. hive.task.sleep(ms) parks only the calling thread, which is why two sleeps started together finish in about the longer one rather than the sum. Any wait can be bounded with `with timeout <ms>`, turning the result into a Result rather than a crash.",
-			explanationPt: "Toda chamada bloqueia quem a chamou por padrão — não existe async func, não existe Future. O que uma chamada significa é decidido onde ela é escrita: f(x) espera; async f(x) dispara e esquece; x := async f(x) a inicia e só espera quando x é lido; await [f(a), f(b)] inicia cada chamada em sua própria thread e é uma única barreira que se resolve em um vetor totalmente tipado. hive.task.sleep(ms) estaciona apenas a thread que chamou, e é por isso que dois sleeps iniciados juntos terminam em cerca do mais longo, e não na soma. Qualquer espera pode ser limitada com `with timeout <ms>`, transformando o resultado em um Result em vez de uma falha.",
+			download: false,
+			explanation: "Every call blocks its caller by default — there is no async func, no Future. What a call means is decided where it is written: f(x) waits; async f(x) fires and forgets; x := async f(x) starts it and waits only when x is read; await [f(a), f(b)] starts every call on its own thread and is one barrier resolving to a fully-typed vector. hive.task.sleep(ms) parks only the calling thread, which is why two sleeps started together finish in about the longer one rather than the sum. Any wait can be bounded with `with timeout <ms>`, turning the result into a Result rather than a crash.\n\nThe await-all is the only await there is. Every call in its list starts on its own thread and the whole thing is one barrier, resolving to a vector as long and as typed as the list that made it — so its elements are indexable without a guard. Over calls that answer with void there is nothing to resolve to, so it is a statement instead: \"both of these, then carry on\". A vector holds one type, so calls that answer differently are given names instead — that is what the async binding above is for. await [] is a compile error, and a timeout on an await-all is one deadline across the whole barrier rather than one each.",
+			explanationPt: "Toda chamada bloqueia quem a chamou por padrão — não existe async func, não existe Future. O que uma chamada significa é decidido onde ela é escrita: f(x) espera; async f(x) dispara e esquece; x := async f(x) a inicia e só espera quando x é lido; await [f(a), f(b)] inicia cada chamada em sua própria thread e é uma única barreira que se resolve em um vetor totalmente tipado. hive.task.sleep(ms) estaciona apenas a thread que chamou, e é por isso que dois sleeps iniciados juntos terminam em cerca do mais longo, e não na soma. Qualquer espera pode ser limitada com `with timeout <ms>`, transformando o resultado em um Result em vez de uma falha.\n\nO await-all é o único await que existe. Cada chamada da sua lista começa em uma thread própria e o conjunto é uma única barreira, que se resolve em um vetor tão longo e tão tipado quanto a lista que o formou — então seus elementos são indexáveis sem guarda. Sobre chamadas que respondem void não há nada em que se resolver, então ele é uma instrução: \"as duas, e então siga\". Um vetor guarda um tipo só, então chamadas que respondem de formas diferentes recebem nomes em vez disso — é para isso que serve a ligação async acima. await [] é um erro de compilação, e um timeout sobre um await-all é um prazo único para a barreira inteira, e não um para cada.",
 			examples: [
 				Example(caption: "Starting work and waiting for it", captionPt: "Iniciando um trabalho e esperando por ele", code: `proc slow(label: Str, ms: Int): Str {
 	hive.task.sleep(ms)
@@ -988,14 +1505,56 @@ proc main(): void {
 		echo "desistiu depois de {err.waited}ms"
 	}
 }`),
+				Example(caption: "Many at once, as a value", captionPt: "Vários de uma vez, como valor", code: `proc slow(label: Str, ms: Int): Str {
+	hive.task.sleep(ms)
+	return label
+}
+
+proc main(): void {
+	both := await [slow("a", 40), slow("b", 40)]   // one barrier, a Str[2]
+	echo both
+	echo both[1]                                    // a static length: no guard
+}`, codePt: `proc slow(label: Str, ms: Int): Str {
+	hive.task.sleep(ms)
+	return label
+}
+
+proc main(): void {
+	both := await [slow("a", 40), slow("b", 40)]   // uma barreira, um Str[2]
+	echo both
+	echo both[1]                                    // tamanho estático: sem guarda
+}`),
+				Example(caption: "Many at once, as a statement", captionPt: "Vários de uma vez, como instrução", code: `proc note(text: Str): void {
+	hive.task.sleep(20)
+	echo text
+}
+
+proc main(): void {
+	// Nothing to resolve to, so it is a statement: a batch of side effects
+	// finished before the next line, each on its own thread.
+	await [note("first"), note("second")]
+	echo "both notes are in"
+}`, codePt: `proc note(text: Str): void {
+	hive.task.sleep(20)
+	echo text
+}
+
+proc main(): void {
+	// Nada em que se resolver, então é uma instrução: um lote de efeitos
+	// concluído antes da próxima linha, cada um em sua própria thread.
+	await [note("first"), note("second")]
+	echo "os dois avisos chegaram"
+}`),
 			],
 		),
 		Slide(
 			title: "Generics",
 			titlePt: "Genéricos",
-			explanation: "A name in a signature that is neither a builtin nor a declared type is a type variable, and it makes the callable generic. A variable is pinned down by where it appears in the parameters — including inside a parameter's own function type. Nothing about it is dynamic at run time: every call site is resolved at compile time, and one concrete copy is emitted per distinct set of type arguments — first_Str, first_Int — with no boxing and no dispatch.",
-			explanationPt: "Um nome em uma assinatura que não é nem uma função nativa nem um tipo declarado é uma variável de tipo, e ela torna o chamável genérico. Uma variável é fixada por onde ela aparece nos parâmetros — inclusive dentro do próprio tipo de função de um parâmetro. Nada nisso é dinâmico em tempo de execução: todo local de chamada é resolvido em tempo de compilação, e uma cópia concreta é emitida para cada conjunto distinto de argumentos de tipo — first_Str, first_Int — sem boxing e sem despacho.",
-			examples: [Example(caption: "", captionPt: "", code: `func first(v: T[]): Result<T, Bool> {
+			download: false,
+			explanation: "A name in a signature that is neither a builtin nor a declared type is a type variable, and it makes the callable generic. A variable is pinned down by where it appears in the parameters — including inside a parameter's own function type. Nothing about it is dynamic at run time: every call site is resolved at compile time, and one concrete copy is emitted per distinct set of type arguments — first_Str, first_Int — with no boxing and no dispatch.\n\nA type declaration whose fields mention variables is generic in them too, in first-appearance order, and is written out where it is used: Box<Str>, Either<Str, Int>. Each instantiation gets its own clone, its own JSON codec and its own structural digest, so Either<Str, Int> and Either<Int, Str> are different types all the way down to the wire.",
+			explanationPt: "Um nome em uma assinatura que não é nem uma função nativa nem um tipo declarado é uma variável de tipo, e ela torna o chamável genérico. Uma variável é fixada por onde ela aparece nos parâmetros — inclusive dentro do próprio tipo de função de um parâmetro. Nada nisso é dinâmico em tempo de execução: todo local de chamada é resolvido em tempo de compilação, e uma cópia concreta é emitida para cada conjunto distinto de argumentos de tipo — first_Str, first_Int — sem boxing e sem despacho.\n\nUma declaração de tipo cujos campos mencionam variáveis também é genérica nelas, na ordem em que aparecem pela primeira vez, e é escrita por extenso onde é usada: Box<Str>, Either<Str, Int>. Cada instanciação ganha seu próprio clone, seu próprio codec JSON e seu próprio digest estrutural, então Either<Str, Int> e Either<Int, Str> são tipos diferentes até o fim, inclusive na rede.",
+			examples: [
+				Example(caption: "A generic callable", captionPt: "Um chamável genérico", code: `func first(v: T[]): Result<T, Bool> {
 	if len(v) > 0 {
 		return Result.Ok(v[0])
 	}
@@ -1017,26 +1576,254 @@ proc main(): void {
 	a := first([1, 2, 3])       // first_Int
 	b := first(["x", "y"])      // first_Str, uma cópia separada
 	echo "{a} {b}"
-}`)],
+}`),
+				Example(caption: "A generic type", captionPt: "Um tipo genérico", code: `type Box {
+	items: T[dyn]
+	label: Str
+}
+
+type Either {
+	Left  { left: A }
+	Right { right: B }
+}
+
+proc main(): void {
+	Box<Str> people = Box(["ada", "grace"], "people")
+	Box<Int> counts = Box([1, 2, 3], "counts")
+	Either<Str, Int> answer = Either.Right(42)
+
+	echo "{people.label}: {people.items}"
+	echo "{counts.label}: {counts.items}"
+	if answer is Either.Right(n) { echo n }
+}`, codePt: `type Box {
+	items: T[dyn]
+	label: Str
+}
+
+type Either {
+	Left  { left: A }
+	Right { right: B }
+}
+
+proc main(): void {
+	Box<Str> people = Box(["ada", "grace"], "people")
+	Box<Int> counts = Box([1, 2, 3], "counts")
+	Either<Str, Int> answer = Either.Right(42)
+
+	echo "{people.label}: {people.items}"
+	echo "{counts.label}: {counts.items}"
+	if answer is Either.Right(n) { echo n }
+}`),
+			],
 		),
 		Slide(
 			title: "Modules",
 			titlePt: "Módulos",
-			explanation: "import brings another file's declarations into scope, reached through a name — the file's own by default, or whatever `as` renames it to. The path itself says what kind of import it is: a bare path is a Hive file on disk, an https:// path is a file inside a git repository — pinned to a commit, a tag or a branch — and hive.* names a standard library module, reached the same way and adding nothing to the build unless it is actually used.",
-			explanationPt: "import traz as declarações de outro arquivo para o escopo, alcançadas através de um nome — o próprio nome do arquivo por padrão, ou o que `as` renomear para. O próprio caminho diz que tipo de import é: um caminho simples é um arquivo Hive em disco, um caminho https:// é um arquivo dentro de um repositório git — fixado em um commit, uma tag ou um branch — e hive.* nomeia um módulo da biblioteca padrão, alcançado da mesma forma e não adicionando nada ao build a menos que seja de fato usado.",
-			examples: [Example(caption: "", captionPt: "", code: `import hive.crypto as crypto
+			download: false,
+			explanation: "import brings another file's declarations into scope, reached through a name — the file's own by default, or whatever `as` renames it to. The path itself says what kind of import it is: a bare path is a Hive file on disk, an https:// path is a file inside a git repository — pinned to a commit, a tag or a branch — and hive.* names a standard library module, reached the same way and adding nothing to the build unless it is actually used. A library module's default name is its own last segment, so import hive.crypto is already crypto and `as` is only for when you want some other name — and the alias is a spelling rather than an import: crypto.sha256 and hive.crypto.sha256 are the same call, both are always available, and neither changes what is linked into the build. A Hive module's .hive is never written, because the path names a module and the file is only where it lives; the path is relative to the importing file's own directory, not to wherever you happen to run the compiler from. Everything a module declares is visible — there is no pub/priv — and an import may not be named hive, since that name belongs to the standard library.\n\nNames carry no baggage across the boundary. A type or a callable only ever means what the module you are reading says it means, so two files may each declare their own Align and both stay distinct types; an imported one is constructed, annotated and matched through the same name its module is reached by. That is also what makes shadowing a builtin safe: a map declared in one file leaves every other file's bare map alone. And an imported callable is an ordinary value, so it is partially applicable and passable like any other.\n\nImport cycles are refused, whether direct or round any number of steps, and the error prints the loop it found so you do not have to reconstruct it.",
+			explanationPt: "import traz as declarações de outro arquivo para o escopo, alcançadas através de um nome — o próprio nome do arquivo por padrão, ou o que `as` renomear para. O próprio caminho diz que tipo de import é: um caminho simples é um arquivo Hive em disco, um caminho https:// é um arquivo dentro de um repositório git — fixado em um commit, uma tag ou um branch — e hive.* nomeia um módulo da biblioteca padrão, alcançado da mesma forma e não adicionando nada ao build a menos que seja de fato usado. O nome padrão de um módulo da biblioteca é o seu próprio último segmento, então import hive.crypto já é crypto e `as` só serve para quando você quer outro nome — e o alias é uma grafia, não um import: crypto.sha256 e hive.crypto.sha256 são a mesma chamada, as duas estão sempre disponíveis, e nenhuma muda o que entra no build. O .hive de um módulo Hive nunca é escrito, porque o caminho nomeia um módulo e o arquivo é só onde ele mora; o caminho é relativo ao diretório do próprio arquivo que importa, não a onde você por acaso roda o compilador. Tudo que um módulo declara é visível — não existe pub/priv — e um import não pode se chamar hive, já que esse nome pertence à biblioteca padrão.\n\nNomes não levam bagagem através da fronteira. Um tipo ou um chamável só significa o que o módulo que você está lendo diz que ele significa, então dois arquivos podem declarar cada um o seu Align e os dois continuam tipos distintos; um importado é construído, anotado e casado através do mesmo nome pelo qual seu módulo é alcançado. É isso também que torna seguro sombrear uma função nativa: um map declarado em um arquivo deixa em paz o map solto de todos os outros. E um chamável importado é um valor comum, então é parcialmente aplicável e passável como qualquer outro.\n\nCiclos de import são recusados, sejam diretos ou dando a volta em qualquer número de passos, e o erro imprime o laço que encontrou para você não ter que reconstruí-lo.",
+			examples: [
+				Example(caption: "A library module, shortened", captionPt: "Um módulo da biblioteca, encurtado", code: `import hive.crypto
+import hive.net as web
 
 proc main(): void {
+	// The default name is the module's last segment, so `+"`"+`crypto`+"`"+` needs no
+	// `+"`"+`as`+"`"+` at all. `+"`"+`as`+"`"+` is for when you want a different name than that.
 	echo crypto.sha256("hive")
-}`, codePt: `import hive.crypto as crypto
+
+	// An alias is only a spelling: this is the very same call, and it works
+	// in a program that imported nothing.
+	echo hive.crypto.sha256("hive")
+
+	if web.resolve("localhost") is Result.Ok(addresses) {
+		echo addresses
+	}
+}`, codePt: `import hive.crypto
+import hive.net as web
 
 proc main(): void {
+	// O nome padrão é o último segmento do módulo, então `+"`"+`crypto`+"`"+` não
+	// precisa de `+"`"+`as`+"`"+` algum. `+"`"+`as`+"`"+` é para quando você quer outro nome.
 	echo crypto.sha256("hive")
-}`)],
+
+	// Um alias é só uma grafia: esta é exatamente a mesma chamada, e ela
+	// funciona em um programa que não importou nada.
+	echo hive.crypto.sha256("hive")
+
+	if web.resolve("localhost") is Result.Ok(addresses) {
+		echo addresses
+	}
+}`),
+				Example(caption: "lib/text.hive", captionPt: "lib/text.hive", code: `type Align {
+	Left
+	Right
+}
+
+func pad(s: Str, width: Int, side: Align): Str {
+	mut out := s
+	for ; len(out) < width; {
+		if side is Align.Left { out = out + "." } else { out = "." + out }
+	}
+	return out
+}
+
+func repeat(s: Str, times: Int): Str {
+	mut out := ""
+	for i := 0; i < times; i++ { out = out + s }
+	return out
+}`, codePt: `type Align {
+	Left
+	Right
+}
+
+func pad(s: Str, width: Int, side: Align): Str {
+	mut out := s
+	for ; len(out) < width; {
+		if side is Align.Left { out = out + "." } else { out = "." + out }
+	}
+	return out
+}
+
+func repeat(s: Str, times: Int): Str {
+	mut out := ""
+	for i := 0; i < times; i++ { out = out + s }
+	return out
+}`),
+				Example(caption: "main.hive, beside it", captionPt: "main.hive, ao lado dele", code: `import ./lib/text
+
+// This file's Align and lib/text's Align are two different types: a name
+// only ever means what the module you read it in says it means.
+type Align {
+	Centre
+}
+
+proc main(): void {
+	mine := Align.Centre()
+	if mine is Align.Centre { echo "ours" }
+
+	echo text.pad("total", 16, text.Align.Left())
+
+	// An imported callable is an ordinary value.
+	rule := text.repeat("~", _)
+	echo rule(16)
+}`, codePt: `import ./lib/text
+
+// O Align deste arquivo e o Align de lib/text são dois tipos diferentes: um
+// nome só significa o que o módulo em que você o lê diz que ele significa.
+type Align {
+	Centre
+}
+
+proc main(): void {
+	mine := Align.Centre()
+	if mine is Align.Centre { echo "o nosso" }
+
+	echo text.pad("total", 16, text.Align.Left())
+
+	// Um chamável importado é um valor comum.
+	rule := text.repeat("~", _)
+	echo rule(16)
+}`),
+				Example(caption: "A cycle, refused", captionPt: "Um ciclo, recusado", code: `$ hive check main.hive
+lib/inventory.hive:1: this import forms a cycle:
+
+    lib/inventory.hive
+      -> lib/pricing.hive
+      -> lib/inventory.hive`, codePt: `$ hive check main.hive
+lib/inventory.hive:1: this import forms a cycle:
+
+    lib/inventory.hive
+      -> lib/pricing.hive
+      -> lib/inventory.hive`),
+			],
+		),
+		Slide(
+			title: "Importing a Go file",
+			titlePt: "Importando um arquivo Go",
+			download: false,
+			explanation: "Hive is Go behind the curtain, so a Go file next to a Hive one can be called from it directly. The path ends in .go, which is compulsory — and it is the opposite of the rule for a Hive module, whose .hive is never written. That is deliberate: a path names a module and the file is only where it lives, but nothing about import ./lib/util should leave you wondering which of the two languages you are about to open.\n\nEvery value is deep-copied in both directions, and that is the whole point of the boundary. A Go function can sort the slice it was handed, keep a reference to it, or write through it later, and none of that can reach the Hive value it came from. It is also why an imported Go function arrives as a func rather than a proc.\n\nOnly what Go exports is reachable, which there means a capitalised name. Hive names callables in camelCase, so a name is reached with its first letter lowered — Grams is measures.grams — while a type keeps its PascalCase and a struct's fields lower their first letter the same way. The signatures are read by the Go toolchain rather than guessed at, and the boundary is narrow: string, int, float64, bool, []T, [][]string, a map with a scalar key, a struct the file exports, and (T, error), which arrives as Result<T, Str> since Go's way of reporting failure is Hive's. A pointer, a channel, an interface, a function value, a variadic parameter or a type from another package is refused, and the message names the parameter it could not take. A Go map has no order of its own, so one arriving in Hive has its keys sorted.",
+			explanationPt: "Hive é Go por trás da cortina, então um arquivo Go ao lado de um arquivo Hive pode ser chamado diretamente dele. O caminho termina em .go, o que é obrigatório — e é o oposto da regra de um módulo Hive, cujo .hive nunca é escrito. Isso é de propósito: um caminho nomeia um módulo e o arquivo é só onde ele mora, mas nada em import ./lib/util deveria deixar você em dúvida sobre qual das duas linguagens está prestes a abrir.\n\nTodo valor é copiado profundamente nas duas direções, e esse é todo o sentido da fronteira. Uma função Go pode ordenar o slice que recebeu, guardar uma referência a ele, ou escrever através dele mais tarde, e nada disso pode alcançar o valor Hive de onde ele veio. É também por isso que uma função Go importada chega como um func e não como um proc.\n\nSó o que o Go exporta é alcançável, o que lá significa um nome com inicial maiúscula. Hive nomeia chamáveis em camelCase, então um nome é alcançado com a primeira letra minúscula — Grams é measures.grams — enquanto um tipo mantém seu PascalCase e os campos de um struct baixam a primeira letra da mesma forma. As assinaturas são lidas pela toolchain do Go em vez de adivinhadas, e a fronteira é estreita: string, int, float64, bool, []T, [][]string, um map com chave escalar, um struct que o arquivo exporta, e (T, error), que chega como Result<T, Str>, já que a forma do Go de reportar falha é a do Hive. Um ponteiro, um canal, uma interface, um valor de função, um parâmetro variádico ou um tipo de outro pacote é recusado, e a mensagem nomeia o parâmetro que ela não conseguiu receber.",
+			examples: [
+				Example(caption: "lib/measures.go", captionPt: "lib/measures.go", code: `package measures
+
+import (
+	"fmt"
+	"strings"
+)
+
+// Every field of this struct crosses the boundary, so the whole struct does.
+type Weight struct {
+	Grams int
+	Label string
+}
+
+// Exported, so Hive reaches it with its first letter lowered: measures.grams.
+func Grams(w Weight) int {
+	return w.Grams
+}
+
+// Go's way of reporting failure is Hive's: (T, error) is Result<T, Str>.
+func Parse(s string) (Weight, error) {
+	if !strings.HasSuffix(s, "g") {
+		return Weight{}, fmt.Errorf("%q does not end in g", s)
+	}
+	return Weight{Grams: len(s) * 100, Label: s}, nil
+}`, codePt: `package measures
+
+import (
+	"fmt"
+	"strings"
+)
+
+// Todo campo deste struct cruza a fronteira, então o struct inteiro cruza.
+type Weight struct {
+	Grams int
+	Label string
+}
+
+// Exportado, então o Hive o alcança com a inicial minúscula: measures.grams.
+func Grams(w Weight) int {
+	return w.Grams
+}
+
+// A forma do Go de reportar falha é a do Hive: (T, error) é Result<T, Str>.
+func Parse(s string) (Weight, error) {
+	if !strings.HasSuffix(s, "g") {
+		return Weight{}, fmt.Errorf("%q does not end in g", s)
+	}
+	return Weight{Grams: len(s) * 100, Label: s}, nil
+}`),
+				Example(caption: "main.hive, beside it", captionPt: "main.hive, ao lado dele", code: `import ./lib/measures.go
+
+proc main(): void {
+	tool := measures.Weight(899, "Hive tool")
+	echo measures.grams(tool)
+
+	parsed := measures.parse("450g")
+	if parsed is Result.Ok(w) {
+		echo "{w.label}: {w.grams}"
+	} else if parsed is Result.Error(why) {
+		echo why
+	}
+}`, codePt: `import ./lib/measures.go
+
+proc main(): void {
+	tool := measures.Weight(899, "Hive tool")
+	echo measures.grams(tool)
+
+	parsed := measures.parse("450g")
+	if parsed is Result.Ok(w) {
+		echo "{w.label}: {w.grams}"
+	} else if parsed is Result.Error(why) {
+		echo why
+	}
+}`),
+			],
 		),
 		Slide(
 			title: "Maps",
 			titlePt: "Mapas",
+			download: false,
 			explanation: "hive.map.Map<K, T> is the one collection that is not a vector. A key is compared and hashed whole, so it must be a Str, Int, Float, Bool, Atom, or a declared type whose every field is one of those. new() says only \"empty\", so it has to land somewhere already typed — a mut declaration, here. set and delete need that mut map; get answers by key with a Result, has asks the same question without the value, and keys/values walk it in the order keys were set, which is what makes echoing one reproducible from run to run. fromTable and toTable cross to and from a Table of two-cell rows, for a map whose keys and values are both Str.",
 			explanationPt: "hive.map.Map<K, T> é a única coleção que não é um vetor. Uma chave é comparada e tem seu hash calculado por completo, então precisa ser uma Str, Int, Float, Bool, Atom, ou um tipo declarado cujos campos sejam todos um desses. new() diz apenas \"vazio\", então precisa chegar em algum lugar já tipado — uma declaração mut, aqui. set e delete precisam desse map mut; get responde por chave com um Result, has faz a mesma pergunta sem o valor, e keys/values percorrem na ordem em que as chaves foram definidas, o que torna dar echo em um reproduzível de execução para execução. fromTable e toTable cruzam de e para uma Table de linhas de duas células, para um map cujas chaves e valores são ambos Str.",
 			examples: [
@@ -1083,6 +1870,7 @@ proc main(): void {
 		Slide(
 			title: "Conversions",
 			titlePt: "Conversões",
+			download: false,
 			explanation: "hive.conv is pure, so it works in a func as well as a proc. ceil, floor and round turn a Float into an Int, rounding half away from zero; itf widens an Int to a Float, and its/fts render a number as a Str. sti and stf parse text back into a number and, since parsing can fail, answer with a Result whose ConversionError carries the offending input. There is no implicit numeric conversion anywhere else in the language, which is exactly why this module exists: an Int never quietly becomes a Float.",
 			explanationPt: "hive.conv é puro, então funciona tanto em um func quanto em um proc. ceil, floor e round transformam um Float em um Int, arredondando o meio para longe do zero; itf amplia um Int para um Float, e its/fts renderizam um número como uma Str. sti e stf interpretam texto de volta em um número e, como interpretar pode falhar, respondem com um Result cujo ConversionError carrega a entrada culpada. Não existe conversão numérica implícita em nenhum outro lugar da linguagem, e é exatamente por isso que este módulo existe: um Int nunca se torna um Float silenciosamente.",
 			examples: [
@@ -1111,6 +1899,7 @@ proc main(): void {
 		Slide(
 			title: "Math",
 			titlePt: "Matemática",
+			download: false,
 			explanation: "hive.math is pure, and every one of its thirteen functions takes and answers with a Float — there is no integer twin, because Hive never widens a number behind your back. pi is the one constant; sin, cos, tan and their inverses asin, acos and atan2 cover angles; sqrt, hypot and abs cover distances; min, max and clamp cover bounds, with clamp defined as exactly min(max(v, low), high), so a range given backwards answers with the high bound. None of it reports an error: a value outside a function's domain simply answers with whatever non-finite Float the arithmetic already produces.",
 			explanationPt: "hive.math é puro, e cada uma de suas treze funções recebe e responde com um Float — não existe uma versão inteira, porque Hive nunca amplia um número pelas suas costas. pi é a única constante; sin, cos, tan e suas inversas asin, acos e atan2 cobrem ângulos; sqrt, hypot e abs cobrem distâncias; min, max e clamp cobrem limites, com clamp definido como exatamente min(max(v, low), high), então um intervalo passado de trás para frente responde com o limite superior. Nada disso reporta um erro: um valor fora do domínio de uma função simplesmente responde com o Float não finito que a aritmética já produz.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
@@ -1134,6 +1923,7 @@ proc main(): void {
 		Slide(
 			title: "JSON",
 			titlePt: "JSON",
+			download: false,
 			explanation: "hive.json treats a Hive type declaration as the JSON schema itself. parse(text) with T derives a decoder for T at compile time and returns a Result whose Error carries the exact path that failed to decode; parse(text) with Table instead flattens the whole document into [path, value] rows, which hive.json.get looks up by a dotted path. encode(value) derives the encoder from the static type, so it can never fail — there is no Result to check on the way out. table(text) reads a JSON array of flat objects as a headered Table.",
 			explanationPt: "hive.json trata uma declaração de tipo Hive como o próprio schema JSON. parse(text) with T deriva um decodificador para T em tempo de compilação e devolve um Result cujo Error carrega o caminho exato que falhou ao decodificar; parse(text) with Table, em vez disso, achata o documento inteiro em linhas [caminho, valor], que hive.json.get consulta por um caminho separado por pontos. encode(value) deriva o codificador a partir do tipo estático, então nunca pode falhar — não há Result para checar na saída. table(text) lê um array JSON de objetos simples como uma Table com cabeçalho.",
 			examples: [
@@ -1186,6 +1976,7 @@ proc main(): void {
 		Slide(
 			title: "Files",
 			titlePt: "Arquivos",
+			download: false,
 			explanation: "hive.file is general filesystem access, for what using doesn't cover. Contents move as a Str that holds bytes rather than validated text, so a binary file survives a read/write round trip untouched. read and lines pull a file in, write and append push one out, and delete, copy and move do what they say; exists and size ask without reading, and list and makeDir cover a directory. Everything fallible answers with a Result<_, hive.file.FileError> whose reason is a short tag: NotFound, Permission, Exists or Io.",
 			explanationPt: "hive.file é acesso geral ao sistema de arquivos, para o que using não cobre. Conteúdos se movem como uma Str que guarda bytes em vez de texto validado, então um arquivo binário sobrevive intacto a uma ida e volta de leitura/escrita. read e lines trazem um arquivo para dentro, write e append o empurram para fora, e delete, copy e move fazem o que dizem; exists e size perguntam sem ler, e list e makeDir cobrem um diretório. Tudo que é falível responde com um Result<_, hive.file.FileError> cujo reason é uma tag curta: NotFound, Permission, Exists ou Io.",
 			examples: [
@@ -1234,6 +2025,7 @@ proc main(): void {
 		Slide(
 			title: "Spreadsheets",
 			titlePt: "Planilhas",
+			download: false,
 			explanation: "using reads more than a CSV. as xlsx and as ods each read a whole workbook and answer with a Result<Table[dyn], hive.TableError> — one Table per sheet, in document order, so an empty sheet is an empty Table rather than a missing one. Both readers are dependency-free. An xlsx cell arrives as the file stores it, with one exception: a date is kept internally as a day count, so the cell's own number format is consulted to catch exactly those and render them as a real date. An ods stores real dates already, so nothing there needs undoing.",
 			explanationPt: "using lê mais do que um CSV. as xlsx e as ods leem cada um uma planilha inteira e respondem com um Result<Table[dyn], hive.TableError> — uma Table por aba, na ordem do documento, então uma aba vazia é uma Table vazia em vez de uma ausente. Os dois leitores não têm dependências. Uma célula de xlsx chega como o arquivo a guarda, com uma exceção: uma data é guardada internamente como uma contagem de dias, então o formato de número da própria célula é consultado para pegar exatamente essas e renderizá-las como uma data de verdade. Um ods já guarda datas de verdade, então nada ali precisa ser desfeito.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
@@ -1259,6 +2051,7 @@ proc main(): void {
 		Slide(
 			title: "Terminal and processes",
 			titlePt: "Terminal e processos",
+			download: false,
 			explanation: "hive.term is line-oriented terminal I/O: print writes to stdout, status writes to stderr — what a program is doing, as against what it was asked for — isTerminal says whether standard error is a person or a pipe, and read/readSecret block for a line of input, the second with the terminal's echo turned off. args() reads the command line, and exit(code) ends the program on the spot. Running another program is two calls apart by who is talking to the terminal: exec hands back everything the command wrote and turns a nonzero exit into a Result.Error, while attach gives the command this program's own terminal and answers with its exit status. Neither ever touches a shell, so nothing in an argument can be read as one.",
 			explanationPt: "hive.term é I/O de terminal orientado a linhas: print escreve no stdout, status escreve no stderr — o que um programa está fazendo, em contraste com o que foi pedido a ele — isTerminal diz se a saída de erro padrão é uma pessoa ou um pipe, e read/readSecret bloqueiam por uma linha de entrada, o segundo com o eco do terminal desligado. args() lê a linha de comando, e exit(code) termina o programa na hora. Rodar outro programa é duas chamadas separadas por quem está falando com o terminal: exec devolve tudo que o comando escreveu e transforma uma saída diferente de zero em um Result.Error, enquanto attach dá ao comando o próprio terminal deste programa e responde com seu status de saída. Nenhum dos dois toca em um shell, então nada em um argumento pode ser lido como um.",
 			examples: [
@@ -1289,6 +2082,7 @@ proc main(): void {
 		Slide(
 			title: "Time",
 			titlePt: "Tempo",
+			download: false,
 			explanation: "Times in Hive are plain Ints — Unix seconds — so they need no type of their own to pass around, store or compare. now() reads the clock; timezone() and timezoneOffset() say where the program thinks it is; format renders a time in local time with a strftime-style template — %Y, %m, %d, %H, %M, %S and the rest. An escape it doesn't recognise passes straight through rather than failing.",
 			explanationPt: "Horários em Hive são Ints simples — segundos Unix — então não precisam de um tipo próprio para circular, ser guardados ou comparados. now() lê o relógio; timezone() e timezoneOffset() dizem onde o programa pensa que está; format renderiza um horário em hora local com um template no estilo strftime — %Y, %m, %d, %H, %M, %S e o resto. Um escape que ele não reconhece passa direto em vez de falhar.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
@@ -1306,6 +2100,7 @@ proc main(): void {
 		Slide(
 			title: "Environment variables",
 			titlePt: "Variáveis de ambiente",
+			download: false,
 			explanation: "hive.env.get resolves a name in one order: the .env file beside the program, then the .env in the parent folder, then the OS environment — and answers with a Result, since a variable that was never set is an ordinary outcome rather than a crash. The .env file is read once, on the first get: blank lines and # comments are ignored, an export prefix is allowed and stripped, and a quoted value has its quotes removed.",
 			explanationPt: "hive.env.get resolve um nome em uma ordem: o arquivo .env ao lado do programa, depois o .env na pasta pai, depois o ambiente do sistema operacional — e responde com um Result, já que uma variável que nunca foi definida é um resultado comum, não uma falha. O arquivo .env é lido uma vez, no primeiro get: linhas vazias e comentários com # são ignorados, um prefixo export é permitido e removido, e um valor entre aspas tem as aspas removidas.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
@@ -1327,6 +2122,7 @@ proc main(): void {
 		Slide(
 			title: "Networking: HTTP",
 			titlePt: "Rede: HTTP",
+			download: false,
 			explanation: "hive.net's HTTP corner needs no external dependency in either direction. httpServe(port, handler) starts a server that blocks forever, calling a proc(HttpRequest): HttpResponse once per request on a thread of its own — exactly the shape of the handler serving this very page. httpRequest performs a client request and answers with a Result, since getting no response at all — a bad URL, a refused connection, a timeout — is a Result.Error rather than an empty HttpResponse. resolve and localAddress round out the module: the first looks up every address behind a name, the second is the address another machine would reach this one on.",
 			explanationPt: "O canto HTTP de hive.net não precisa de dependência externa em nenhuma das direções. httpServe(port, handler) inicia um servidor que bloqueia para sempre, chamando um proc(HttpRequest): HttpResponse uma vez por requisição, cada uma em sua própria thread — exatamente a forma do handler que está servindo esta própria página. httpRequest realiza uma requisição de cliente e responde com um Result, já que não obter resposta alguma — uma URL inválida, uma conexão recusada, um timeout — é um Result.Error em vez de um HttpResponse vazio. resolve e localAddress completam o módulo: o primeiro busca todos os endereços atrás de um nome, o segundo é o endereço pelo qual outra máquina alcançaria esta.",
 			examples: [Example(caption: "", captionPt: "", code: `proc handle(request: hive.net.HttpRequest): hive.net.HttpResponse {
@@ -1348,6 +2144,7 @@ proc main(): void {
 		Slide(
 			title: "Networking: WebSockets",
 			titlePt: "Rede: WebSockets",
+			download: false,
 			explanation: "hive.net's WebSocket support is RFC 6455 end to end: the handshake, frame headers, masking, ping/pong and fragmentation are the runtime's business, and a program only ever sees whole messages as a Str. wsServe(port, handler) serves connections the same shape httpServe serves requests, calling a proc(WsConnection): void once per connection; wsConnect dials one as a client, and wsRequest reads back the HttpRequest that opened it. wsClose ends a connection from this side; a peer that hangs up on its own answers as \"Closed\" — the ordinary end of a conversation, not a failure to report.",
 			explanationPt: "O suporte a WebSocket de hive.net é RFC 6455 do início ao fim: o handshake, os cabeçalhos de frame, a mascaração, o ping/pong e a fragmentação são responsabilidade do runtime, e um programa só vê mensagens inteiras como uma Str. wsServe(port, handler) serve conexões da mesma forma que httpServe serve requisições, chamando um proc(WsConnection): void uma vez por conexão; wsConnect disca uma como cliente, e wsRequest lê de volta o HttpRequest que a abriu. wsClose termina uma conexão deste lado; um par que desliga por conta própria responde como \"Closed\" — o fim comum de uma conversa, não uma falha a ser reportada.",
 			examples: [Example(caption: "", captionPt: "", code: `proc handle(conn: hive.net.WsConnection): void {
@@ -1371,6 +2168,7 @@ proc main(): void {
 		Slide(
 			title: "Networking: raw TCP",
 			titlePt: "Rede: TCP bruto",
+			download: false,
 			explanation: "Raw TCP is a stream, not a queue of messages, so hive.net's socket calls move bytes rather than whole messages. socketConnect dials out and socketServe(port, handler) listens, calling a proc(SocketConnection): void once per connection; socketReceive(conn, bytes) does a short read — fewer bytes than asked for is normal, not an error — while socketReceiveLine reads up to the next newline and drops it. socketPeer names who is on the other end, and socketClose ends the stream. A SocketError's reason is Connect, Closed, Send or Receive.",
 			explanationPt: "TCP bruto é um fluxo, não uma fila de mensagens, então as chamadas de socket de hive.net movem bytes em vez de mensagens inteiras. socketConnect disca para fora e socketServe(port, handler) escuta, chamando um proc(SocketConnection): void uma vez por conexão; socketReceive(conn, bytes) faz uma leitura curta — receber menos bytes do que foi pedido é normal, não um erro — enquanto socketReceiveLine lê até a próxima nova linha e a descarta. socketPeer nomeia quem está do outro lado, e socketClose termina o fluxo. O reason de um SocketError é Connect, Closed, Send ou Receive.",
 			examples: [Example(caption: "", captionPt: "", code: `proc handle(conn: hive.net.SocketConnection): void {
@@ -1396,6 +2194,7 @@ proc main(): void {
 		Slide(
 			title: "Cryptography",
 			titlePt: "Criptografia",
+			download: false,
 			explanation: "hive.crypto is pure, so it works in a func as well as a proc. sha256 and sha512 hash, and hmacSha256 authenticates with a key. encrypt and decrypt seal a string under a password with AES-256-GCM, using a fresh salt and nonce every call so the same text never encrypts alike twice; base64Encode and base64Decode move between text and base64, and randomHex draws bytes at random. jwtSign, jwtVerify and jwtDecode cover HS256 JSON Web Tokens end to end — jwtVerify checks the signature and expiry and accepts only HS256, closing off the classic algorithm-confusion attack outright, while jwtDecode reads the claims without verifying anything, and jwtHeader reads just alg/typ/kid.",
 			explanationPt: "hive.crypto é puro, então funciona tanto em um func quanto em um proc. sha256 e sha512 calculam hash, e hmacSha256 autentica com uma chave. encrypt e decrypt selam uma string sob uma senha com AES-256-GCM, usando um salt e um nonce novos em cada chamada, então o mesmo texto nunca é criptografado da mesma forma duas vezes; base64Encode e base64Decode movem entre texto e base64, e randomHex sorteia bytes aleatórios. jwtSign, jwtVerify e jwtDecode cobrem JSON Web Tokens HS256 do início ao fim — jwtVerify verifica a assinatura e a expiração e aceita apenas HS256, eliminando de cara o clássico ataque de confusão de algoritmo, enquanto jwtDecode lê as claims sem verificar nada, e jwtHeader lê apenas alg/typ/kid.",
 			examples: [
@@ -1458,9 +2257,11 @@ proc main(): void {
 		Slide(
 			title: "SQL",
 			titlePt: "SQL",
-			explanation: "A query declaration is a func whose body is inline SQL and whose return type describes its rows. Columns are matched to fields by name, not position, so reordering a SELECT can never silently remap them, and values are always bound as parameters — never spliced into the text — so nothing a caller supplies can change what the statement means. connect opens a single connection and pool a whole pool of them, both answering with a Result<SqlConnection, SqlError>; close lets one go. SQL assembled at run time, rather than declared as a query, goes through run raw instead — untyped by construction, and easy to grep for.",
-			explanationPt: "Uma declaração query é um func cujo corpo é SQL inline e cujo tipo de retorno descreve suas linhas. Colunas são associadas a campos pelo nome, não pela posição, então reordenar um SELECT nunca pode remapeá-las silenciosamente, e valores são sempre vinculados como parâmetros — nunca inseridos diretamente no texto — então nada que quem chama fornecer pode mudar o que a instrução significa. connect abre uma única conexão e pool abre um pool inteiro delas, ambos respondendo com um Result<SqlConnection, SqlError>; close libera uma. SQL montado em tempo de execução, em vez de declarado como uma query, passa por run raw em vez disso — sem tipo por construção, e fácil de encontrar com grep.",
-			examples: [Example(caption: "", captionPt: "", code: `type User { id: Int, name: Str }
+			download: false,
+			explanation: "A query declaration is a func whose body is inline SQL and whose return type describes its rows. Columns are matched to fields by name, not position, so reordering a SELECT can never silently remap them, and values are always bound as parameters — never spliced into the text — so nothing a caller supplies can change what the statement means. connect opens a single connection and pool a whole pool of them, both answering with a Result<SqlConnection, SqlError>; close lets one go. SQL assembled at run time, rather than declared as a query, goes through run raw instead — untyped by construction, and easy to grep for.\n\nThe return type does more than name the row: it decides the shape of the whole result, so you can read that off the declaration without looking at the SQL at all. A declared row type comes back as Result<Row[dyn], SqlError>. A single scalar vector — Str[dyn], Int[dyn] — needs no row type at all and comes back as that column. And void marks a statement rather than a query, coming back as the number of rows it touched.\n\nBecause columns are matched by name, name them: a column whose name differs from its field needs an alias (SELECT u.name AS author), and a row type holds scalars only. A SELECT * against a declared row type type-checks but has told the mapper nothing, so the first row of the wrong width comes back as a Result.Error saying how many columns it expected and how many it got.",
+			explanationPt: "Uma declaração query é um func cujo corpo é SQL inline e cujo tipo de retorno descreve suas linhas. Colunas são associadas a campos pelo nome, não pela posição, então reordenar um SELECT nunca pode remapeá-las silenciosamente, e valores são sempre vinculados como parâmetros — nunca inseridos diretamente no texto — então nada que quem chama fornecer pode mudar o que a instrução significa. connect abre uma única conexão e pool abre um pool inteiro delas, ambos respondendo com um Result<SqlConnection, SqlError>; close libera uma. SQL montado em tempo de execução, em vez de declarado como uma query, passa por run raw em vez disso — sem tipo por construção, e fácil de encontrar com grep.\n\nO tipo de retorno faz mais do que nomear a linha: ele decide o formato do resultado inteiro, então dá para ler isso na declaração sem olhar o SQL. Um tipo de linha declarado volta como Result<Row[dyn], SqlError>. Um vetor de um escalar só — Str[dyn], Int[dyn] — não precisa de tipo de linha algum e volta como aquela coluna. E void marca uma instrução em vez de uma consulta, voltando como o número de linhas que ela tocou.\n\nComo as colunas são associadas pelo nome, nomeie-as: uma coluna cujo nome difere do campo precisa de um alias (SELECT u.name AS author), e um tipo de linha guarda apenas escalares. Um SELECT * contra um tipo de linha declarado passa na checagem de tipos mas não disse nada ao mapeador, então a primeira linha de largura errada volta como um Result.Error dizendo quantas colunas ele esperava e quantas recebeu.",
+			examples: [
+				Example(caption: "A row type", captionPt: "Um tipo de linha", code: `type User { id: Int, name: Str }
 
 query findUser(name: Str): User[dyn] {
 	SELECT id, name FROM users WHERE name = {name}
@@ -1500,13 +2301,215 @@ proc main(): void {
 	} else if pooled is Result.Error(err) {
 		echo "não foi possível abrir o banco de dados: {err.message}"
 	}
+}`),
+				Example(caption: "One column, and no rows at all", captionPt: "Uma coluna, e nenhuma linha", code: `query insertUser(id: Int, name: Str): void {
+	INSERT INTO users (id, name) VALUES ({id}, {name})
+}
+
+query userNames(): Str[dyn] {
+	SELECT name FROM users ORDER BY name
+}
+
+query deleteUser(id: Int): void {
+	DELETE FROM users WHERE id = {id}
+}
+
+proc main(): void {
+	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
+	if opened is Result.Ok(db) {
+		using db run raw "CREATE TABLE users (id INTEGER, name TEXT)"
+		using db run insertUser(1, "ada")
+		using db run insertUser(2, "grace")
+
+		if using db run userNames() is Result.Ok(names) {
+			echo names                      // a Str[dyn]: the column itself
+		}
+		if using db run deleteUser(1) is Result.Ok(rows) {
+			echo "deleted {rows} row"       // an Int: what the statement touched
+		}
+		hive.sql.close(db)
+	}
+}`, codePt: `query insertUser(id: Int, name: Str): void {
+	INSERT INTO users (id, name) VALUES ({id}, {name})
+}
+
+query userNames(): Str[dyn] {
+	SELECT name FROM users ORDER BY name
+}
+
+query deleteUser(id: Int): void {
+	DELETE FROM users WHERE id = {id}
+}
+
+proc main(): void {
+	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
+	if opened is Result.Ok(db) {
+		using db run raw "CREATE TABLE users (id INTEGER, name TEXT)"
+		using db run insertUser(1, "ada")
+		using db run insertUser(2, "grace")
+
+		if using db run userNames() is Result.Ok(names) {
+			echo names                      // um Str[dyn]: a coluna em si
+		}
+		if using db run deleteUser(1) is Result.Ok(rows) {
+			echo "apagou {rows} linha"      // um Int: o que a instrução tocou
+		}
+		hive.sql.close(db)
+	}
+}`),
+			],
+		),
+		Slide(
+			title: "Optional filters: WHERE \{ }",
+			titlePt: "Filtros opcionais: WHERE \{ }",
+			download: false,
+			explanation: "A search screen with four boxes on it is four optional predicates, and assembling that as text is where SQL injection and \"WHERE 1 = 1\" both come from. A WHERE block is the declaration that replaces it: it ANDs together the predicates whose conditions hold, and a nested or \{ } or and \{ } flips the connective for the group inside it.\n\nA group that contributes nothing disappears rather than leaving a dangling connective, a group contributing more than one predicate is parenthesised, and when no predicate holds at all there is no WHERE clause in the statement — so there is no 1 = 1 to write and none to read back in a log. Every branch's text is fixed at compile time; the only thing decided while the program runs is which branches are taken. The values still travel as bound parameters, exactly as they do in a plain query.\n\nTwo things a where block deliberately cannot do. A column name or a sort direction can never be a parameter — ORDER BY \{col} would order every row by one constant string — so make that choice a variant type and dispatch to one query per ordering. And SQL you genuinely do assemble yourself goes through run raw instead, which is untyped by construction and greppable by design.",
+			explanationPt: "Uma tela de busca com quatro campos é quatro predicados opcionais, e montar isso como texto é de onde vêm tanto a injeção de SQL quanto o \"WHERE 1 = 1\". Um bloco WHERE é a declaração que substitui isso: ele junta com AND os predicados cujas condições valem, e um or \{ } ou and \{ } aninhado inverte o conectivo do grupo dentro dele.\n\nUm grupo que não contribui com nada desaparece em vez de deixar um conectivo solto, um grupo que contribui com mais de um predicado é parentetizado, e quando nenhum predicado vale, não existe cláusula WHERE alguma na instrução — então não há 1 = 1 para escrever nem para ler depois em um log. O texto de cada ramo é fixado em tempo de compilação; a única coisa decidida enquanto o programa roda é quais ramos são tomados. Os valores continuam viajando como parâmetros vinculados, exatamente como em uma query comum.\n\nDuas coisas que um bloco where deliberadamente não faz. Um nome de coluna ou uma direção de ordenação nunca pode ser um parâmetro — ORDER BY \{col} ordenaria toda linha por uma string constante — então faça dessa escolha um tipo com variantes e despache para uma query por ordenação. E o SQL que você de fato monta na mão passa por run raw, que é sem tipo por construção e fácil de encontrar com grep.",
+			examples: [Example(caption: "", captionPt: "", code: `type Colony {
+	name:   Str
+	apiary: Str
+	frames: Int
+}
+
+query findColonies(apiary: Str, minFrames: Int, small: Bool, huge: Bool): Colony[dyn] {
+	SELECT name, apiary, frames FROM colonies
+	WHERE {
+		if apiary != ""  { apiary = {apiary} }
+		if minFrames > 0 { frames >= {minFrames} }
+		or {
+			if small { frames < 4 }
+			if huge  { frames > 10 }
+		}
+	}
+	ORDER BY name
+}
+
+proc main(): void {
+	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
+	if opened is Result.Ok(db) {
+		using db run raw "CREATE TABLE colonies (name TEXT, apiary TEXT, frames INTEGER)"
+		using db run raw "INSERT INTO colonies VALUES ('north', 'orchard', 12)"
+		using db run raw "INSERT INTO colonies VALUES ('south', 'orchard', 2)"
+		using db run raw "INSERT INTO colonies VALUES ('east', 'meadow', 7)"
+
+		// Everything off: no predicate holds, so there is no WHERE at all.
+		if using db run findColonies("", 0, false, false) is Result.Ok(all) {
+			echo len(all)
+		}
+		// apiary AND frames >= 5 AND (frames > 10).
+		if using db run findColonies("orchard", 5, false, true) is Result.Ok(some) {
+			echo some
+		}
+		hive.sql.close(db)
+	}
+}`, codePt: `type Colony {
+	name:   Str
+	apiary: Str
+	frames: Int
+}
+
+query findColonies(apiary: Str, minFrames: Int, small: Bool, huge: Bool): Colony[dyn] {
+	SELECT name, apiary, frames FROM colonies
+	WHERE {
+		if apiary != ""  { apiary = {apiary} }
+		if minFrames > 0 { frames >= {minFrames} }
+		or {
+			if small { frames < 4 }
+			if huge  { frames > 10 }
+		}
+	}
+	ORDER BY name
+}
+
+proc main(): void {
+	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
+	if opened is Result.Ok(db) {
+		using db run raw "CREATE TABLE colonies (name TEXT, apiary TEXT, frames INTEGER)"
+		using db run raw "INSERT INTO colonies VALUES ('north', 'orchard', 12)"
+		using db run raw "INSERT INTO colonies VALUES ('south', 'orchard', 2)"
+		using db run raw "INSERT INTO colonies VALUES ('east', 'meadow', 7)"
+
+		// Tudo desligado: nenhum predicado vale, então não há WHERE algum.
+		if using db run findColonies("", 0, false, false) is Result.Ok(all) {
+			echo len(all)
+		}
+		// apiary AND frames >= 5 AND (frames > 10).
+		if using db run findColonies("orchard", 5, false, true) is Result.Ok(some) {
+			echo some
+		}
+		hive.sql.close(db)
+	}
+}`)],
+		),
+		Slide(
+			title: "The in-memory trap",
+			titlePt: "A pegadinha do banco em memória",
+			download: false,
+			explanation: "A plain :memory: SQLite database belongs to the connection, not to the process. Each connection gets a private, empty database that vanishes when it closes — and combined with a pool, that has a sharp edge. One query at a time works fine. Eight at once does not: the pool opens further connections, each one lands on a database of its own, and the queries that went to the new ones come back \"no such table\". A program that passes every test single-threaded starts failing the moment requests overlap, which is exactly what happens behind an HTTP server, since it runs each request on a thread of its own.\n\nThere are two ways out, and only one of them is a real answer. pool(…, 1, 1) holds the pool to a single connection, which works but serialises every query in the program through it. \"file::memory:?cache=shared\" is the one to use: the connections share a single in-memory database, so the pool can be as wide as the work is. None of this is Hive's rule — it is SQLite's — but it is the thing about an in-memory database worth knowing before production teaches it to you.",
+			explanationPt: "Um banco SQLite :memory: simples pertence à conexão, não ao processo. Cada conexão recebe um banco privado e vazio que desaparece quando ela fecha — e combinado com um pool, isso tem uma aresta afiada. Uma query por vez funciona bem. Oito de uma vez não: o pool abre mais conexões, cada uma cai em um banco próprio, e as queries que foram para as novas voltam com \"no such table\". Um programa que passa em todo teste em thread única começa a falhar no instante em que as requisições se sobrepõem, que é exatamente o que acontece atrás de um servidor HTTP, já que ele roda cada requisição em uma thread própria.\n\nExistem duas saídas, e só uma delas é uma resposta de verdade. pool(…, 1, 1) segura o pool em uma única conexão, o que funciona mas serializa toda query do programa por ela. \"file::memory:?cache=shared\" é a que se deve usar: as conexões compartilham um único banco em memória, então o pool pode ser tão largo quanto o trabalho for. Nada disso é regra do Hive — é do SQLite — mas é o que vale saber sobre um banco em memória antes que a produção lhe ensine.",
+			examples: [
+				Example(caption: "A row type", captionPt: "Um tipo de linha", code: `type User { id: Int, name: Str }
+
+query findUser(name: Str): User[dyn] {
+	SELECT id, name FROM users WHERE name = {name}
+}
+
+proc lookUp(db: hive.sql.SqlConnection, name: Str): Str {
+	if using db run findUser(name) is Result.Ok(rows) {
+		if rows bounds 0 {
+			return rows[0].name
+		}
+	}
+	return "?"
+}
+
+proc main(): void {
+	// A plain ":memory:" would give each of these eight connections a
+	// private, empty database of its own. The shared cache is what makes
+	// them all the same one.
+	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 8, 1)
+	if opened is Result.Ok(db) {
+		using db run raw "CREATE TABLE users (id INTEGER, name TEXT)"
+		using db run raw "INSERT INTO users (id, name) VALUES (1, 'ada'), (2, 'grace')"
+
+		echo await [lookUp(db, "ada"), lookUp(db, "grace")]
+		hive.sql.close(db)
+	}
+}`, codePt: `type User { id: Int, name: Str }
+
+query findUser(name: Str): User[dyn] {
+	SELECT id, name FROM users WHERE name = {name}
+}
+
+proc lookUp(db: hive.sql.SqlConnection, name: Str): Str {
+	if using db run findUser(name) is Result.Ok(rows) {
+		if rows bounds 0 {
+			return rows[0].name
+		}
+	}
+	return "?"
+}
+
+proc main(): void {
+	// Um ":memory:" simples daria a cada uma destas oito conexões um banco
+	// privado e vazio, só dela. O cache compartilhado é o que faz todas
+	// elas serem o mesmo banco.
+	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 8, 1)
+	if opened is Result.Ok(db) {
+		using db run raw "CREATE TABLE users (id INTEGER, name TEXT)"
+		using db run raw "INSERT INTO users (id, name) VALUES (1, 'ada'), (2, 'grace')"
+
+		echo await [lookUp(db, "ada"), lookUp(db, "grace")]
+		hive.sql.close(db)
+	}
 }`)],
 		),
 		Slide(
 			title: "The UI module",
 			titlePt: "O módulo de UI",
-			explanation: "hive.ui builds an interface as a value: a View is a tree of widgets, and every one of them takes the same two things, its attributes and then its own payload. row and column lay out children; text, image, icon and link show something; button, input, textarea, checkbox and select ask for something; table shows a Table, and spacer, spinner, none and overlay round out the set. Attributes are just as closed a set: gap, pad, width, height, grow, align, justify and scroll lay out; size, heading, tone and background style; disabled, busy, placeholder, hint and kind describe state; and on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick and onSort carry an event, for a window rather than this kind of page. Align, Justify, TextSize, Tone, Axis, InputKind and Icon are the enumerations behind them, reached like any other library type.\n\nhtml(view) renders a tree as an HTML fragment, and page(title, view) as a whole document with a stylesheet already built in, light and dark alike — which is exactly what an httpServe handler can answer a request with directly, and what every screen in this tour but its code samples is. The same tree, shown instead by window(title, view, update, state), becomes a live page: update is a fold over its events, the same shape a hive.syslink handler folds over a mailbox, so a window has an address and needs no mutex of its own.\n\nA scene is the one widget that only a window can draw. box, sphere, cylinder, ground, label and line are its shapes, positioned with at and turn and coloured with paint; eye, aim, lens and fog place and dress the camera; grab and crosshair capture the mouse, and onFrame, onKeyDown, onKeyUp, onLook and onGrab are the events a scene alone reports. A served page renders a scene's box empty — there is no socket for frames to travel down — so the two examples below are shown as code only: open either in a window to actually see it.",
-			explanationPt: "hive.ui constrói uma interface como um valor: uma View é uma árvore de widgets, e cada um deles recebe as mesmas duas coisas, seus atributos e depois sua própria carga. row e column organizam filhos; text, image, icon e link mostram algo; button, input, textarea, checkbox e select pedem algo; table mostra uma Table, e spacer, spinner, none e overlay completam o conjunto. Os atributos são um conjunto igualmente fechado: gap, pad, width, height, grow, align, justify e scroll organizam; size, heading, tone e background estilizam; disabled, busy, placeholder, hint e kind descrevem estado; e on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick e onSort carregam um evento, para uma window e não para este tipo de página. Align, Justify, TextSize, Tone, Axis, InputKind e Icon são as enumerações por trás deles, acessadas como qualquer outro tipo da biblioteca.\n\nhtml(view) renderiza uma árvore como um fragmento HTML, e page(title, view) como um documento inteiro com uma stylesheet já embutida, claro e escuro igualmente — que é exatamente o que um handler de httpServe pode usar para responder a uma requisição diretamente, e o que toda tela deste tour, exceto suas amostras de código, é. A mesma árvore, mostrada em vez disso por window(title, view, update, state), se torna uma página viva: update é um fold sobre seus eventos, a mesma forma que um handler de hive.syslink faz fold sobre uma caixa de mensagens, então uma window tem um endereço e não precisa de mutex próprio.\n\nUma scene é o único widget que somente uma window consegue desenhar. box, sphere, cylinder, ground, label e line são suas formas, posicionadas com at e turn e coloridas com paint; eye, aim, lens e fog posicionam e ajustam a câmera; grab e crosshair capturam o mouse, e onFrame, onKeyDown, onKeyUp, onLook e onGrab são os eventos que somente uma scene reporta. Uma página servida renderiza a caixa de uma scene vazia — não há um socket para os frames viajarem — então os dois exemplos abaixo são mostrados apenas como código: abra qualquer um deles em uma window para realmente ver.",
+			download: false,
+			explanation: "hive.ui builds an interface as a value: a View is a tree of widgets, and every one of them takes the same two things, its attributes and then its own payload. row and column lay out children; text, image, icon and link show something; button, input, textarea, checkbox and select ask for something; table shows a Table, and spacer, spinner, none and overlay round out the set. Attributes are just as closed a set: gap, pad, width, height, grow, align, justify and scroll lay out; size, heading, tone and background style; disabled, busy, placeholder, hint and kind describe state; and on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick and onSort carry an event, for a window rather than this kind of page. Align, Justify, TextSize, Tone, Axis, InputKind and Icon are the enumerations behind them, reached like any other library type.\n\nhtml(view) renders a tree as an HTML fragment, and page(title, view) as a whole document with a stylesheet already built in, light and dark alike — which is exactly what an httpServe handler can answer a request with directly, and what every screen in this tour but its code samples is. The same tree, shown instead by window(title, view, update, state), becomes a live page: update is a fold over its events, the same shape a hive.syslink handler folds over a mailbox, so a window has an address and needs no mutex of its own.\n\nThat address is also why there is no command type. Every language built this way needs an answer to \"the update wants to fetch something, and must not block the screen while it does\", and most of them invent a type for it — a Cmd, a task, an effect the runtime interprets. Hive needs none, because it already has two things that add up to one: update is a proc, so it may act, and hive.syslink.self(envelope) is the window's own address, so work started with async can send its answer back as an ordinary message.\n\nAnd because a view is a value rather than a template, an interface is testable without a browser. html is the same renderer a served page uses, so a test can render a view and read the markup that comes out — which is the cheapest place there is to check that a disabled button really is disabled, and that somebody else's text cannot smuggle a script tag into your page.\n\nA scene is the one widget that only a window can draw. box, sphere, cylinder, ground, label and line are its shapes, positioned with at and turn and coloured with paint; eye, aim, lens and fog place and dress the camera; grab and crosshair capture the mouse, and onFrame, onKeyDown, onKeyUp, onLook and onGrab are the events a scene alone reports. A served page renders a scene's box empty — there is no socket for frames to travel down — so the two examples below are shown as code only: open either in a window to actually see it.",
+			explanationPt: "hive.ui constrói uma interface como um valor: uma View é uma árvore de widgets, e cada um deles recebe as mesmas duas coisas, seus atributos e depois sua própria carga. row e column organizam filhos; text, image, icon e link mostram algo; button, input, textarea, checkbox e select pedem algo; table mostra uma Table, e spacer, spinner, none e overlay completam o conjunto. Os atributos são um conjunto igualmente fechado: gap, pad, width, height, grow, align, justify e scroll organizam; size, heading, tone e background estilizam; disabled, busy, placeholder, hint e kind descrevem estado; e on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick e onSort carregam um evento, para uma window e não para este tipo de página. Align, Justify, TextSize, Tone, Axis, InputKind e Icon são as enumerações por trás deles, acessadas como qualquer outro tipo da biblioteca.\n\nhtml(view) renderiza uma árvore como um fragmento HTML, e page(title, view) como um documento inteiro com uma stylesheet já embutida, claro e escuro igualmente — que é exatamente o que um handler de httpServe pode usar para responder a uma requisição diretamente, e o que toda tela deste tour, exceto suas amostras de código, é. A mesma árvore, mostrada em vez disso por window(title, view, update, state), se torna uma página viva: update é um fold sobre seus eventos, a mesma forma que um handler de hive.syslink faz fold sobre uma caixa de mensagens, então uma window tem um endereço e não precisa de mutex próprio.\n\nEsse endereço é também por que não existe um tipo de comando. Toda linguagem construída assim precisa de uma resposta para \"o update quer buscar algo, e não pode travar a tela enquanto busca\", e a maioria delas inventa um tipo para isso — um Cmd, uma task, um efeito que o runtime interpreta. Hive não precisa de nenhum, porque já tem duas coisas que somadas dão uma: update é um proc, então pode agir, e hive.syslink.self(envelope) é o endereço da própria window, então o trabalho iniciado com async pode mandar sua resposta de volta como uma mensagem comum.\n\nE como uma view é um valor e não um template, uma interface dá para testar sem navegador. html é o mesmo renderizador que uma página servida usa, então um teste pode renderizar uma view e ler o markup que sai — que é o lugar mais barato que existe para conferir que um botão desabilitado está mesmo desabilitado, e que o texto de outra pessoa não consegue contrabandear uma tag de script para dentro da sua página.\n\nUma scene é o único widget que somente uma window consegue desenhar. box, sphere, cylinder, ground, label e line são suas formas, posicionadas com at e turn e coloridas com paint; eye, aim, lens e fog posicionam e ajustam a câmera; grab e crosshair capturam o mouse, e onFrame, onKeyDown, onKeyUp, onLook e onGrab são os eventos que somente uma scene reporta. Uma página servida renderiza a caixa de uma scene vazia — não há um socket para os frames viajarem — então os dois exemplos abaixo são mostrados apenas como código: abra qualquer um deles em uma window para realmente ver.",
 			examples: [
 				Example(caption: "A page, served directly", captionPt: "Uma página, servida diretamente", code: `proc main(): void {
 	view := hive.ui.column([hive.ui.pad(24), hive.ui.gap(12)], [
@@ -1532,6 +2535,146 @@ proc main(): void {
 
 	body := hive.ui.page("Hive", view)   // um documento inteiro, servido diretamente
 	echo len(body)
+}`),
+				Example(caption: "A window, with no command type", captionPt: "Uma window, sem tipo de comando", code: `import hive.ui
+
+type Model {
+	rows:    Str[dyn]
+	loading: Bool
+}
+
+type Msg {
+	Refresh
+	Loaded { rows: Str[dyn] }
+}
+
+func view(model: Model): ui.View {
+	mut ui.View[dyn] kids = [ui.button([ui.on(Msg.Refresh())], "Refresh")]
+	if model.loading {
+		append(kids, ui.spinner([]))
+	}
+	for each row in model.rows {
+		append(kids, ui.text([], row))
+	}
+	return ui.column([ui.pad(24), ui.gap(8)], kids)
+}
+
+proc update(model: Model, msg: Msg, from: hive.syslink.Envelope): Model {
+	if msg is Msg.Refresh {
+		async reload(hive.syslink.self(from))   // off it goes; nothing to hold
+		return Model(model.rows, true)           // ...and the spinner starts now
+	} else if msg is Msg.Loaded(rows) {
+		return Model(rows, false)                // it comes back as a message
+	}
+	return model
+}
+
+proc reload(window: hive.syslink.Address): void {
+	hive.task.sleep(400)
+	async window(Msg.Loaded(["north", "south"]))
+}
+
+proc main(): void {
+	ui.window("Colonies", view, update, Model([], false))
+}`, codePt: `import hive.ui
+
+type Model {
+	rows:    Str[dyn]
+	loading: Bool
+}
+
+type Msg {
+	Refresh
+	Loaded { rows: Str[dyn] }
+}
+
+func view(model: Model): ui.View {
+	mut ui.View[dyn] kids = [ui.button([ui.on(Msg.Refresh())], "Atualizar")]
+	if model.loading {
+		append(kids, ui.spinner([]))
+	}
+	for each row in model.rows {
+		append(kids, ui.text([], row))
+	}
+	return ui.column([ui.pad(24), ui.gap(8)], kids)
+}
+
+proc update(model: Model, msg: Msg, from: hive.syslink.Envelope): Model {
+	if msg is Msg.Refresh {
+		async reload(hive.syslink.self(from))   // lá vai; nada a segurar
+		return Model(model.rows, true)           // ...e o spinner começa agora
+	} else if msg is Msg.Loaded(rows) {
+		return Model(rows, false)                // volta como uma mensagem
+	}
+	return model
+}
+
+proc reload(window: hive.syslink.Address): void {
+	hive.task.sleep(400)
+	async window(Msg.Loaded(["north", "south"]))
+}
+
+proc main(): void {
+	ui.window("Colônias", view, update, Model([], false))
+}`),
+				Example(caption: "An interface you can test", captionPt: "Uma interface que dá para testar", code: `import hive.ui
+
+type Model {
+	posts: Str[dyn]
+	draft: Str
+}
+
+func view(model: Model): ui.View {
+	mut ui.View[dyn] kids = [
+		ui.input([ui.placeholder("say something")], model.draft),
+		ui.button([ui.disabled(model.draft == "")], "Post"),
+	]
+	for each post in model.posts {
+		append(kids, ui.text([], post))
+	}
+	return ui.column([ui.pad(24), ui.gap(8)], kids)
+}
+
+test "the post button is disabled until something is typed" {
+	empty := ui.html(view(Model([], "")))
+	assert indexOf(empty, "disabled") is Result.Ok(_)
+
+	typed := ui.html(view(Model([], "hi")))
+	assert indexOf(typed, "disabled") is Result.Error(_)
+}
+
+test "a post body cannot smuggle markup into the page" {
+	page := ui.html(view(Model(["<script>steal()</script>"], "")))
+	assert indexOf(page, "<script>") is Result.Error(_)
+}`, codePt: `import hive.ui
+
+type Model {
+	posts: Str[dyn]
+	draft: Str
+}
+
+func view(model: Model): ui.View {
+	mut ui.View[dyn] kids = [
+		ui.input([ui.placeholder("diga algo")], model.draft),
+		ui.button([ui.disabled(model.draft == "")], "Publicar"),
+	]
+	for each post in model.posts {
+		append(kids, ui.text([], post))
+	}
+	return ui.column([ui.pad(24), ui.gap(8)], kids)
+}
+
+test "o botão fica desabilitado até algo ser digitado" {
+	empty := ui.html(view(Model([], "")))
+	assert indexOf(empty, "disabled") is Result.Ok(_)
+
+	typed := ui.html(view(Model([], "oi")))
+	assert indexOf(typed, "disabled") is Result.Error(_)
+}
+
+test "o corpo de um post não contrabandeia markup para a página" {
+	page := ui.html(view(Model(["<script>steal()</script>"], "")))
+	assert indexOf(page, "<script>") is Result.Error(_)
 }`),
 				Example(caption: "A 3D scene, in a window", captionPt: "Uma cena 3D, em uma window", code: `type Msg { Tick }
 
@@ -1654,6 +2797,7 @@ proc main(): void {
 		Slide(
 			title: "Testing",
 			titlePt: "Testes",
+			download: false,
 			explanation: "A test is a top-level declaration, named in prose because the name is documentation rather than something anything calls. `hive test entrypoint.hive` runs every test the entrypoint reaches, with no framework and no assertion vocabulary beyond the assert the language already has — and reports coverage, including which declarations were never exercised, on every run without a separate flag. This file has no main at all — a file holding only tests needs none — so it runs with `hive test`, not `hive run`.",
 			explanationPt: "Um test é uma declaração de nível superior, nomeada em prosa porque o nome é documentação, não algo que alguma coisa chama. `hive test entrypoint.hive` roda todo test que o entrypoint alcança, sem framework e sem vocabulário de asserção além do assert que a linguagem já tem — e reporta cobertura, incluindo quais declarações nunca foram exercitadas, em toda execução sem uma flag separada. Este arquivo não tem main algum — um arquivo só com tests não precisa de um — então ele roda com `hive test`, não com `hive run`.",
 			examples: [Example(caption: "", captionPt: "", code: `type Item {
@@ -1701,8 +2845,9 @@ test "dois itens se somam" {
 		Slide(
 			title: "Distributed actors",
 			titlePt: "Atores distribuídos",
-			explanation: "hive.syslink gives a program addressable services, in this process or on another machine, reached by the identical statement either way. spawn starts one and register publishes it under an atom; at reaches a service on this node and on reaches one on another, both without any I/O. A service's handler is a fold over its mailbox — proc(State, Message, Envelope): State — so there is no mutex anywhere: the fold is the mutex, and answer inside it is how a deferred reply is sent. self reads a handler's own address, monitor asks to be told if another address stops, and stop ends one outright. A crash inside one service kills only that service and leaves the rest of the node running.\n\nlisten opens this node to others at an endpoint — an ip:port — and node/peers say who it is and who else it is currently connected to. Two nodes need nothing shared beyond a cluster key, written to ~/.hive/syslink.key on first run: copy that file to the second machine, or set HIVE_SYSLINK_KEY the same on both, and every connection between them is TLS 1.3 either way.",
-			explanationPt: "hive.syslink dá a um programa serviços endereçáveis, neste processo ou em outra máquina, alcançados pela mesma instrução de qualquer forma. spawn inicia um e register o publica sob um átomo; at alcança um serviço neste nó e on alcança um em outro, ambos sem nenhum I/O. O handler de um serviço é um fold sobre sua caixa de mensagens — proc(State, Message, Envelope): State — então não há mutex em lugar nenhum: o fold é o mutex, e answer dentro dele é como uma resposta adiada é enviada. self lê o próprio endereço de um handler, monitor pede para ser avisado se outro endereço parar, e stop termina um de vez. Uma falha dentro de um serviço mata apenas aquele serviço e deixa o resto do nó rodando.\n\nlisten abre este nó para outros em um endpoint — um ip:port — e node/peers dizem quem ele é e com quem mais está conectado atualmente. Dois nós não precisam de nada compartilhado além de uma chave de cluster, escrita em ~/.hive/syslink.key na primeira execução: copie esse arquivo para a segunda máquina, ou defina HIVE_SYSLINK_KEY da mesma forma nas duas, e toda conexão entre elas é TLS 1.3 de qualquer forma.",
+			download: false,
+			explanation: "hive.syslink gives a program addressable services, in this process or on another machine, reached by the identical statement either way. spawn starts one and register publishes it under an atom; at reaches a service on this node and on reaches one on another, both without any I/O. A service's handler is a fold over its mailbox — proc(State, Message, Envelope): State — so there is no mutex anywhere: the fold is the mutex, and answer inside it is how a deferred reply is sent. self reads a handler's own address, monitor asks to be told if another address stops, and stop ends one outright. A crash inside one service kills only that service and leaves the rest of the node running.\n\nMissing a reply on one branch is the easiest mistake there is to make in service code, and waiting out a timeout is a miserable way to be told about it: it points at the network when the problem is a missing line. So answer is a no-op when the sender used async and nothing is waiting — one handler serves both shapes without caring which it was — and a request a service handles without ever answering comes straight back as NoReply, naming the service, at once rather than at the deadline. You write nothing to get that.\n\nUnless the envelope leaves the turn. If it goes anywhere else — stored in the returned state, handed to a call the handler does not wait for, passed to a proc of your own — a reply may genuinely still be on its way, and the runtime keeps waiting. That is the deferred reply: hand the envelope to an async call and answer whenever the work is done.\n\nlisten opens this node to others at an endpoint — an ip:port — and node/peers say who it is and who else it is currently connected to. Two nodes need nothing shared beyond a cluster key, written to ~/.hive/syslink.key on first run: copy that file to the second machine, or set HIVE_SYSLINK_KEY the same on both, and every connection between them is TLS 1.3 either way.",
+			explanationPt: "hive.syslink dá a um programa serviços endereçáveis, neste processo ou em outra máquina, alcançados pela mesma instrução de qualquer forma. spawn inicia um e register o publica sob um átomo; at alcança um serviço neste nó e on alcança um em outro, ambos sem nenhum I/O. O handler de um serviço é um fold sobre sua caixa de mensagens — proc(State, Message, Envelope): State — então não há mutex em lugar nenhum: o fold é o mutex, e answer dentro dele é como uma resposta adiada é enviada. self lê o próprio endereço de um handler, monitor pede para ser avisado se outro endereço parar, e stop termina um de vez. Uma falha dentro de um serviço mata apenas aquele serviço e deixa o resto do nó rodando.\n\nEsquecer a resposta em um ramo é o erro mais fácil de cometer em código de serviço, e esperar um timeout até o fim é uma forma miserável de ser avisado disso: aponta para a rede quando o problema é uma linha que falta. Então answer é um no-op quando quem enviou usou async e nada está esperando — um mesmo handler serve às duas formas sem se importar com qual foi — e uma requisição que um serviço trata sem nunca responder volta na hora como NoReply, nomeando o serviço, em vez de voltar no prazo. Você não escreve nada para ter isso.\n\nA menos que o envelope saia do turno. Se ele for para qualquer outro lugar — guardado no estado retornado, entregue a uma chamada que o handler não espera, passado a um proc seu — uma resposta pode genuinamente ainda estar a caminho, e o runtime continua esperando. Essa é a resposta adiada: entregue o envelope a uma chamada async e responda quando o trabalho terminar.\n\nlisten abre este nó para outros em um endpoint — um ip:port — e node/peers dizem quem ele é e com quem mais está conectado atualmente. Dois nós não precisam de nada compartilhado além de uma chave de cluster, escrita em ~/.hive/syslink.key na primeira execução: copie esse arquivo para a segunda máquina, ou defina HIVE_SYSLINK_KEY da mesma forma nas duas, e toda conexão entre elas é TLS 1.3 de qualquer forma.",
 			examples: [
 				Example(caption: "A service on this node", captionPt: "Um serviço neste nó", code: `type Note {
 	Say   { text: Str }
@@ -1756,6 +2901,69 @@ proc main(): void {
 	if reply is Result.Ok(msg) {
 		echo msg
 	}
+}`),
+				Example(caption: "Answering later, and not answering at all", captionPt: "Respondendo depois, e não respondendo", code: `type Note {
+	Ask
+	Slowly
+	Ignore
+	Answer { text: Str }
+}
+
+proc desk(state: Int, note: Note, from: hive.syslink.Envelope): Int {
+	if note is Note.Ask {
+		hive.syslink.answer(from, Note.Answer("here you go"))
+	} else if note is Note.Slowly {
+		async answerLate(from)      // the envelope leaves the turn
+	}
+	return state + 1                 // Note.Ignore falls through: no answer
+}
+
+// Handed an envelope by a call nothing waits for, so the reply is allowed
+// to arrive whenever this is done.
+proc answerLate(from: hive.syslink.Envelope): void {
+	hive.task.sleep(300)
+	hive.syslink.answer(from, Note.Answer("worth the wait"))
+}
+
+proc main(): void {
+	desk := hive.syslink.spawn(desk, 0)
+
+	if desk(Note.Ask()) with timeout 500 is Result.Ok(now) { echo now }
+	if desk(Note.Slowly()) with timeout 1000 is Result.Ok(late) { echo late }
+
+	// Comes back at once, not at the deadline.
+	if desk(Note.Ignore()) with timeout 5000 is Result.Error(err) { echo err }
+}`, codePt: `type Note {
+	Ask
+	Slowly
+	Ignore
+	Answer { text: Str }
+}
+
+proc desk(state: Int, note: Note, from: hive.syslink.Envelope): Int {
+	if note is Note.Ask {
+		hive.syslink.answer(from, Note.Answer("aqui está"))
+	} else if note is Note.Slowly {
+		async answerLate(from)      // o envelope sai do turno
+	}
+	return state + 1                 // Note.Ignore passa direto: sem resposta
+}
+
+// Recebeu um envelope de uma chamada que ninguém espera, então a resposta
+// pode chegar quando isto aqui terminar.
+proc answerLate(from: hive.syslink.Envelope): void {
+	hive.task.sleep(300)
+	hive.syslink.answer(from, Note.Answer("valeu a espera"))
+}
+
+proc main(): void {
+	desk := hive.syslink.spawn(desk, 0)
+
+	if desk(Note.Ask()) with timeout 500 is Result.Ok(now) { echo now }
+	if desk(Note.Slowly()) with timeout 1000 is Result.Ok(late) { echo late }
+
+	// Volta na hora, não no prazo.
+	if desk(Note.Ignore()) with timeout 5000 is Result.Error(err) { echo err }
 }`),
 				Example(caption: "The same service, truly distributed", captionPt: "O mesmo serviço, verdadeiramente distribuído", code: `type Note {
 	Say     { text: Str }
@@ -1849,6 +3057,7 @@ proc main(): void {
 		Slide(
 			title: "Containers",
 			titlePt: "Contêineres",
+			download: false,
 			explanation: "`hive container entrypoint.hive` writes a Dockerfile for the program, into the folder the command was run in — which is also the build's context. Nothing has to be installed to build the image but Docker itself: the first stage downloads Go and the compiler's latest release for the platform being built for — amd64 on an ordinary machine, arm64 on an Apple-silicon one, so the build is native either way — and compiles the program with the two of them. The second stage is the executable and nothing else, on distroless/static: no Go, no compiler, not even a shell.\n\nThe parts of the file that are not a template are read off the program rather than guessed at. A hive.net.httpServe(8080, ...) becomes an EXPOSE 8080 that says in a comment where the number came from; an import that names a repository puts git in the build stage, since the compiler clones it while the image builds; a program that opens a database says why go mod tidy runs before anything compiles. Everything beside the Dockerfile goes into the build, so a .dockerignore is what narrows that.\n\nWhat comes out is an ordinary Dockerfile, and editing it is expected. A Dockerfile already in the folder is never written over — ours is called Dockerfile-hive-container instead, and the command says which of the two it wrote. This tour is served out of an image built exactly this way.",
 			explanationPt: "`hive container entrypoint.hive` escreve um Dockerfile para o programa, na pasta em que o comando foi rodado — que é também o contexto do build. Nada precisa estar instalado para construir a imagem além do próprio Docker: o primeiro estágio baixa o Go e o último lançamento do compilador para a plataforma para a qual se está construindo — amd64 numa máquina comum, arm64 numa de silício Apple, então o build é nativo de qualquer jeito — e compila o programa com os dois. O segundo estágio é o executável e nada mais, sobre distroless/static: sem Go, sem compilador, nem sequer um shell.\n\nAs partes do arquivo que não são um template são lidas do programa em vez de adivinhadas. Um hive.net.httpServe(8080, ...) vira um EXPOSE 8080 que diz num comentário de onde o número veio; um import que nomeia um repositório coloca git no estágio de build, já que o compilador o clona enquanto a imagem é construída; um programa que abre um banco de dados diz por que go mod tidy roda antes de qualquer coisa ser compilada. Tudo que está ao lado do Dockerfile entra no build, então um .dockerignore é o que estreita isso.\n\nO que sai é um Dockerfile comum, e editá-lo é esperado. Um Dockerfile que já esteja na pasta nunca é sobrescrito — o nosso se chama Dockerfile-hive-container em vez disso, e o comando diz qual dos dois escreveu. Este tour é servido a partir de uma imagem construída exatamente assim.",
 			examples: [
@@ -1937,19 +3146,34 @@ ENTRYPOINT ["/usr/local/bin/main"]`),
 			],
 		),
 		Slide(
-			title: "Try it yourself",
-			titlePt: "Experimente você mesmo",
-			explanation: "Everything in this tour runs on the same compiler that is serving it to you right now — one executable, and nothing else to install beside it. Download the latest release below, put it on your PATH, and every example in this tour is a file away from running for real.\n\nhive check looks for problems without building anything, which is why it is the thing worth trying first; hive run compiles and runs a program in one step; hive build leaves a native executable behind. Copy any example from this tour into a file of your own, and all three work on it exactly as they did here.",
-			explanationPt: "Tudo neste tour roda no mesmo compilador que está servindo ele para você agora mesmo — um único executável, e nada mais para instalar além dele. Baixe o último lançamento abaixo, coloque-o no seu PATH, e qualquer exemplo deste tour está a um arquivo de distância de rodar de verdade.\n\nhive check procura problemas sem construir nada, e é por isso que vale a pena testar primeiro; hive run compila e roda um programa em um único passo; hive build deixa um executável nativo pronto. Copie qualquer exemplo deste tour para um arquivo seu, e os três funcionam nele exatamente como funcionaram aqui.",
-			examples: [Example(caption: "", captionPt: "", code: `$ printf 'proc main(): void {\n\techo "it works"\n}\n' > hello.hive
-$ hive check hello.hive
+			title: "Where to go next",
+			titlePt: "Para onde ir agora",
+			download: true,
+			explanation: "That is the tour. Everything in it runs on the same compiler that served it to you — one executable, and nothing else to install beside it. The download link below is the latest release, built for every platform Go targets; put it on your PATH and every example here is one file away from running for real.\n\nThe repository is the reference this tour is not. spec/ is the language written down properly, one numbered document per part — the grammar, the type system, the mutability rules, the bounds pass, the standard library, the lowering to Go — and it is where to look once the tour has told you a thing is true and you want to know exactly how true. examples/ holds whole programs rather than fragments, numbered and each one runnable, and they double as the compiler's own test suite, which is what keeps them honest.\n\nAnd the compiler is itself written in Hive and builds itself, so src/ is also the largest Hive program there is to read.",
+			explanationPt: "Este é o tour. Tudo nele roda no mesmo compilador que o serviu a você — um único executável, e nada mais para instalar ao lado dele. O link de download abaixo é o último lançamento, construído para toda plataforma que o Go alcança; coloque-o no seu PATH e todo exemplo daqui está a um arquivo de rodar de verdade.\n\nO repositório é a referência que este tour não é. spec/ é a linguagem escrita direito, um documento numerado por parte — a gramática, o sistema de tipos, as regras de mutabilidade, a passagem de limites, a biblioteca padrão, a tradução para Go — e é onde procurar quando o tour lhe disse que algo é verdade e você quer saber exatamente o quanto. examples/ guarda programas inteiros em vez de fragmentos, numerados e cada um executável, e eles servem também como a suíte de testes do próprio compilador, que é o que os mantém honestos.\n\nE o compilador é ele mesmo escrito em Hive e se constrói sozinho, então src/ é também o maior programa Hive que existe para ler.",
+			examples: [Example(caption: "", captionPt: "", code: `$ hive check hello.hive
 No problems found in hello.hive (0s)
+
 $ hive run hello.hive
-it works`, codePt: `$ printf 'proc main(): void {\n\techo "funciona"\n}\n' > hello.hive
-$ hive check hello.hive
+it works
+
+$ hive test hello.hive
+  1 test: 1 passed
+  coverage: 100.0% of statements (3/3)
+
+$ hive container hello.hive
+Wrote Dockerfile for hello.hive (0s)`, codePt: `$ hive check hello.hive
 No problems found in hello.hive (0s)
+
 $ hive run hello.hive
-funciona`)],
+funciona
+
+$ hive test hello.hive
+  1 test: 1 passed
+  coverage: 100.0% of statements (3/3)
+
+$ hive container hello.hive
+Wrote Dockerfile for hello.hive (0s)`)],
 		),
 	]
 }
