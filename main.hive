@@ -9,11 +9,20 @@
 //
 // The interface is built with `hive.ui`: the sidebar, the heading, the
 // explanation and the prev/next links are all `View`s, rendered by
-// `ui.page`. Two things the widget set has no answer for are spliced into
-// the finished document as literal HTML: a monospaced, boxed code sample,
-// which goes in place of a marker view, and the `<link>` that names the tab
-// icon, which goes in the head, where nothing is on show and so nothing is
-// a view. Everything else stays a view all the way down.
+// `ui.page`. Two kinds of thing the widget set has no answer for are
+// spliced into the finished document as literal HTML: a monospaced, boxed
+// code sample, which goes in place of a marker view, and everything that
+// belongs in the head — the tab icon, and the whole of what a page says
+// about itself to a search engine or a link unfurler. The head is the half
+// of a page nobody looks at, so nothing in it is on show, and a thing that
+// is not on show is not a view. Everything else stays a view all the way
+// down.
+//
+// Two more paths answer to nobody who is reading: /robots.txt and
+// /sitemap.xml, which between them say what there is here and in which
+// languages. The sitemap is built from the same `slides()` the pages are,
+// so a slide added below is a slide a crawler is told about, and there is
+// no second list anywhere to forget to update.
 //
 // The mark the home screen shows, and the one the tab gets, both live in
 // ./logo, which holds the drawing and nothing else — the tour is prose, and
@@ -37,6 +46,21 @@ type Slide {
 	download:      Bool
 }
 
+// What a page says about itself before anybody has read a word of it: the
+// title in the tab, the sentence a search result prints under it, the URL
+// that is the real one when several point at the same page, and where the
+// other language's version of it lives. Every page this server sends fills
+// one of these in, and `document` turns it into the tags that carry it.
+type PageHead {
+	title:       Str
+	description: Str
+	path:        Str
+	lang:        Str
+	indexable:   Bool
+	prev:        Str
+	next:        Str
+}
+
 proc main(): void {
 	echo "The Hive Tour: http://localhost:8080"
 	hive.net.httpServe(8080, handle)
@@ -58,6 +82,16 @@ proc handle(request: hive.net.HttpRequest): hive.net.HttpResponse {
 	}
 	if path == "/favicon.svg" {
 		return svgResponse(logo.icon())
+	}
+
+	// The two files a crawler asks for that no visitor ever does. Neither
+	// depends on the language either: the sitemap names both of them for
+	// every page, which is the point of it.
+	if path == "/robots.txt" {
+		return robotsResponse()
+	}
+	if path == "/sitemap.xml" {
+		return sitemapResponse()
 	}
 
 	all := slides()
@@ -120,21 +154,272 @@ func codeMarkerTag(): Str {
 	return "<span class=\"h-text\">" + codeMarker() + "</span>"
 }
 
-// Every page this server sends, and the one line of it no view can carry.
+// Every page this server sends, and the lines of it no view can carry.
 // `ui.page` writes a whole document — charset, viewport, title, stylesheet
-// — and the tab icon belongs in its head, which is the half of a page
-// nobody looks at. So it is spliced the way a code sample is: split the
-// document on a tag that is certainly in it, and join it back with ours in
-// front of that tag.
-func document(title: Str, view: ui.View): Str {
-	page := ui.page(title, view)
-	return join(split(page, "</head>"), iconLinkTag() + "</head>")
+// — and everything a page says *about* itself belongs in its head, which is
+// the half of a page nobody looks at. So it is spliced the way a code
+// sample is: split the document on a tag that is certainly in it, and join
+// it back with ours in front of that tag. Twice, because the language a
+// document is written in is an attribute of `<html>` rather than a tag
+// inside it, and a screen reader picking a voice reads it there.
+func document(head: PageHead, view: ui.View): Str {
+	page := ui.page(head.title, view)
+	tagged := join(split(page, "<html>"), "<html lang=\"" + htmlLang(head.lang) + "\">")
+	return join(split(tagged, "</head>"), headTags(head) + "</head>")
+}
+
+// BCP 47, which is what an `hreflang` and an `<html lang>` are both read as.
+// The Portuguese here is Brazilian, and saying so is the difference between
+// a search engine offering this page to somebody in São Paulo and offering
+// it to everybody who reads any Portuguese at all.
+func htmlLang(lang: Str): Str {
+	if lang == "pt" { return "pt-BR" }
+	return "en"
+}
+
+// The whole of the head this program writes for itself. Order is nobody's
+// business but a reader of the source's, so it goes: what the page is, who
+// may index it, which URL is the real one, where the other language is, and
+// then the two vocabularies — Open Graph and Twitter's — that decide what a
+// pasted link unfurls into. The structured data closes it, because it is
+// the one part that repeats what the tags above already said, and it
+// repeats it for a reader that wants it as data rather than as tags.
+func headTags(head: PageHead): Str {
+	canonical := absoluteUrl(head.path, head.lang)
+	english := absoluteUrl(head.path, "en")
+	portuguese := absoluteUrl(head.path, "pt")
+	mut Str[dyn] tags = [
+		iconLinkTag(),
+		metaTag("description", head.description),
+		metaTag("robots", robotsValue(head.indexable)),
+		metaTag("theme-color", brandColour()),
+		metaTag("color-scheme", "light dark"),
+		linkTag("canonical", canonical),
+		alternateTag("en", english),
+		alternateTag("pt-BR", portuguese),
+		alternateTag("x-default", english),
+		propertyTag("og:type", openGraphType(head)),
+		propertyTag("og:site_name", tourTitle(head.lang)),
+		propertyTag("og:title", head.title),
+		propertyTag("og:description", head.description),
+		propertyTag("og:url", canonical),
+		propertyTag("og:image", siteUrl() + "/hive-logo.svg"),
+		propertyTag("og:image:alt", logoAlt(head.lang)),
+		propertyTag("og:locale", openGraphLocale(head.lang)),
+		propertyTag("og:locale:alternate", openGraphLocale(otherLang(head.lang))),
+		metaTag("twitter:card", "summary"),
+		metaTag("twitter:title", head.title),
+		metaTag("twitter:description", head.description),
+		metaTag("twitter:image", siteUrl() + "/hive-logo.svg"),
+	]
+
+	// Only where there is one to point at. A `rel="prev"` on the first slide
+	// would be a link to nowhere, which is worse than no link at all.
+	if head.prev != "" {
+		append(tags, linkTag("prev", absoluteUrl(head.prev, head.lang)))
+	}
+	if head.next != "" {
+		append(tags, linkTag("next", absoluteUrl(head.next, head.lang)))
+	}
+
+	append(tags, structuredDataTag(head))
+	return join(tags, "")
 }
 
 // An SVG icon rather than the .ico a browser guesses at: one drawing, drawn
 // at whatever size the tab it lands in happens to be.
 func iconLinkTag(): Str {
 	return "<link rel=\"icon\" type=\"image/svg+xml\" href=\"/favicon.svg\">"
+}
+
+// The amber the bee is painted in, which is what a browser tints its own
+// chrome with on a phone.
+func brandColour(): Str {
+	return "#e29b19"
+}
+
+// The one absolute URL this program knows about itself. Every canonical
+// link, every alternate, every entry of the sitemap and the picture a
+// pasted link unfurls into is built out of it, so moving the tour to
+// another domain is this one line and nothing else.
+func siteUrl(): Str {
+	return "https://hive-lang.run"
+}
+
+// A page's real address, which is the site, the path, and — in Portuguese —
+// the query that chose the language. Two languages of one slide are two
+// URLs and each is canonical for itself: telling a search engine they are
+// the same page would be telling it to throw one of them away.
+func absoluteUrl(path: Str, lang: Str): Str {
+	return siteUrl() + href(path, lang)
+}
+
+func otherLang(lang: Str): Str {
+	if lang == "pt" { return "en" }
+	return "pt"
+}
+
+func openGraphLocale(lang: Str): Str {
+	if lang == "pt" { return "pt_BR" }
+	return "en_US"
+}
+
+// Open Graph's own word for what a page is. The home screen is the site;
+// every slide is a piece of writing on it.
+func openGraphType(head: PageHead): Str {
+	if head.path == "/" { return "website" }
+	return "article"
+}
+
+// The 404 is the one page here worth keeping out of an index — it is not a
+// page about anything — and `follow` still lets a crawler that landed on
+// one take the links back out of it.
+func robotsValue(indexable: Bool): Str {
+	if indexable {
+		return "index,follow,max-image-preview:large"
+	}
+	return "noindex,follow"
+}
+
+func metaTag(name: Str, content: Str): Str {
+	return "<meta name=\"" + name + "\" content=\"" + escapeAttr(content) + "\">"
+}
+
+func propertyTag(property: Str, content: Str): Str {
+	return "<meta property=\"" + property + "\" content=\"" + escapeAttr(content) + "\">"
+}
+
+func linkTag(rel: Str, target: Str): Str {
+	return "<link rel=\"" + rel + "\" href=\"" + escapeAttr(target) + "\">"
+}
+
+func alternateTag(hreflang: Str, target: Str): Str {
+	return "<link rel=\"alternate\" hreflang=\"" + hreflang
+		+ "\" href=\"" + escapeAttr(target) + "\">"
+}
+
+// The same facts again, as JSON-LD, which is the shape a search engine
+// reads rather than infers. It is written out by hand rather than through
+// `hive.json.encode` for one reason: every key that matters here opens with
+// an `@`, and a Hive field name cannot.
+func structuredDataTag(head: PageHead): Str {
+	return "<script type=\"application/ld+json\">" + structuredData(head) + "</script>"
+}
+
+// A `\{` is a literal brace rather than the start of an interpolation, which
+// is a rule this one function leans on harder than the whole of the rest of
+// the program: every object here opens with one.
+func structuredData(head: PageHead): Str {
+	site := "\{\"@type\":\"WebSite\",\"name\":" + jsonText(tourTitle(head.lang))
+		+ ",\"url\":" + jsonText(absoluteUrl("/", head.lang)) + "}"
+	language := "\{\"@type\":\"ComputerLanguage\",\"name\":\"Hive\",\"url\":"
+		+ jsonText(repoUrl()) + "}"
+
+	if head.path == "/" {
+		return "\{\"@context\":\"https://schema.org\",\"@type\":\"WebSite\",\"name\":"
+			+ jsonText(tourTitle(head.lang)) + ",\"url\":"
+			+ jsonText(absoluteUrl("/", head.lang)) + ",\"description\":"
+			+ jsonText(head.description) + ",\"inLanguage\":"
+			+ jsonText(htmlLang(head.lang)) + ",\"about\":" + language + "}"
+	}
+	return "\{\"@context\":\"https://schema.org\",\"@type\":\"TechArticle\",\"headline\":"
+		+ jsonText(head.title) + ",\"description\":" + jsonText(head.description)
+		+ ",\"url\":" + jsonText(absoluteUrl(head.path, head.lang)) + ",\"inLanguage\":"
+		+ jsonText(htmlLang(head.lang)) + ",\"isPartOf\":" + site
+		+ ",\"about\":" + language + ",\"isAccessibleForFree\":true}"
+}
+
+// A JSON string, quotes and all. The two angle brackets are escaped as well
+// as the two JSON demands, because this text lands inside a `<script>` and
+// a `</` anywhere in there would close it early — and a page about a
+// language whose one built-in union is spelled `Result<T, E>` is a page
+// where that text really does turn up.
+func jsonText(s: Str): Str {
+	mut out := join(split(s, "\\"), "\\\\")
+	out = join(split(out, "\""), "\\\"")
+	out = join(split(out, "\n"), " ")
+	out = join(split(out, "<"), "\\u003c")
+	out = join(split(out, ">"), "\\u003e")
+	return "\"" + out + "\""
+}
+
+// Where a search engine is told what there is to read: every page, in both
+// languages, each one carrying the full set of alternates so a crawler that
+// arrives at either finds the other. `robots.txt` names it, which is the
+// one line in that file worth having.
+func robotsResponse(): hive.net.HttpResponse {
+	body := "User-agent: *\nAllow: /\n\nSitemap: " + siteUrl() + "/sitemap.xml\n"
+	headers := [
+		["Content-Type", "text/plain; charset=utf-8"],
+		["Cache-Control", "public, max-age=86400"],
+	]
+	return hive.net.HttpResponse(200, headers, body)
+}
+
+func sitemapResponse(): hive.net.HttpResponse {
+	all := slides()
+	mut Str[dyn] entries = [sitemapEntry("/", "en"), sitemapEntry("/", "pt")]
+	for i := 0; i < len(all); i++ {
+		append(entries, sitemapEntry("/{i + 1}", "en"))
+		append(entries, sitemapEntry("/{i + 1}", "pt"))
+	}
+	body := "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+		+ "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\""
+		+ " xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n"
+		+ join(entries, "") + "</urlset>\n"
+	headers := [
+		["Content-Type", "application/xml; charset=utf-8"],
+		["Cache-Control", "public, max-age=3600"],
+	]
+	return hive.net.HttpResponse(200, headers, body)
+}
+
+func sitemapEntry(path: Str, lang: Str): Str {
+	english := absoluteUrl(path, "en")
+	portuguese := absoluteUrl(path, "pt")
+	return "  <url><loc>" + escapeAttr(absoluteUrl(path, lang)) + "</loc>"
+		+ sitemapAlternate("en", english)
+		+ sitemapAlternate("pt-BR", portuguese)
+		+ sitemapAlternate("x-default", english)
+		+ "</url>\n"
+}
+
+func sitemapAlternate(hreflang: Str, target: Str): Str {
+	return "<xhtml:link rel=\"alternate\" hreflang=\"" + hreflang
+		+ "\" href=\"" + escapeAttr(target) + "\"/>"
+}
+
+// The sentence a search result prints under the title, and what a link to
+// this page unfurls into wherever it is pasted. It is taken from the
+// slide's own opening paragraph rather than written a second time: what a
+// page opens by saying is already the best short answer to what it is
+// about, and a description kept somewhere else is a description that goes
+// stale the first time the page is edited. The cut lands on a word
+// boundary, because half a word helps nobody.
+func summarise(text: Str, limit: Int): Str {
+	paragraphs := split(text, "\n\n")
+	mut opening := text
+	if paragraphs bounds 0 {
+		opening = paragraphs[0]
+	}
+	if len(opening) <= limit {
+		return opening
+	}
+
+	chars := split(opening, "")
+	mut cut := opening
+	high := limit - 1
+	if chars bounds 0 && chars bounds high {
+		cut = join(chars[0:high], "")
+	}
+
+	// The last word is the one the cut landed in the middle of, so it goes.
+	words := split(cut, " ")
+	stop := len(words) - 2
+	if words bounds 0 && words bounds stop {
+		return join(words[0:stop], " ") + "…"
+	}
+	return cut + "…"
 }
 
 // The mark, either framing of it. A day of caching, because the drawing is
@@ -151,11 +436,40 @@ func svgResponse(svg: Str): hive.net.HttpResponse {
 func renderSlide(slide: Slide, idx: Int, all: Slide[], lang: Str): hive.net.HttpResponse {
 	total := len(all)
 	path := "/{idx + 1}"
+
+	// Where a reader — and a crawler — goes from here. Empty at either end
+	// of the tour, which is what says there is no such page rather than
+	// pointing at one that isn't there.
+	mut previous := ""
+	if idx > 0 { previous = "/{idx}" }
+	mut following := ""
+	if idx + 1 < total { following = "/{idx + 2}" }
+
+	head := PageHead(
+		title: slideTitle(slide, lang) + pageTitleSuffix(lang),
+		description: summarise(slideExplanation(slide, lang), 155),
+		path: path,
+		lang: lang,
+		indexable: true,
+		prev: previous,
+		next: following,
+	)
 	top := ui.row([], [sidebarView(all, idx, lang, path), headerColumn(slide, idx, total, lang)])
-	page := document(slideTitle(slide, lang) + pageTitleSuffix(lang), top)
+	page := document(head, top)
 	spliced := examplesHtml(slide.examples, lang) + ui.html(bottomView(slide, idx, total, lang, path))
 	body := join(split(page, codeMarkerTag()), spliced)
-	return hive.net.HttpResponse(200, [["Content-Type", "text/html; charset=utf-8"]], body)
+	return hive.net.HttpResponse(200, htmlHeaders(), body)
+}
+
+// What every HTML page here answers with. Five minutes of caching, because
+// a slide changes when a new binary ships and not before — long enough to
+// spare the machine a second render of a page somebody is reading through,
+// short enough that a deploy is live by the time anybody notices it.
+func htmlHeaders(): Str[dyn][dyn] {
+	return [
+		["Content-Type", "text/html; charset=utf-8"],
+		["Cache-Control", "public, max-age=300"],
+	]
 }
 
 func slideTitle(slide: Slide, lang: Str): Str {
@@ -198,9 +512,18 @@ func homeResponse(lang: Str): hive.net.HttpResponse {
 			ui.text([ui.tone(ui.Tone.Muted())], featuresCount(lang, len(all))),
 		]),
 	])
+	head := PageHead(
+		title: homePageTitle(lang),
+		description: homeDescription(lang),
+		path: "/",
+		lang: lang,
+		indexable: true,
+		prev: "",
+		next: "/1",
+	)
 	top := ui.row([], [sidebarView(all, -1, lang, "/"), content])
-	body := document(homePageTitle(lang), top)
-	return hive.net.HttpResponse(200, [["Content-Type", "text/html; charset=utf-8"]], body)
+	body := document(head, top)
+	return hive.net.HttpResponse(200, htmlHeaders(), body)
 }
 
 // The two URLs this program ever links outside itself: GitHub's own
@@ -259,9 +582,18 @@ func notFoundResponse(lang: Str, path: Str): hive.net.HttpResponse {
 		ui.text([ui.tone(ui.Tone.Muted())], notFoundText(lang)),
 		ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourPlain(lang)),
 	])
+	head := PageHead(
+		title: notFoundPageTitle(lang),
+		description: notFoundText(lang),
+		path: path,
+		lang: lang,
+		indexable: false,
+		prev: "",
+		next: "",
+	)
 	top := ui.row([], [sidebarView(all, -1, lang, path), content])
-	body := document(notFoundPageTitle(lang), top)
-	return hive.net.HttpResponse(404, [["Content-Type", "text/html; charset=utf-8"]], body)
+	body := document(head, top)
+	return hive.net.HttpResponse(404, htmlHeaders(), body)
 }
 
 // Every internal link goes through here: unchanged in English, and
@@ -407,6 +739,18 @@ func escapeHtml(s: Str): Str {
 	return join(map(split(s, ""), escapeChar), "")
 }
 
+// The same three, plus the quote that would otherwise end the attribute
+// this text is sitting inside. Every `content=` and every `href=` this
+// program writes by hand goes through here.
+func escapeAttrChar(c: Str): Str {
+	if c == "\"" { return "&quot;" }
+	return escapeChar(c)
+}
+
+func escapeAttr(s: Str): Str {
+	return join(map(split(s, ""), escapeAttrChar), "")
+}
+
 // ---------------------------------------------------------------------------
 // The small, reusable pieces of interface text — everything that is not
 // part of one particular slide.
@@ -431,6 +775,17 @@ func logoAlt(lang: Str): Str {
 func homePageTitle(lang: Str): Str {
 	if lang == "pt" { return "Hive — um tour pela linguagem" }
 	return "Hive — a tour of the language"
+}
+
+// The landing page's own sentence, written rather than taken from the
+// prose above it. It is the one description here worth a second pass: it is
+// what a search result for the language itself shows, and what a link to
+// the tour unfurls into everywhere it is pasted.
+func homeDescription(lang: Str): Str {
+	if lang == "pt" {
+		return "Um tour interativo pelo Hive: uma linguagem baseada em tabelas, com memória gerenciada, que compila para Go. Um executável, sem runtime, sem erros em tempo de execução."
+	}
+	return "An interactive tour of Hive: a memory-managed, table-based language that compiles to Go. One executable, no runtime, and no runtime errors."
 }
 
 func notFoundPageTitle(lang: Str): Str {
@@ -506,7 +861,7 @@ func notFoundText(lang: Str): Str {
 // The content of the tour, one feature at a time. Every code example below
 // is a complete program: copy it into a `.hive` file and `hive run` it.
 
-func slides(): Slide[49] {
+func slides(): Slide[53] {
 	return [
 		Slide(
 			title: "Hello, World",
@@ -656,18 +1011,16 @@ proc main(): void {
 	echo "olá, {name}!"          // interpolado
 	echo "uma chave literal: \{" // escapado
 }`),
+				// The backtick string this sample is *about* cannot be written
+				// inside the backtick string that carries it, so its whole body
+				// is spliced in as an escaped one instead — newlines, tabs and
+				// both backticks. Written as two raw pieces with a backtick
+				// between them, the outer string's own dedent would eat the
+				// indentation the sample is there to show.
 				Example(caption: "Raw strings", captionPt: "Strings brutas", code: `proc main(): void {
-	raw := `+"`"+`
-		line one
-		line two
-	`+"`"+`
-	echo raw
+	raw := ` + "`\n\t\tline one\n\t\tline two\n\t`\n" + `	echo raw
 }`, codePt: `proc main(): void {
-	raw := `+"`"+`
-		linha um
-		linha dois
-	`+"`"+`
-	echo raw
+	raw := ` + "`\n\t\tlinha um\n\t\tlinha dois\n\t`\n" + `	echo raw
 }`),
 			],
 		),
@@ -724,7 +1077,7 @@ proc main(): void {
 	echo ready && warm
 	echo ready || warm
 
-	// Não existe `+"`"+`!`+"`"+` unário: uma condição negada se escreve comparando,
+	// Não existe `+"`"+`!`+"` "+`unário: uma condição negada se escreve comparando,
 	// ou casando o caso que você não queria.
 	if warm == false { echo "não está quente" }
 	if indexOf([1, 2], 3) is Result.Error(_) { echo "não está lá" }
@@ -1113,6 +1466,31 @@ proc main(): void {
 	echo row(table, "ada")
 	echo column(table, "role")
 }`),
+				Example(caption: "A declaration of your own wins", captionPt: "Uma declaração sua vence", code: `// Ours. Its own parameters, its own arity, and it is what every bare
+// call to len in this file means from here on.
+func len(label: Str, extra: Int): Str {
+	return "{label}{extra}"
+}
+
+proc main(): void {
+	Str[dyn] v = ["a", "b"]
+
+	echo len("x", 2)          // ours: "x2"
+	echo hive.len(v)          // the builtin, by its long name: 2
+	echo hive.join(v, "-")    // the long name works whether you shadowed or not
+}`, codePt: `// A nossa. Seus próprios parâmetros, sua própria aridade, e é o que toda
+// chamada solta a len neste arquivo significa daqui em diante.
+func len(label: Str, extra: Int): Str {
+	return "{label}{extra}"
+}
+
+proc main(): void {
+	Str[dyn] v = ["a", "b"]
+
+	echo len("x", 2)          // a nossa: "x2"
+	echo hive.len(v)          // a nativa, pelo nome longo: 2
+	echo hive.join(v, "-")    // o nome longo funciona tendo sombreado ou não
+}`),
 			],
 		),
 		Slide(
@@ -1149,13 +1527,13 @@ proc main(): void {
 	v = ["x", "y", "z"]   // still exactly three: the promise is kept
 	echo v[2]              // no guard needed, here or ever
 
-	// v = ["x"]           // compile error: `+"`"+`v`+"`"+` is declared Str[3]
+	// v = ["x"]           // compile error: `+"`"+`v`+"` "+`is declared Str[3]
 }`, codePt: `proc main(): void {
 	mut Str[3] v = ["a", "b", "c"]
 	v = ["x", "y", "z"]   // ainda exatamente três: a promessa é mantida
 	echo v[2]              // sem guarda, aqui ou em qualquer lugar
 
-	// v = ["x"]           // erro de compilação: `+"`"+`v`+"`"+` é declarado Str[3]
+	// v = ["x"]           // erro de compilação: `+"`"+`v`+"` "+`é declarado Str[3]
 }`),
 				Example(caption: "An inferred one is not", captionPt: "Um inferido não é", code: `proc main(): void {
 	mut v := ["a", "b", "c"]   // Str[3], observed rather than promised
@@ -1163,14 +1541,14 @@ proc main(): void {
 	echo v[2]
 
 	// v = ["x", "y", "z"]      // ...but any rebinding costs the proof, even
-	// echo v[2]                // to the same length: `+"`"+`v`+"`"+` has no length now
+	// echo v[2]                // to the same length: `+"`"+`v`+"` "+`has no length now
 }`, codePt: `proc main(): void {
 	mut v := ["a", "b", "c"]   // Str[3], observado e não prometido
 	v[0] = "x"                  // escrever através do nome mantém o tamanho
 	echo v[2]
 
 	// v = ["x", "y", "z"]      // ...mas qualquer reatribuição custa a prova,
-	// echo v[2]                // até para o mesmo tamanho: `+"`"+`v`+"`"+` não tem tamanho
+	// echo v[2]                // até para o mesmo tamanho: `+"`"+`v`+"` "+`não tem tamanho
 }`),
 				Example(caption: "What a known length survives", captionPt: "O que um tamanho conhecido sobrevive", code: `func twice(n: Int): Int { return n * 2 }
 
@@ -1720,15 +2098,15 @@ proc main(): void {
 			title: "Modules",
 			titlePt: "Módulos",
 			download: false,
-			explanation: "import brings another file's declarations into scope, reached through a name — the file's own by default, or whatever `as` renames it to. The path itself says what kind of import it is: a bare path is a Hive file on disk, an https:// path is a file inside a git repository — pinned to a commit, a tag or a branch — and hive.* names a standard library module, reached the same way and adding nothing to the build unless it is actually used. A library module's default name is its own last segment, so import hive.crypto is already crypto and `as` is only for when you want some other name — and the alias is a spelling rather than an import: crypto.sha256 and hive.crypto.sha256 are the same call, both are always available, and neither changes what is linked into the build. A Hive module's .hive is never written, because the path names a module and the file is only where it lives; the path is relative to the importing file's own directory, not to wherever you happen to run the compiler from. Everything a module declares is visible — there is no pub/priv — and an import may not be named hive, since that name belongs to the standard library.\n\nNames carry no baggage across the boundary. A type or a callable only ever means what the module you are reading says it means, so two files may each declare their own Align and both stay distinct types; an imported one is constructed, annotated and matched through the same name its module is reached by. That is also what makes shadowing a builtin safe: a map declared in one file leaves every other file's bare map alone. And an imported callable is an ordinary value, so it is partially applicable and passable like any other.\n\nImport cycles are refused, whether direct or round any number of steps, and the error prints the loop it found so you do not have to reconstruct it.",
-			explanationPt: "import traz as declarações de outro arquivo para o escopo, alcançadas através de um nome — o próprio nome do arquivo por padrão, ou o que `as` renomear para. O próprio caminho diz que tipo de import é: um caminho simples é um arquivo Hive em disco, um caminho https:// é um arquivo dentro de um repositório git — fixado em um commit, uma tag ou um branch — e hive.* nomeia um módulo da biblioteca padrão, alcançado da mesma forma e não adicionando nada ao build a menos que seja de fato usado. O nome padrão de um módulo da biblioteca é o seu próprio último segmento, então import hive.crypto já é crypto e `as` só serve para quando você quer outro nome — e o alias é uma grafia, não um import: crypto.sha256 e hive.crypto.sha256 são a mesma chamada, as duas estão sempre disponíveis, e nenhuma muda o que entra no build. O .hive de um módulo Hive nunca é escrito, porque o caminho nomeia um módulo e o arquivo é só onde ele mora; o caminho é relativo ao diretório do próprio arquivo que importa, não a onde você por acaso roda o compilador. Tudo que um módulo declara é visível — não existe pub/priv — e um import não pode se chamar hive, já que esse nome pertence à biblioteca padrão.\n\nNomes não levam bagagem através da fronteira. Um tipo ou um chamável só significa o que o módulo que você está lendo diz que ele significa, então dois arquivos podem declarar cada um o seu Align e os dois continuam tipos distintos; um importado é construído, anotado e casado através do mesmo nome pelo qual seu módulo é alcançado. É isso também que torna seguro sombrear uma função nativa: um map declarado em um arquivo deixa em paz o map solto de todos os outros. E um chamável importado é um valor comum, então é parcialmente aplicável e passável como qualquer outro.\n\nCiclos de import são recusados, sejam diretos ou dando a volta em qualquer número de passos, e o erro imprime o laço que encontrou para você não ter que reconstruí-lo.",
+			explanation: "import brings another file's declarations into scope, reached through a name — the file's own by default, or whatever `as` renames it to. The path itself says what kind of import it is: a bare path is a Hive file on disk, an https:// path is a file inside a git repository — pinned to a commit, a tag or a branch — and hive.* names a standard library module, reached the same way and adding nothing to the build unless it is actually used. A library module's default name is its own last segment, so import hive.crypto is already crypto and `as` is only for when you want some other name — and the alias is a spelling rather than an import: crypto.sha256 and hive.crypto.sha256 are the same call, both are always available, and neither changes what is linked into the build. A Hive module's .hive is never written, because the path names a module and the file is only where it lives; the path is relative to the importing file's own directory, not to wherever you happen to run the compiler from. Everything a module declares is visible — there is no pub/priv — and an import may not be named hive, since that name belongs to the standard library.\n\nNames carry no baggage across the boundary. A type or a callable only ever means what the module you are reading says it means, so two files may each declare their own Align and both stay distinct types; an imported one is constructed, annotated and matched through the same name its module is reached by. That is also what makes shadowing a builtin safe: a map declared in one file leaves every other file's bare map alone. And an imported callable is an ordinary value, so it is partially applicable and passable like any other.\n\nA remote import is an ordinary import with a repository in front of it. https://host/owner/repo is the repository and everything after it is the path inside it, so a revision goes where the repository ends — repo@a1b2c3, repo@v1.2.0, repo@main, a commit or a tag or a branch. The module is named after the file inside the repository rather than after the repository or its host, which is what makes moving a module out to one change nothing about how the code that uses it reads. Everything is fetched once, into a cache shared by every program on the machine that wants that commit, and nothing touches the network when the clone is already there. A remote module is also a different module from the same file read locally: two copies of one file are two modules, with types of their own.\n\nAn import that names no revision is pinned on first use. The commit it resolved to is written into a lock file beside the entrypoint — main.hive becomes main.hive-lock — and every later build reads that instead of asking the network what the latest is. Keep it in version control: it is what makes another machine build the same program. Deleting a line from it takes the latest of that repository again.\n\nImport cycles are refused, whether direct or round any number of steps, and the error prints the loop it found so you do not have to reconstruct it.",
+			explanationPt: "import traz as declarações de outro arquivo para o escopo, alcançadas através de um nome — o próprio nome do arquivo por padrão, ou o que `as` renomear para. O próprio caminho diz que tipo de import é: um caminho simples é um arquivo Hive em disco, um caminho https:// é um arquivo dentro de um repositório git — fixado em um commit, uma tag ou um branch — e hive.* nomeia um módulo da biblioteca padrão, alcançado da mesma forma e não adicionando nada ao build a menos que seja de fato usado. O nome padrão de um módulo da biblioteca é o seu próprio último segmento, então import hive.crypto já é crypto e `as` só serve para quando você quer outro nome — e o alias é uma grafia, não um import: crypto.sha256 e hive.crypto.sha256 são a mesma chamada, as duas estão sempre disponíveis, e nenhuma muda o que entra no build. O .hive de um módulo Hive nunca é escrito, porque o caminho nomeia um módulo e o arquivo é só onde ele mora; o caminho é relativo ao diretório do próprio arquivo que importa, não a onde você por acaso roda o compilador. Tudo que um módulo declara é visível — não existe pub/priv — e um import não pode se chamar hive, já que esse nome pertence à biblioteca padrão.\n\nNomes não levam bagagem através da fronteira. Um tipo ou um chamável só significa o que o módulo que você está lendo diz que ele significa, então dois arquivos podem declarar cada um o seu Align e os dois continuam tipos distintos; um importado é construído, anotado e casado através do mesmo nome pelo qual seu módulo é alcançado. É isso também que torna seguro sombrear uma função nativa: um map declarado em um arquivo deixa em paz o map solto de todos os outros. E um chamável importado é um valor comum, então é parcialmente aplicável e passável como qualquer outro.\n\nUm import remoto é um import comum com um repositório na frente. https://host/dono/repo é o repositório e tudo depois disso é o caminho dentro dele, então uma revisão vai onde o repositório termina — repo@a1b2c3, repo@v1.2.0, repo@main, um commit ou uma tag ou um branch. O módulo é nomeado a partir do arquivo dentro do repositório e não do repositório ou do host dele, que é o que faz mover um módulo para um repositório não mudar nada em como o código que o usa se lê. Tudo é buscado uma vez, para um cache compartilhado por todo programa da máquina que queira aquele commit, e nada toca a rede quando o clone já está lá. Um módulo remoto também é um módulo diferente do mesmo arquivo lido localmente: duas cópias de um arquivo são dois módulos, com tipos próprios.\n\nUm import que não nomeia revisão é fixado no primeiro uso. O commit para o qual ele resolveu é escrito em um arquivo de lock ao lado do entrypoint — main.hive vira main.hive-lock — e toda compilação seguinte lê aquilo em vez de perguntar à rede qual é o mais recente. Mantenha-o no controle de versão: é o que faz outra máquina construir o mesmo programa. Apagar uma linha dele volta a pegar o mais recente daquele repositório.\n\nCiclos de import são recusados, sejam diretos ou dando a volta em qualquer número de passos, e o erro imprime o laço que encontrou para você não ter que reconstruí-lo.",
 			examples: [
 				Example(caption: "A library module, shortened", captionPt: "Um módulo da biblioteca, encurtado", code: `import hive.crypto
 import hive.net as web
 
 proc main(): void {
-	// The default name is the module's last segment, so `+"`"+`crypto`+"`"+` needs no
-	// `+"`"+`as`+"`"+` at all. `+"`"+`as`+"`"+` is for when you want a different name than that.
+	// The default name is the module's last segment, so `+"`"+`crypto`+"` "+`needs no
+	// `+"`"+`as`+"` "+`at all. `+"`"+`as`+"` "+`is for when you want a different name than that.
 	echo crypto.sha256("hive")
 
 	// An alias is only a spelling: this is the very same call, and it works
@@ -1742,8 +2120,8 @@ proc main(): void {
 import hive.net as web
 
 proc main(): void {
-	// O nome padrão é o último segmento do módulo, então `+"`"+`crypto`+"`"+` não
-	// precisa de `+"`"+`as`+"`"+` algum. `+"`"+`as`+"`"+` é para quando você quer outro nome.
+	// O nome padrão é o último segmento do módulo, então `+"`"+`crypto`+"` "+`não
+	// precisa de `+"`"+`as`+"` "+`algum. `+"`"+`as`+"` "+`é para quando você quer outro nome.
 	echo crypto.sha256("hive")
 
 	// Um alias é só uma grafia: esta é exatamente a mesma chamada, e ela
@@ -1824,6 +2202,56 @@ proc main(): void {
 	rule := text.repeat("~", _)
 	echo rule(16)
 }`),
+				Example(caption: "A module in a repository", captionPt: "Um módulo em um repositório", code: `// The repository is `+"`"+`https://host/owner/repo`+"`"+`; everything after it is the
+// path inside it, and the .hive is left off exactly as it is on disk.
+import https://github.com/owner/repo/src/text
+
+// A revision goes where the repository ends: a commit, a tag or a branch.
+import https://github.com/owner/repo@v1.2.0/src/pricing
+
+// A Go file inside one, under the same rules — .go still compulsory.
+import https://github.com/owner/repo@a1b2c3/go/slugs.go as slugs
+
+proc main(): void {
+	// The name is the file's, not the repository's or the host's: moving a
+	// module out to one changes nothing about how this line reads.
+	echo text.repeat("=", 28)
+	echo pricing.line("Beeswax", 450)
+	echo slugs.slugify("Hive Tool")
+}`, codePt: `// O repositório é `+"`"+`https://host/dono/repo`+"`"+`; tudo depois disso é o caminho
+// dentro dele, e o .hive fica de fora exatamente como fica em disco.
+import https://github.com/owner/repo/src/text
+
+// Uma revisão vai onde o repositório termina: commit, tag ou branch.
+import https://github.com/owner/repo@v1.2.0/src/pricing
+
+// Um arquivo Go dentro de um, sob as mesmas regras — .go ainda obrigatório.
+import https://github.com/owner/repo@a1b2c3/go/slugs.go as slugs
+
+proc main(): void {
+	// O nome é o do arquivo, não o do repositório nem o do host: mover um
+	// módulo para um repositório não muda nada em como esta linha se lê.
+	echo text.repeat("=", 28)
+	echo pricing.line("Beeswax", 450)
+	echo slugs.slugify("Hive Tool")
+}`),
+				Example(caption: "What the first build leaves behind", captionPt: "O que a primeira compilação deixa para trás", code: `$ hive check main.hive
+No problems found in main.hive (3s)
+
+$ cat main.hive-lock
+# Written by the Hive compiler: the commit each remote import was
+# resolved to. Keep this in version control — it is what makes another
+# machine build the same program. Delete a line to take the latest of
+# that repository again.
+https://github.com/owner/repo 4f2a9c1e8b7d6a5f4e3d2c1b0a9f8e7d6c5b4a39`, codePt: `$ hive check main.hive
+No problems found in main.hive (3s)
+
+$ cat main.hive-lock
+# Written by the Hive compiler: the commit each remote import was
+# resolved to. Keep this in version control — it is what makes another
+# machine build the same program. Delete a line to take the latest of
+# that repository again.
+https://github.com/owner/repo 4f2a9c1e8b7d6a5f4e3d2c1b0a9f8e7d6c5b4a39`),
 				Example(caption: "A cycle, refused", captionPt: "Um ciclo, recusado", code: `$ hive check main.hive
 lib/inventory.hive:1: this import forms a cycle:
 
@@ -2152,8 +2580,8 @@ proc main(): void {
 			title: "Terminal and processes",
 			titlePt: "Terminal e processos",
 			download: false,
-			explanation: "hive.term is line-oriented terminal I/O: print writes to stdout, status writes to stderr — what a program is doing, as against what it was asked for — isTerminal says whether standard error is a person or a pipe, and read/readSecret block for a line of input, the second with the terminal's echo turned off. args() reads the command line, and exit(code) ends the program on the spot. Running another program is two calls apart by who is talking to the terminal: exec hands back everything the command wrote and turns a nonzero exit into a Result.Error, while attach gives the command this program's own terminal and answers with its exit status. Neither ever touches a shell, so nothing in an argument can be read as one.",
-			explanationPt: "hive.term é I/O de terminal orientado a linhas: print escreve no stdout, status escreve no stderr — o que um programa está fazendo, em contraste com o que foi pedido a ele — isTerminal diz se a saída de erro padrão é uma pessoa ou um pipe, e read/readSecret bloqueiam por uma linha de entrada, o segundo com o eco do terminal desligado. args() lê a linha de comando, e exit(code) termina o programa na hora. Rodar outro programa é duas chamadas separadas por quem está falando com o terminal: exec devolve tudo que o comando escreveu e transforma uma saída diferente de zero em um Result.Error, enquanto attach dá ao comando o próprio terminal deste programa e responde com seu status de saída. Nenhum dos dois toca em um shell, então nada em um argumento pode ser lido como um.",
+			explanation: "hive.term is line-oriented terminal I/O: print writes to stdout, status writes to stderr — what a program is doing, as against what it was asked for — isTerminal says whether standard error is a person or a pipe, and read/readSecret block for a line of input, the second with the terminal's echo turned off. args() reads the command line, and exit(code) ends the program on the spot. Running another program is three calls, and the first two are apart by who is talking to the terminal: exec hands back everything the command wrote and turns a nonzero exit into a Result.Error, while attach gives the command this program's own terminal and answers with its exit status. Neither ever touches a shell, so nothing in an argument can be read as one — the arguments are a vector rather than a line of text, and that is the whole of the safety story.\n\nexecWith is the third, and it is exec with an environment overlay: a Map<Str, Str> whose pairs are set for the command on top of the environment this program was started with. An overlay is deliberately all it offers. A replaced environment is a different and much sharper tool — a command with no PATH finds no programs and one with no HOME finds no caches — and nothing that wants to set one variable wants those as well. So an empty map is exactly exec, byte for byte, and a name the environment already holds is replaced rather than joined by a second. This is what hive build --target is built on, and it is the only thing in the compiler that needs an environment at all.",
+			explanationPt: "hive.term é I/O de terminal orientado a linhas: print escreve no stdout, status escreve no stderr — o que um programa está fazendo, em contraste com o que foi pedido a ele — isTerminal diz se a saída de erro padrão é uma pessoa ou um pipe, e read/readSecret bloqueiam por uma linha de entrada, o segundo com o eco do terminal desligado. args() lê a linha de comando, e exit(code) termina o programa na hora. Rodar outro programa é três chamadas, e as duas primeiras se separam por quem está falando com o terminal: exec devolve tudo que o comando escreveu e transforma uma saída diferente de zero em um Result.Error, enquanto attach dá ao comando o próprio terminal deste programa e responde com seu status de saída. Nenhum dos dois toca em um shell, então nada em um argumento pode ser lido como um — os argumentos são um vetor e não uma linha de texto, e essa é toda a história de segurança.\n\nexecWith é a terceira, e é o exec com uma sobreposição de ambiente: um Map<Str, Str> cujos pares são definidos para o comando por cima do ambiente com que este programa foi iniciado. Uma sobreposição é deliberadamente tudo que ele oferece. Um ambiente substituído é uma ferramenta diferente e muito mais afiada — um comando sem PATH não encontra programa nenhum e um sem HOME não encontra cache nenhum — e nada que queira definir uma variável quer também isso. Então um map vazio é exatamente o exec, byte a byte, e um nome que o ambiente já tem é substituído em vez de ganhar um segundo ao lado. É sobre isso que o hive build --target é construído, e é a única coisa no compilador que precisa de um ambiente.",
 			examples: [
 				Example(caption: "Running another program", captionPt: "Rodando outro programa", code: `proc main(): void {
 	result := hive.term.exec("hostname", [], "")
@@ -2168,6 +2596,33 @@ proc main(): void {
 		echo "esta máquina se chama: {output}"
 	} else if result is Result.Error(why) {
 		echo "não foi possível rodar hostname: {why.message}"
+	}
+}`),
+				Example(caption: "Running one with an environment", captionPt: "Rodando um com um ambiente", code: `proc main(): void {
+	mut hive.map.Map<Str, Str> asked = hive.map.new()
+	hive.map.set(asked, "GOOS", "linux")
+	hive.map.set(asked, "GOARCH", "arm64")
+
+	// An overlay, not a replacement: these two on top of everything this
+	// program was started with, so `+"`"+`go`+"` "+`is still found on the PATH.
+	result := hive.term.execWith("go", ["env", "GOOS", "GOARCH"], "", asked)
+	if result is Result.Ok(output) {
+		echo output
+	} else if result is Result.Error(why) {
+		echo "no Go on this machine: {why.message}"
+	}
+}`, codePt: `proc main(): void {
+	mut hive.map.Map<Str, Str> asked = hive.map.new()
+	hive.map.set(asked, "GOOS", "linux")
+	hive.map.set(asked, "GOARCH", "arm64")
+
+	// Uma sobreposição, não uma substituição: estas duas por cima de tudo
+	// com que este programa foi iniciado, então `+"`"+`go`+"` "+`continua no PATH.
+	result := hive.term.execWith("go", ["env", "GOOS", "GOARCH"], "", asked)
+	if result is Result.Ok(output) {
+		echo output
+	} else if result is Result.Error(why) {
+		echo "sem Go nesta máquina: {why.message}"
 	}
 }`),
 				Example(caption: "Asking about the terminal itself", captionPt: "Perguntando sobre o próprio terminal", code: `proc main(): void {
@@ -2608,8 +3063,8 @@ proc main(): void {
 			title: "The UI module",
 			titlePt: "O módulo de UI",
 			download: false,
-			explanation: "hive.ui builds an interface as a value: a View is a tree of widgets, and every one of them takes the same two things, its attributes and then its own payload. row and column lay out children; text, image, icon and link show something; button, input, textarea, checkbox and select ask for something; table shows a Table, and spacer, spinner, none and overlay round out the set. Attributes are just as closed a set: gap, pad, width, height, grow, align, justify and scroll lay out; size, heading, tone and background style; disabled, busy, placeholder, hint and kind describe state; and on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick and onSort carry an event, for a window rather than this kind of page. Align, Justify, TextSize, Tone, Axis, InputKind and Icon are the enumerations behind them, reached like any other library type.\n\nhtml(view) renders a tree as an HTML fragment, and page(title, view) as a whole document with a stylesheet already built in, light and dark alike — which is exactly what an httpServe handler can answer a request with directly, and what every screen in this tour but its code samples is. The same tree, shown instead by window(title, view, update, state), becomes a live page: update is a fold over its events, the same shape a hive.syslink handler folds over a mailbox, so a window has an address and needs no mutex of its own.\n\nThat address is also why there is no command type. Every language built this way needs an answer to \"the update wants to fetch something, and must not block the screen while it does\", and most of them invent a type for it — a Cmd, a task, an effect the runtime interprets. Hive needs none, because it already has two things that add up to one: update is a proc, so it may act, and hive.syslink.self(envelope) is the window's own address, so work started with async can send its answer back as an ordinary message.\n\nAnd because a view is a value rather than a template, an interface is testable without a browser. html is the same renderer a served page uses, so a test can render a view and read the markup that comes out — which is the cheapest place there is to check that a disabled button really is disabled, and that somebody else's text cannot smuggle a script tag into your page.\n\nOne widget is missing from all of that, and it has the next slide to itself: scene, which draws in three dimensions and which only a window can draw.",
-			explanationPt: "hive.ui constrói uma interface como um valor: uma View é uma árvore de widgets, e cada um deles recebe as mesmas duas coisas, seus atributos e depois sua própria carga. row e column organizam filhos; text, image, icon e link mostram algo; button, input, textarea, checkbox e select pedem algo; table mostra uma Table, e spacer, spinner, none e overlay completam o conjunto. Os atributos são um conjunto igualmente fechado: gap, pad, width, height, grow, align, justify e scroll organizam; size, heading, tone e background estilizam; disabled, busy, placeholder, hint e kind descrevem estado; e on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick e onSort carregam um evento, para uma window e não para este tipo de página. Align, Justify, TextSize, Tone, Axis, InputKind e Icon são as enumerações por trás deles, acessadas como qualquer outro tipo da biblioteca.\n\nhtml(view) renderiza uma árvore como um fragmento HTML, e page(title, view) como um documento inteiro com uma stylesheet já embutida, claro e escuro igualmente — que é exatamente o que um handler de httpServe pode usar para responder a uma requisição diretamente, e o que toda tela deste tour, exceto suas amostras de código, é. A mesma árvore, mostrada em vez disso por window(title, view, update, state), se torna uma página viva: update é um fold sobre seus eventos, a mesma forma que um handler de hive.syslink faz fold sobre uma caixa de mensagens, então uma window tem um endereço e não precisa de mutex próprio.\n\nEsse endereço é também por que não existe um tipo de comando. Toda linguagem construída assim precisa de uma resposta para \"o update quer buscar algo, e não pode travar a tela enquanto busca\", e a maioria delas inventa um tipo para isso — um Cmd, uma task, um efeito que o runtime interpreta. Hive não precisa de nenhum, porque já tem duas coisas que somadas dão uma: update é um proc, então pode agir, e hive.syslink.self(envelope) é o endereço da própria window, então o trabalho iniciado com async pode mandar sua resposta de volta como uma mensagem comum.\n\nE como uma view é um valor e não um template, uma interface dá para testar sem navegador. html é o mesmo renderizador que uma página servida usa, então um teste pode renderizar uma view e ler o markup que sai — que é o lugar mais barato que existe para conferir que um botão desabilitado está mesmo desabilitado, e que o texto de outra pessoa não consegue contrabandear uma tag de script para dentro da sua página.\n\nUm widget ficou de fora de tudo isso, e tem o próximo slide só para ele: scene, que desenha em três dimensões e que somente uma window consegue desenhar.",
+			explanation: "hive.ui builds an interface as a value: a View is a tree of widgets, and every one of them takes the same two things, its attributes and then its own payload. row and column lay out children; text, image, icon and link show something; button, input, textarea, checkbox and select ask for something; table shows a Table and canvas draws on a plane, and spacer, spinner, none and overlay round out the set. Attributes are just as closed a set: gap, pad, width, height, grow, align, justify and scroll lay out; size, heading, tone and background style; disabled, busy, placeholder, hint and kind describe state; and on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick and onSort carry an event, for a window rather than this kind of page. Align, Justify, TextSize, Tone, Axis, InputKind and Icon are the enumerations behind them, reached like any other library type.\n\nhtml(view) renders a tree as an HTML fragment, and page(title, view) as a whole document with a stylesheet already built in, light and dark alike — which is exactly what an httpServe handler can answer a request with directly, and what every screen in this tour but its code samples is. The same tree, shown instead by window(title, view, update, state), becomes a live page: update is a fold over its events, the same shape a hive.syslink handler folds over a mailbox, so a window has an address and needs no mutex of its own.\n\nThat address is also why there is no command type. Every language built this way needs an answer to \"the update wants to fetch something, and must not block the screen while it does\", and most of them invent a type for it — a Cmd, a task, an effect the runtime interprets. Hive needs none, because it already has two things that add up to one: update is a proc, so it may act, and hive.syslink.self(envelope) is the window's own address, so work started with async can send its answer back as an ordinary message.\n\nAnd because a view is a value rather than a template, an interface is testable without a browser. html is the same renderer a served page uses, so a test can render a view and read the markup that comes out — which is the cheapest place there is to check that a disabled button really is disabled, and that somebody else's text cannot smuggle a script tag into your page.\n\nTwo widgets are missing from all of that, and each has a slide to itself: canvas, which draws on a plane and which a served page draws exactly as a window does, and scene, which draws in three dimensions and which only a window can draw.",
+			explanationPt: "hive.ui constrói uma interface como um valor: uma View é uma árvore de widgets, e cada um deles recebe as mesmas duas coisas, seus atributos e depois sua própria carga. row e column organizam filhos; text, image, icon e link mostram algo; button, input, textarea, checkbox e select pedem algo; table mostra uma Table e canvas desenha sobre um plano, e spacer, spinner, none e overlay completam o conjunto. Os atributos são um conjunto igualmente fechado: gap, pad, width, height, grow, align, justify e scroll organizam; size, heading, tone e background estilizam; disabled, busy, placeholder, hint e kind descrevem estado; e on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick e onSort carregam um evento, para uma window e não para este tipo de página. Align, Justify, TextSize, Tone, Axis, InputKind e Icon são as enumerações por trás deles, acessadas como qualquer outro tipo da biblioteca.\n\nhtml(view) renderiza uma árvore como um fragmento HTML, e page(title, view) como um documento inteiro com uma stylesheet já embutida, claro e escuro igualmente — que é exatamente o que um handler de httpServe pode usar para responder a uma requisição diretamente, e o que toda tela deste tour, exceto suas amostras de código, é. A mesma árvore, mostrada em vez disso por window(title, view, update, state), se torna uma página viva: update é um fold sobre seus eventos, a mesma forma que um handler de hive.syslink faz fold sobre uma caixa de mensagens, então uma window tem um endereço e não precisa de mutex próprio.\n\nEsse endereço é também por que não existe um tipo de comando. Toda linguagem construída assim precisa de uma resposta para \"o update quer buscar algo, e não pode travar a tela enquanto busca\", e a maioria delas inventa um tipo para isso — um Cmd, uma task, um efeito que o runtime interpreta. Hive não precisa de nenhum, porque já tem duas coisas que somadas dão uma: update é um proc, então pode agir, e hive.syslink.self(envelope) é o endereço da própria window, então o trabalho iniciado com async pode mandar sua resposta de volta como uma mensagem comum.\n\nE como uma view é um valor e não um template, uma interface dá para testar sem navegador. html é o mesmo renderizador que uma página servida usa, então um teste pode renderizar uma view e ler o markup que sai — que é o lugar mais barato que existe para conferir que um botão desabilitado está mesmo desabilitado, e que o texto de outra pessoa não consegue contrabandear uma tag de script para dentro da sua página.\n\nDois widgets ficaram de fora de tudo isso, e cada um tem um slide só para si: canvas, que desenha sobre um plano e que uma página servida desenha exatamente como uma window desenha, e scene, que desenha em três dimensões e que somente uma window consegue desenhar.",
 			examples: [
 				Example(caption: "A page, served directly", captionPt: "Uma página, servida diretamente", code: `proc main(): void {
 	view := hive.ui.column([hive.ui.pad(24), hive.ui.gap(12)], [
@@ -2779,11 +3234,114 @@ test "o corpo de um post não contrabandeia markup para a página" {
 			],
 		),
 		Slide(
+			title: "Drawing on a canvas",
+			titlePt: "Desenhando em um canvas",
+			download: false,
+			explanation: "canvas(attrs, marks) is a widget like any other and a Mark is a value like any other, so what a canvas holds is what is on it right now. There is no drawing context, no frame to schedule and nothing to clear: a chart is rebuilt from the state exactly the way the rest of the page is, and the same tree a window swaps in is what page writes out — so a chart drawn for a program is a chart served by a web server with nothing changed.\n\nThere are five marks, and each one is here for the reason a shape is: it cannot be made out of the others. dot is a filled circle, bar a rectangle, path a line through a run of points, patch those same numbers filled, and words text placed on the plane. A ring is a dot with no fill, a grid is a vector of paths, an arrow is a path — and none of those needed a name of its own.\n\nEverything on a canvas is said in the program's own units. region(x, y, width, height) says which part of the plane the box shows, and a map of a circuit written in metres draws a car nine metres long nine long. paint(Tone) is a mark's colour and thick(Float) is how wide a path is drawn, in the region's units too — so a map zoomed in has thicker roads, which is what zooming in means. The box may be any shape; what is drawn keeps its own and is centred in it.\n\nTwo placements are worth stating outright, because both are the sort of thing a program discovers by being half a width out. A bar is placed by its middle, like everything else on a canvas — one mark placed by its corner would be the one that is always wrong. And words are centred on the place they are given, with their height in the region's units rather than in points, because a label on a plan is as big as the thing it labels.",
+			explanationPt: "canvas(attrs, marks) é um widget como qualquer outro e um Mark é um valor como qualquer outro, então o que um canvas guarda é o que está nele agora. Não existe contexto de desenho, não existe frame para agendar e não há nada para limpar: um gráfico é reconstruído a partir do estado exatamente como o resto da página é, e a mesma árvore que uma window troca é a que page escreve — então um gráfico desenhado para um programa é um gráfico servido por um servidor web sem mudar nada.\n\nExistem cinco marks, e cada um está aqui pelo mesmo motivo que uma forma está: não dá para fazê-lo a partir dos outros. dot é um círculo preenchido, bar é um retângulo, path é uma linha através de uma sequência de pontos, patch são esses mesmos números preenchidos, e words é texto posicionado no plano. Um anel é um dot sem preenchimento, uma grade é um vetor de paths, uma seta é um path — e nenhum deles precisou de um nome próprio.\n\nTudo em um canvas é dito nas unidades do próprio programa. region(x, y, largura, altura) diz qual parte do plano a caixa mostra, e um mapa de um circuito escrito em metros desenha um carro de nove metros com nove de comprimento. paint(Tone) é a cor de um mark e thick(Float) é a espessura com que um path é desenhado, também nas unidades da região — então um mapa com zoom tem estradas mais grossas, que é o que dar zoom significa. A caixa pode ter qualquer formato; o que é desenhado mantém o seu e fica centralizado nela.\n\nDuas colocações valem ser ditas explicitamente, porque as duas são o tipo de coisa que um programa descobre estando meia largura fora do lugar. Um bar é posicionado pelo seu meio, como tudo mais em um canvas — um mark posicionado pelo canto seria o único sempre errado. E words fica centralizado no lugar que recebe, com a sua altura nas unidades da região e não em pontos, porque um rótulo em uma planta é do tamanho da coisa que ele rotula.",
+			examples: [
+				Example(caption: "A chart, in the program's own units", captionPt: "Um gráfico, nas unidades do próprio programa", code: `import hive.ui
+
+// Twelve across and a hundred down, so a month of 68 kilos is drawn 68
+// long and nothing has to be turned into pixels first.
+func chart(harvest: Int[]): ui.View {
+	mut ui.Mark[dyn] marks = []
+	for i := 0; i < len(harvest); i++ {
+		if harvest bounds i {
+			tall := hive.conv.itf(harvest[i])
+			// A bar is placed from its middle, which is why the floor is
+			// 100 and the middle of one standing on it is half a bar up.
+			append(marks, ui.bar([ui.paint(ui.Tone.Good())],
+				hive.conv.itf(i) + 0.5, 100.0 - tall / 2.0, 0.7, tall))
+		}
+	}
+	append(marks, ui.words([ui.paint(ui.Tone.Muted())], 6.0, 8.0, 7.0, "kg per month"))
+	return ui.canvas([
+		ui.width(480),
+		ui.height(200),
+		ui.region(0.0, 0.0, 12.0, 100.0),
+	], marks)
+}
+
+proc main(): void {
+	// The same tree a window would swap in is what a page writes out.
+	echo len(ui.page("Harvest", chart([31, 44, 58, 72, 68, 51])))
+}`, codePt: `import hive.ui
+
+// Doze de largura e cem de altura, então um mês de 68 quilos é desenhado
+// com 68 de comprimento e nada precisa virar pixel primeiro.
+func chart(harvest: Int[]): ui.View {
+	mut ui.Mark[dyn] marks = []
+	for i := 0; i < len(harvest); i++ {
+		if harvest bounds i {
+			tall := hive.conv.itf(harvest[i])
+			// Um bar é posicionado pelo seu meio, e é por isso que o chão
+			// é 100 e o meio de um em pé sobre ele fica meia barra acima.
+			append(marks, ui.bar([ui.paint(ui.Tone.Good())],
+				hive.conv.itf(i) + 0.5, 100.0 - tall / 2.0, 0.7, tall))
+		}
+	}
+	append(marks, ui.words([ui.paint(ui.Tone.Muted())], 6.0, 8.0, 7.0, "kg por mês"))
+	return ui.canvas([
+		ui.width(480),
+		ui.height(200),
+		ui.region(0.0, 0.0, 12.0, 100.0),
+	], marks)
+}
+
+proc main(): void {
+	// A mesma árvore que uma window trocaria é a que uma página escreve.
+	echo len(ui.page("Colheita", chart([31, 44, 58, 72, 68, 51])))
+}`),
+				Example(caption: "A line, a ring and a word", captionPt: "Uma linha, um anel e uma palavra", code: `import hive.ui
+
+proc main(): void {
+	// A line through five places — x, y, x, y — and a ring on the last of
+	// them, which is a dot and so needed no name of its own.
+	trace := ui.path([ui.thick(0.15), ui.paint(ui.Tone.Good())],
+		[0.0, 2.0, 1.0, 5.0, 2.0, 4.0, 3.0, 8.0, 4.0, 7.0])
+	tip := ui.dot([ui.paint(ui.Tone.Good())], 4.0, 7.0, 0.2)
+
+	// Words are centred on the place, and their height is in region units
+	// too — so this one is a twelfth as tall as the plane it sits on.
+	label := ui.words([ui.paint(ui.Tone.Muted())], 4.0, 8.4, 0.8, "now")
+
+	view := ui.canvas([
+		ui.width(360),
+		ui.height(200),
+		ui.region(-0.5, 0.0, 5.5, 10.0),
+	], [trace, tip, label])
+
+	echo ui.html(view)
+}`, codePt: `import hive.ui
+
+proc main(): void {
+	// Uma linha através de cinco lugares — x, y, x, y — e um anel sobre o
+	// último deles, que é um dot e por isso não precisou de nome próprio.
+	trace := ui.path([ui.thick(0.15), ui.paint(ui.Tone.Good())],
+		[0.0, 2.0, 1.0, 5.0, 2.0, 4.0, 3.0, 8.0, 4.0, 7.0])
+	tip := ui.dot([ui.paint(ui.Tone.Good())], 4.0, 7.0, 0.2)
+
+	// words fica centralizado no lugar, e sua altura também está nas
+	// unidades da região — então esta tem um doze avos do plano em que está.
+	label := ui.words([ui.paint(ui.Tone.Muted())], 4.0, 8.4, 0.8, "agora")
+
+	view := ui.canvas([
+		ui.width(360),
+		ui.height(200),
+		ui.region(-0.5, 0.0, 5.5, 10.0),
+	], [trace, tip, label])
+
+	echo ui.html(view)
+}`),
+			],
+		),
+		Slide(
 			title: "Three dimensions",
 			titlePt: "Três dimensões",
 			download: false,
-			explanation: "A scene is the one widget only a window can draw, and it is a module of its own — hive.ui.scene — because it is the one thing in the standard library that carries a download: a pinned three.js, fetched on the first build that needs it and cached ever after. A window that draws no scene links none of it. A scene is a value like every other view: a camera, a sky, and a vector of shapes, rebuilt by an ordinary func from the state as often as there are frames. Nothing here is a handle — no mesh to keep, no material to allocate, no canvas to hold — so a program answers what is there right now, and never what has changed.\n\nbox, sphere, cylinder, cone, ground, label and line are the shapes, and each takes its dimensions as its payload rather than as attributes, because they are what the shape is: a sphere without a radius is not a sphere with a default one. cone takes both of its radii rather than only the base — a cone in the world is hardly ever the perfect one, a track marker is snub-nosed and a nose cone ends in a blade, and a shape that could only be the perfect one gets composed around rather than used. Nought at the top is the perfect one; a top equal to the bottom is a cylinder. ground already lies flat, so a floor costs no rotation and turn still means everywhere what it means anywhere; label always faces the viewer, because one you can read from one side only is not a label; and line takes no position at all, since a line is between two places and has no third to call its own.\n\nat, turn and paint place and colour a shape. surface says what it is made of, which is a different question from what colour it is: Turf, Gravel, Tarmac, Kerb, Planks, Staves, Speckle, Metal, Carbon and Gloss, each drawn over whatever colour the shape already is — so one pattern serves a red kerb and a blue one, and Gloss adds no pattern at all. Where a shape says nothing its kind decides: a ground is Turf, a cylinder or a cone is Staves, a sphere is Speckle, and everything else is Planks. And a colour carrying an alpha is translucent — Tone.RGBA(r, g, b, a), or an eight-digit Tone.HEX — drawn see-through and writing no depth, which is how a ghost, a tinted screen or the plume behind something gets drawn.\n\neye, aim, lens, fog, background, grab and crosshair go on the scene itself rather than on a shape: where the camera is and where it looks, how wide the lens is, how far you can see, the sky the fog fades into, and whether the window should hold the mouse. Lighting is deliberately not something a scene describes — the rig is fixed, chosen so that a solid painted a colour comes out that colour with a shaded side — so what makes a scene dark is its palette rather than a setting turned down. The events are a scene's own: onFrame reports how many milliseconds the last frame took, onKeyDown and onKeyUp a key's name, onLook how far the mouse moved, onGrab whether the window has the pointer, and onPad a gamepad.\n\nA gamepad is the one input a browser will not tell you about: there is no event for a stick moving, only a snapshot you have to ask for. So the runtime reads the pads once a frame and posts what changed — which makes a button on a pad the same kind of thing as a key going down, rather than a second way of hearing about input. onPad reports three things: which pad, which control on it, and where that control now is. One shape covers the whole device, because a button is a control that is only ever 0 or 1. leftX, leftY, rightX and rightY are the sticks; lt and rt the triggers; a, b, x, y, lb, rb, up, down, left, right, back, start, guide, lstick and rstick the buttons; and anything past those is reported by number. here is the pad itself: 1 when it arrives, 2 when it arrives with a layout the browser could not name, and 0 when it goes — and a pad being unplugged lets go of everything it was holding first, so a car whose controller ran flat mid-corner does not keep turning. A dead zone is applied before the event is sent, and nothing is sent until a control has actually moved, because a stick at rest is never quite at rest.\n\nA served page renders a scene's box empty — there is no socket for frames to travel down — so the examples below are shown as code only: open one in a window to actually see it.",
-			explanationPt: "Uma scene é o único widget que somente uma window consegue desenhar, e é um módulo à parte — hive.ui.scene — porque é a única coisa na biblioteca padrão que carrega um download: um three.js fixado, buscado na primeira compilação que precisa dele e guardado em cache dali em diante. Uma window que não desenha nenhuma scene não linka nada disso. Uma scene é um valor como qualquer outra view: uma câmera, um céu e um vetor de formas, reconstruído por um func comum a partir do estado tantas vezes quantos forem os frames. Nada aqui é um handle — nenhuma malha para guardar, nenhum material para alocar, nenhum canvas para segurar — então um programa responde o que está ali agora, e nunca o que mudou.\n\nbox, sphere, cylinder, cone, ground, label e line são as formas, e cada uma recebe suas dimensões como carga e não como atributos, porque elas são o que a forma é: uma esfera sem raio não é uma esfera com um raio padrão. cone recebe os seus dois raios em vez de só o da base — um cone no mundo quase nunca é o perfeito, um cone de sinalização é rombudo e o bico de um carro termina em lâmina, e uma forma que só pudesse ser a perfeita acaba sendo contornada em vez de usada. Zero no topo é a perfeita; um topo igual à base é um cilindro. ground já está deitado, então um chão não custa rotação nenhuma e turn continua significando em todo lugar o que significa em qualquer lugar; label sempre encara quem olha, porque uma que só dá para ler de um lado não é uma label; e line não recebe posição alguma, já que uma linha fica entre dois lugares e não tem um terceiro para chamar de seu.\n\nat, turn e paint posicionam e colorem uma forma. surface diz do que ela é feita, que é uma pergunta diferente de qual é a cor dela: Turf, Gravel, Tarmac, Kerb, Planks, Staves, Speckle, Metal, Carbon e Gloss, cada uma desenhada por cima da cor que a forma já tem — então um padrão só serve para um zebrado vermelho e para um azul, e Gloss não acrescenta padrão nenhum. Onde a forma não diz nada, o tipo dela decide: um ground é Turf, um cylinder ou um cone é Staves, uma sphere é Speckle, e todo o resto é Planks. E uma cor que carrega alpha é translúcida — Tone.RGBA(r, g, b, a), ou um Tone.HEX de oito dígitos — desenhada vazada e sem escrever profundidade, que é como se desenha um fantasma, um vidro colorido ou o rastro atrás de alguma coisa.\n\neye, aim, lens, fog, background, grab e crosshair vão na própria scene, e não em uma forma: onde a câmera está e para onde olha, quão aberta é a lente, até onde se enxerga, o céu no qual a névoa se dissolve, e se a window deve segurar o mouse. Iluminação deliberadamente não é algo que uma scene descreve — o conjunto é fixo, escolhido para que um sólido pintado de uma cor saia daquela cor com um lado sombreado — então o que deixa uma scene escura é a paleta dela, e não uma configuração abaixada. Os eventos são só da scene: onFrame reporta quantos milissegundos o último frame levou, onKeyDown e onKeyUp o nome de uma tecla, onLook o quanto o mouse andou, onGrab se a window está com o ponteiro, e onPad um gamepad.\n\nUm gamepad é a única entrada sobre a qual um navegador não avisa: não existe evento para um analógico se mexer, só um retrato que você precisa pedir. Então o runtime lê os controles uma vez por frame e publica o que mudou — o que faz de um botão de controle a mesma coisa que uma tecla sendo pressionada, em vez de um segundo jeito de ouvir sobre entrada. onPad reporta três coisas: qual controle, qual comando dele, e onde esse comando está agora. Uma forma só cobre o aparelho inteiro, porque um botão é um comando que só é 0 ou 1. leftX, leftY, rightX e rightY são os analógicos; lt e rt os gatilhos; a, b, x, y, lb, rb, up, down, left, right, back, start, guide, lstick e rstick os botões; e qualquer coisa além disso é reportada por número. here é o próprio controle: 1 quando ele chega, 2 quando chega com um layout que o navegador não soube nomear, e 0 quando ele vai embora — e um controle desconectado solta antes tudo que estava segurando, então um carro cujo controle ficou sem bateria no meio da curva não continua virando. Uma zona morta é aplicada antes de o evento ser enviado, e nada é enviado até um comando ter de fato se mexido, porque um analógico parado nunca está totalmente parado.\n\nUma página servida renderiza a caixa de uma scene vazia — não há socket por onde os frames viajem — então os exemplos abaixo são mostrados apenas como código: abra um deles em uma window para realmente ver.",
+			explanation: "A scene is the one widget only a window can draw, and it is a module of its own — hive.ui.scene — because it is the one thing in the standard library that carries a download: a pinned three.js, fetched on the first build that needs it and cached ever after. A window that draws no scene links none of it. A scene is a value like every other view: a camera, a sky, and a vector of shapes, rebuilt by an ordinary func from the state as often as there are frames. Nothing here is a handle — no mesh to keep, no material to allocate, no canvas to hold — so a program answers what is there right now, and never what has changed.\n\nbox, sphere, cylinder, cone, ground, label and line are the shapes, and each takes its dimensions as its payload rather than as attributes, because they are what the shape is: a sphere without a radius is not a sphere with a default one. cone takes both of its radii rather than only the base — a cone in the world is hardly ever the perfect one, a track marker is snub-nosed and a nose cone ends in a blade, and a shape that could only be the perfect one gets composed around rather than used. Nought at the top is the perfect one; a top equal to the bottom is a cylinder. ground already lies flat, so a floor costs no rotation and turn still means everywhere what it means anywhere; label always faces the viewer, because one you can read from one side only is not a label; and line takes no position at all, since a line is between two places and has no third to call its own.\n\nat, turn and paint place and colour a shape. surface says what it is made of, which is a different question from what colour it is, and the set reads from the ground up: what you drive on — Turf, Gravel, Tarmac, Kerb — then what things are built of — Concrete, Brick, Planks, Staves, Bark, Leaves, Crowd, Mesh — then what they are finished in: Speckle, Metal, Carbon, Rubber, Glass and Gloss. Each is drawn over whatever colour the shape already is — so one pattern serves a red kerb and a blue one, and Gloss adds no pattern at all. Where a shape says nothing its kind decides: a ground is Turf, a cylinder or a cone is Staves, a sphere is Speckle, and everything else is Planks. And a colour carrying an alpha is translucent — Tone.RGBA(r, g, b, a), or an eight-digit Tone.HEX — drawn see-through and writing no depth, which is how a ghost, a tinted screen or the plume behind something gets drawn.\n\neye, aim, lens, fog, background, grab and crosshair go on the scene itself rather than on a shape: where the camera is and where it looks, how wide the lens is, how far you can see, the sky the fog fades into, and whether the window should hold the mouse. Lighting is deliberately not something a scene describes — the rig is fixed, chosen so that a solid painted a colour comes out that colour with a shaded side — so what makes a scene dark is its palette rather than a setting turned down. The events are a scene's own: onFrame reports how many milliseconds the last frame took, onKeyDown and onKeyUp a key's name, onLook how far the mouse moved, onGrab whether the window has the pointer, and onPad a gamepad.\n\nA gamepad is the one input a browser will not tell you about: there is no event for a stick moving, only a snapshot you have to ask for. So the runtime reads the pads once a frame and posts what changed — which makes a button on a pad the same kind of thing as a key going down, rather than a second way of hearing about input. onPad reports three things: which pad, which control on it, and where that control now is. One shape covers the whole device, because a button is a control that is only ever 0 or 1. leftX, leftY, rightX and rightY are the sticks; lt and rt the triggers; a, b, x, y, lb, rb, up, down, left, right, back, start, guide, lstick and rstick the buttons; and anything past those is reported by number. here is the pad itself: 1 when it arrives, 2 when it arrives with a layout the browser could not name, and 0 when it goes — and a pad being unplugged lets go of everything it was holding first, so a car whose controller ran flat mid-corner does not keep turning. A dead zone is applied before the event is sent, and nothing is sent until a control has actually moved, because a stick at rest is never quite at rest.\n\nA scene holds one more shape than the seven above, and that one is heard rather than drawn: it has the slide after this one to itself.\n\nA served page renders a scene's box empty — there is no socket for frames to travel down — so the examples below are shown as code only: open one in a window to actually see it.",
+			explanationPt: "Uma scene é o único widget que somente uma window consegue desenhar, e é um módulo à parte — hive.ui.scene — porque é a única coisa na biblioteca padrão que carrega um download: um three.js fixado, buscado na primeira compilação que precisa dele e guardado em cache dali em diante. Uma window que não desenha nenhuma scene não linka nada disso. Uma scene é um valor como qualquer outra view: uma câmera, um céu e um vetor de formas, reconstruído por um func comum a partir do estado tantas vezes quantos forem os frames. Nada aqui é um handle — nenhuma malha para guardar, nenhum material para alocar, nenhum canvas para segurar — então um programa responde o que está ali agora, e nunca o que mudou.\n\nbox, sphere, cylinder, cone, ground, label e line são as formas, e cada uma recebe suas dimensões como carga e não como atributos, porque elas são o que a forma é: uma esfera sem raio não é uma esfera com um raio padrão. cone recebe os seus dois raios em vez de só o da base — um cone no mundo quase nunca é o perfeito, um cone de sinalização é rombudo e o bico de um carro termina em lâmina, e uma forma que só pudesse ser a perfeita acaba sendo contornada em vez de usada. Zero no topo é a perfeita; um topo igual à base é um cilindro. ground já está deitado, então um chão não custa rotação nenhuma e turn continua significando em todo lugar o que significa em qualquer lugar; label sempre encara quem olha, porque uma que só dá para ler de um lado não é uma label; e line não recebe posição alguma, já que uma linha fica entre dois lugares e não tem um terceiro para chamar de seu.\n\nat, turn e paint posicionam e colorem uma forma. surface diz do que ela é feita, que é uma pergunta diferente de qual é a cor dela, e o conjunto se lê do chão para cima: aquilo em que se anda — Turf, Gravel, Tarmac, Kerb — depois aquilo de que as coisas são feitas — Concrete, Brick, Planks, Staves, Bark, Leaves, Crowd, Mesh — e depois o acabamento delas: Speckle, Metal, Carbon, Rubber, Glass e Gloss. Cada uma é desenhada por cima da cor que a forma já tem — então um padrão só serve para um zebrado vermelho e para um azul, e Gloss não acrescenta padrão nenhum. Onde a forma não diz nada, o tipo dela decide: um ground é Turf, um cylinder ou um cone é Staves, uma sphere é Speckle, e todo o resto é Planks. E uma cor que carrega alpha é translúcida — Tone.RGBA(r, g, b, a), ou um Tone.HEX de oito dígitos — desenhada vazada e sem escrever profundidade, que é como se desenha um fantasma, um vidro colorido ou o rastro atrás de alguma coisa.\n\neye, aim, lens, fog, background, grab e crosshair vão na própria scene, e não em uma forma: onde a câmera está e para onde olha, quão aberta é a lente, até onde se enxerga, o céu no qual a névoa se dissolve, e se a window deve segurar o mouse. Iluminação deliberadamente não é algo que uma scene descreve — o conjunto é fixo, escolhido para que um sólido pintado de uma cor saia daquela cor com um lado sombreado — então o que deixa uma scene escura é a paleta dela, e não uma configuração abaixada. Os eventos são só da scene: onFrame reporta quantos milissegundos o último frame levou, onKeyDown e onKeyUp o nome de uma tecla, onLook o quanto o mouse andou, onGrab se a window está com o ponteiro, e onPad um gamepad.\n\nUm gamepad é a única entrada sobre a qual um navegador não avisa: não existe evento para um analógico se mexer, só um retrato que você precisa pedir. Então o runtime lê os controles uma vez por frame e publica o que mudou — o que faz de um botão de controle a mesma coisa que uma tecla sendo pressionada, em vez de um segundo jeito de ouvir sobre entrada. onPad reporta três coisas: qual controle, qual comando dele, e onde esse comando está agora. Uma forma só cobre o aparelho inteiro, porque um botão é um comando que só é 0 ou 1. leftX, leftY, rightX e rightY são os analógicos; lt e rt os gatilhos; a, b, x, y, lb, rb, up, down, left, right, back, start, guide, lstick e rstick os botões; e qualquer coisa além disso é reportada por número. here é o próprio controle: 1 quando ele chega, 2 quando chega com um layout que o navegador não soube nomear, e 0 quando ele vai embora — e um controle desconectado solta antes tudo que estava segurando, então um carro cujo controle ficou sem bateria no meio da curva não continua virando. Uma zona morta é aplicada antes de o evento ser enviado, e nada é enviado até um comando ter de fato se mexido, porque um analógico parado nunca está totalmente parado.\n\nUma scene guarda mais uma forma além das sete acima, e essa é ouvida em vez de desenhada: ela tem o slide seguinte só para si.\n\nUma página servida renderiza a caixa de uma scene vazia — não há socket por onde os frames viajem — então os exemplos abaixo são mostrados apenas como código: abra um deles em uma window para realmente ver.",
 			examples: [
 				Example(caption: "A 3D scene, in a window", captionPt: "Uma cena 3D, em uma window", code: `type Msg { Tick }
 
@@ -3061,6 +3619,132 @@ proc main(): void {
 			],
 		),
 		Slide(
+			title: "A sound is a shape",
+			titlePt: "Um som é uma forma",
+			download: false,
+			explanation: "sound(attrs, name) is a scene's eighth shape, and the one that is heard from where it stands instead of drawn where it stands. It takes at like every other shape and three of its own: voice(Voice) is which noise it is, pitch(Float) how high and volume(Float) how loud. Both of those are multiples of that voice at rest rather than hertz and decibels — what an engine sounds like at 1.0 is the renderer's business, and a program says twice as fast and half as loud, which is what it actually knows.\n\nA sound is listed beside the solids for one reason worth more than the oddity costs: a noise in a world has a place in it, and a place is what every other member of that set already knows how to carry. So it is positioned by the same at, written into the same frame, and arrives at the page with the very camera that has to hear it — where a module of its own would be a second description of where things are.\n\nThe payload is a name, and the name is the shape's identity between frames. This is the one place audio cannot follow the rule the solids follow. A box is matched to whatever was in its slot last frame, because a view built by the same code lists the same things in the same order — and a box rebuilt anyway is a box nobody can tell was rebuilt. An oscillator rebuilt anyway is a click, sixty of them a second, and a slot cannot promise otherwise, because a scene is free to stop drawing the car in front and every sound after it would shift up a place and become a different engine. So a name that is in this frame and was in the last one carries on, a name that has just arrived starts, and a name that has gone fades out.\n\nWhich of those a voice actually does belongs to the voice rather than to the program. Engine, Tyres, Brakes, Wind, Crowd and Music are sustained: they last as long as the scene goes on naming them. Impact and Chime are struck: they fire once, when the name arrives, and are deaf to everything after it — because a crash is a thing that happened rather than a thing that is happening, and a world of values has no other way to say so. Naming \"hit-3\" for as long as a car knows it was hit is one impact; letting the name go and bringing it back is a second one.\n\nSounds are positioned and the listener is the scene's own eye and aim, so what is heard on the left is what is drawn on the left, and a car goes past your ear as well as your eye. Music is the exception, having nowhere to stand, so it is never panned. And nothing is downloaded for any of it: every voice is oscillators and filtered noise, for the same reason a Surface is a drawn pattern rather than an image — a built Hive program is one file. That buys something as well as costing something, since a voice made of a frequency can be bent, and an engine that is a recording of one speed played faster is an engine you can hear looping.",
+			explanationPt: "sound(attrs, nome) é a oitava forma de uma scene, e a única que é ouvida de onde está em vez de desenhada onde está. Ela recebe at como toda outra forma e três atributos próprios: voice(Voice) é que barulho ela é, pitch(Float) quão agudo e volume(Float) quão alto. Os dois são múltiplos daquela voz em repouso, e não hertz e decibéis — como um motor soa em 1.0 é assunto do renderizador, e um programa diz duas vezes mais rápido e metade do volume, que é o que ele de fato sabe.\n\nUm som está listado ao lado dos sólidos por um motivo que vale mais do que a estranheza custa: um barulho em um mundo tem um lugar nele, e um lugar é o que todo outro membro daquele conjunto já sabe carregar. Então ele é posicionado pelo mesmo at, escrito no mesmo frame, e chega à página com a mesma câmera que precisa ouvi-lo — onde um módulo próprio seria uma segunda descrição de onde as coisas estão.\n\nA carga é um nome, e o nome é a identidade da forma entre frames. Este é o único lugar em que o áudio não pode seguir a regra que os sólidos seguem. Uma box é casada com o que estava no lugar dela no frame anterior, porque uma view construída pelo mesmo código lista as mesmas coisas na mesma ordem — e uma box reconstruída mesmo assim é uma box que ninguém percebe que foi reconstruída. Um oscilador reconstruído mesmo assim é um clique, sessenta deles por segundo, e uma posição não pode prometer o contrário, porque uma scene é livre para parar de desenhar o carro da frente e todo som depois dele subiria uma posição e viraria outro motor. Então um nome que está neste frame e estava no anterior continua, um nome que acabou de chegar começa, e um nome que sumiu se apaga.\n\nQual dessas coisas uma voz de fato faz pertence à voz, não ao programa. Engine, Tyres, Brakes, Wind, Crowd e Music são sustentadas: duram enquanto a scene continuar as nomeando. Impact e Chime são percutidas: disparam uma vez, quando o nome chega, e ficam surdas a tudo depois disso — porque uma batida é algo que aconteceu e não algo que está acontecendo, e um mundo de valores não tem outro jeito de dizer isso. Nomear \"hit-3\" enquanto um carro souber que bateu é um impacto só; soltar o nome e trazê-lo de volta é um segundo.\n\nSons são posicionados e quem escuta é o próprio eye e aim da scene, então o que se ouve à esquerda é o que está desenhado à esquerda, e um carro passa pelo seu ouvido tanto quanto pelo seu olho. Music é a exceção, por não ter onde ficar, então nunca é panoramizada. E nada é baixado para nada disso: toda voz é osciladores e ruído filtrado, pelo mesmo motivo que uma Surface é um padrão desenhado e não uma imagem — um programa Hive construído é um arquivo só. Isso compra algo além de custar algo, já que uma voz feita de frequência pode ser dobrada, e um motor que é a gravação de uma rotação tocada mais rápido é um motor que dá para ouvir dando a volta.",
+			examples: [Example(caption: "Sustained and struck, side by side", captionPt: "Sustentada e percutida, lado a lado", code: `import hive.ui
+
+type Msg { Tick }
+
+type Car {
+	seat:  Int
+	x:     Float
+	z:     Float
+	speed: Float
+	knock: Bool
+}
+
+// A func like every other shape-maker, and worth noticing that a sound is
+// exactly as much of a value as a box is: sixty of these are built a second
+// and thrown away, while the voice on the other end of the name goes on
+// running the whole time.
+func noises(cars: Car[]): ui.Shape[dyn] {
+	mut ui.Shape[dyn] out = []
+	for each car in cars {
+		// Sustained: it lasts as long as the scene goes on naming it, and
+		// bends with the speed rather than being restarted at a new one.
+		append(out, ui.sound([
+			ui.at(car.x, 0.6, car.z),
+			ui.voice(ui.Voice.Engine()),
+			ui.pitch(0.7 + car.speed / 90.0),
+			ui.volume(0.6),
+		], "engine-{car.seat}"))
+
+		// Struck: it fires when the name arrives and is deaf to everything
+		// after it. Letting the name go and bringing it back is a second one.
+		if car.knock {
+			append(out, ui.sound([
+				ui.at(car.x, 0.6, car.z),
+				ui.voice(ui.Voice.Impact()),
+				ui.pitch(1.0),
+				ui.volume(0.8),
+			], "hit-{car.seat}"))
+		}
+	}
+	return out
+}
+
+func view(cars: Car[dyn]): ui.View {
+	solids := [ui.ground([ui.paint(ui.Tone.HEX("#3a3f45"))], 400.0, 400.0)]
+	return ui.scene([
+		ui.grow(1),
+		ui.eye(0.0, 1.4, 6.0),
+		ui.aim(0.0, 0.0),
+		ui.background(ui.Tone.HEX("#8ec5ff")),
+	], solids + noises(cars))
+}
+
+proc update(cars: Car[dyn], msg: Msg, envelope: hive.syslink.Envelope): Car[dyn] {
+	return cars
+}
+
+proc main(): void {
+	Car[dyn] grid = [Car(1, -2.0, 0.0, 40.0, false), Car(2, 2.0, -6.0, 62.0, true)]
+	ui.window("Sound", view, update, grid)
+}`, codePt: `import hive.ui
+
+type Msg { Tick }
+
+type Car {
+	seat:  Int
+	x:     Float
+	z:     Float
+	speed: Float
+	knock: Bool
+}
+
+// Um func como todo outro construtor de formas deste arquivo, e vale notar
+// que um som é exatamente tão valor quanto uma box: sessenta destes são
+// construídos por segundo e jogados fora, enquanto a voz do outro lado do
+// nome segue rodando o tempo todo.
+func noises(cars: Car[]): ui.Shape[dyn] {
+	mut ui.Shape[dyn] out = []
+	for each car in cars {
+		// Sustentada: dura enquanto a scene continuar a nomeando, e dobra
+		// com a velocidade em vez de ser reiniciada em uma nova.
+		append(out, ui.sound([
+			ui.at(car.x, 0.6, car.z),
+			ui.voice(ui.Voice.Engine()),
+			ui.pitch(0.7 + car.speed / 90.0),
+			ui.volume(0.6),
+		], "engine-{car.seat}"))
+
+		// Percutida: dispara quando o nome chega e fica surda a tudo depois
+		// disso. Soltar o nome e trazê-lo de volta é um segundo impacto.
+		if car.knock {
+			append(out, ui.sound([
+				ui.at(car.x, 0.6, car.z),
+				ui.voice(ui.Voice.Impact()),
+				ui.pitch(1.0),
+				ui.volume(0.8),
+			], "hit-{car.seat}"))
+		}
+	}
+	return out
+}
+
+func view(cars: Car[dyn]): ui.View {
+	solids := [ui.ground([ui.paint(ui.Tone.HEX("#3a3f45"))], 400.0, 400.0)]
+	return ui.scene([
+		ui.grow(1),
+		ui.eye(0.0, 1.4, 6.0),
+		ui.aim(0.0, 0.0),
+		ui.background(ui.Tone.HEX("#8ec5ff")),
+	], solids + noises(cars))
+}
+
+proc update(cars: Car[dyn], msg: Msg, envelope: hive.syslink.Envelope): Car[dyn] {
+	return cars
+}
+
+proc main(): void {
+	Car[dyn] grid = [Car(1, -2.0, 0.0, 40.0, false), Car(2, 2.0, -6.0, 62.0, true)]
+	ui.window("Som", view, update, grid)
+}`)],
+		),
+		Slide(
 			title: "Testing",
 			titlePt: "Testes",
 			download: false,
@@ -3318,6 +4002,106 @@ proc main(): void {
 		echo "o outro nó respondeu: {reply}"
 	}
 }`),
+			],
+		),
+		Slide(
+			title: "What an error looks like",
+			titlePt: "Como um erro se parece",
+			download: false,
+			explanation: "Every diagnostic opens with where it happened — file:line: message — because that is the shape editors expect, so wiring one up needs nothing more than a compile command and a pattern to read its output with. A message that runs on continues on indented lines, so one error stays one entry in a quickfix list rather than several. And a compile error is printed with nothing at all in front of it: prefixing it with a program name would put something before the file name and break the very pattern. Only a usage error — hive build with no entrypoint — says who is complaining, because that is not a diagnostic about anybody's source.\n\nEvery pass reports as much as it can find rather than stopping at the first thing, so a program with three mistakes is a program whose author is told about three.\n\nWhat a message should say is not part of the grammar, but it is the standard the compiler's own messages are held to. Name the thing: `v` is declared Str[3], never \"type mismatch\". Say what to do: a bounds error that cannot prove an index says how to guard it, and a sort that cannot sort in place names both fixes. Say why, when the why is the point — hive.math.max(0, health) is rejected because Hive never widens a number behind your back, and a message that only said \"expected Float, found Int\" would leave the reader hunting for a conversion they were supposed to have known about. And never guess: a miscased keyword is reported as a keyword written the wrong way and as a name that was already taken, because both readings are live and the compiler cannot know which was meant.\n\nTwo limits are worth knowing, and both are the price of one decision — that every pass after the loader sees one flat program. Errors from the passes after parsing land on a declaration rather than on a line inside it, so the declaration a mistake is in is as precise as they get: its line is what the message opens with, and its name is what the message says. And in a program with imports those same errors are reported against the entrypoint, even where the declaration at fault came from an imported module. Errors the lexer, the parser and the import resolver raise do name the right file and the right line, because those three run per file.\n\nOne diagnostic is not an error at all. A test failure is an answer rather than a malfunction, so that report goes to stdout, and only a compiler or toolchain failure goes to stderr.",
+			explanationPt: "Todo diagnóstico começa dizendo onde aconteceu — arquivo:linha: mensagem — porque essa é a forma que editores esperam, então integrar um não precisa de mais que um comando de compilação e um padrão para ler a saída dele. Uma mensagem que se estende continua em linhas indentadas, então um erro continua sendo uma entrada só na lista de quickfix em vez de várias. E um erro de compilação é impresso sem absolutamente nada na frente: prefixá-lo com um nome de programa colocaria algo antes do nome do arquivo e quebraria justamente esse padrão. Só um erro de uso — hive build sem entrypoint — diz quem está reclamando, porque isso não é um diagnóstico sobre o código-fonte de ninguém.\n\nToda passagem reporta tudo que consegue encontrar em vez de parar na primeira coisa, então um programa com três erros é um programa cujo autor é avisado sobre os três.\n\nO que uma mensagem deveria dizer não faz parte da gramática, mas é o padrão a que as próprias mensagens do compilador são submetidas. Nomeie a coisa: `v` é declarado Str[3], nunca \"incompatibilidade de tipos\". Diga o que fazer: um erro de limites que não consegue provar um índice diz como colocar uma guarda nele, e um sort que não consegue ordenar no lugar nomeia as duas correções. Diga por quê, quando o porquê é o ponto — hive.math.max(0, health) é recusado porque Hive nunca amplia um número pelas suas costas, e uma mensagem que só dissesse \"esperava Float, encontrou Int\" deixaria quem lê caçando uma conversão que supostamente deveria conhecer. E nunca adivinhe: uma palavra-chave mal grafada é reportada como palavra-chave escrita do jeito errado e como um nome já tomado, porque as duas leituras estão vivas e o compilador não tem como saber qual foi a intenção.\n\nDois limites valem ser conhecidos, e os dois são o preço de uma decisão só — a de que toda passagem depois do carregador vê um programa achatado. Erros das passagens posteriores ao parsing chegam em uma declaração e não em uma linha dentro dela, então a declaração em que o erro está é o máximo de precisão que se consegue: a linha dela é o que a mensagem abre dizendo, e o nome dela é o que a mensagem cita. E em um programa com imports esses mesmos erros são reportados contra o entrypoint, mesmo quando a declaração culpada veio de um módulo importado. Os erros que o lexer, o parser e o resolvedor de imports levantam nomeiam o arquivo e a linha certos, porque esses três rodam por arquivo.\n\nUm diagnóstico não é um erro de forma alguma. A falha de um teste é uma resposta e não um defeito, então esse relatório vai para a stdout, e só uma falha do compilador ou da toolchain vai para a stderr.",
+			examples: [
+				Example(caption: "Three mistakes, and three messages", captionPt: "Três erros, e três mensagens", code: `proc main(): void {
+	Str[3] parts = split("north,south", ",")
+	echo parts[0]
+
+	health := 3
+	echo hive.math.max(0, health)
+}`, codePt: `proc main(): void {
+	Str[3] parts = split("north,south", ",")
+	echo parts[0]
+
+	health := 3
+	echo hive.math.max(0, health)
+}`),
+				Example(caption: "What hive check says about it", captionPt: "O que o hive check diz sobre isso", code: `$ hive check colony.hive
+colony.hive:1: in ` + "`" + `main` + "`" + `: the declaration of ` + "`" + `parts` + "` " + `wants Str[3] and this is Str[dyn]
+colony.hive:1: in ` + "`" + `main` + "`" + `: the first argument of ` + "`" + `hive.math.max` + "` " + `wants Float and this is Int
+colony.hive:1: in ` + "`" + `main` + "`" + `: the second argument of ` + "`" + `hive.math.max` + "` " + `wants Float and this is Int
+
+# All three land on line 1 — the line ` + "`" + `main` + "` " + `is declared on. That is the
+# limit above: after the loader, a position is a declaration's.`, codePt: `$ hive check colony.hive
+colony.hive:1: in ` + "`" + `main` + "`" + `: the declaration of ` + "`" + `parts` + "` " + `wants Str[3] and this is Str[dyn]
+colony.hive:1: in ` + "`" + `main` + "`" + `: the first argument of ` + "`" + `hive.math.max` + "` " + `wants Float and this is Int
+colony.hive:1: in ` + "`" + `main` + "`" + `: the second argument of ` + "`" + `hive.math.max` + "` " + `wants Float and this is Int
+
+# Os três caem na linha 1 — a linha em que ` + "`" + `main` + "` " + `é declarado. É o limite
+# acima: depois do carregador, uma posição é a de uma declaração.`),
+				Example(caption: "A message that says what to do", captionPt: "Uma mensagem que diz o que fazer", code: `$ hive check guard.hive
+guard.hive:1: in ` + "`" + `main` + "`" + `: cannot prove this index is in range: it is a computed expression, and there is nothing to hang a guard on. Bind it to a name first, then guard that
+
+$ hive check shouted.hive
+shouted.hive:5: ` + "`" + `Proc` + "` " + `is a keyword written the wrong way: every keyword in Hive is lower case, and only lower case. Write ` + "`" + `proc` + "` " + `— or, if a name was meant, one the language has not already taken.`, codePt: `$ hive check guard.hive
+guard.hive:1: in ` + "`" + `main` + "`" + `: cannot prove this index is in range: it is a computed expression, and there is nothing to hang a guard on. Bind it to a name first, then guard that
+
+$ hive check shouted.hive
+shouted.hive:5: ` + "`" + `Proc` + "` " + `is a keyword written the wrong way: every keyword in Hive is lower case, and only lower case. Write ` + "`" + `proc` + "` " + `— or, if a name was meant, one the language has not already taken.`),
+				Example(caption: "Wiring up an editor", captionPt: "Integrando um editor", code: `" In Vim or Neovim. hive check runs every compiler pass and stops before
+" the Go toolchain, so it answers as fast as the front end does and writes
+" nothing next to the file — which is what makes it usable on every save.
+setlocal makeprg=hive\ check\ %:S
+setlocal errorformat=%-G\ %.%#,%f:%l:\ %m,%-G%.%#
+
+" :make fills the quickfix list, and :cn walks the errors. The two %-G
+" items throw away what is not a diagnostic: the first drops the indented
+" continuation of a message that runs on, the last drops everything else.`, codePt: `" No Vim ou Neovim. hive check roda todas as passagens do compilador e para
+" antes da toolchain do Go, então responde tão rápido quanto o front end e
+" não escreve nada ao lado do arquivo — que é o que o torna usável a cada save.
+setlocal makeprg=hive\ check\ %:S
+setlocal errorformat=%-G\ %.%#,%f:%l:\ %m,%-G%.%#
+
+" :make preenche a lista de quickfix, e :cn percorre os erros. Os dois itens
+" %-G descartam o que não é diagnóstico: o primeiro joga fora a continuação
+" indentada de uma mensagem que se estende, o último joga fora o resto.`),
+			],
+		),
+		Slide(
+			title: "Building for another platform",
+			titlePt: "Construindo para outra plataforma",
+			download: false,
+			explanation: "Because the last step is the Go toolchain, a Hive program is built for another platform the way any Go program is — by telling the toolchain which one. hive build takes a --target, and nothing else does.\n\nA target is a goos/goarch pair, and the pair is checked before anything is compiled. `go tool dist list` names every one the toolchain knows, and one it does not name is refused there and then rather than ten seconds later, by a build failing in a language you did not write. The list is asked for rather than kept anywhere, so a platform Go learns tomorrow needs no change here. And a platform that does not exist is a mistake in what was typed, so it is reported as one — beside the other command-line mistakes, rather than against a line of a program that has nothing wrong with it.\n\nWhat comes out says what it is for. A host build of main.hive is main, and a cross build is main-linux-arm64: two files that cannot run in the same places must not answer to one name, and a cross build that quietly replaced the local one would only be found out by running it. The .exe follows the target rather than the machine, so --target windows/amd64 writes main-windows-amd64.exe from anywhere.\n\nCGO_ENABLED=0 goes with a cross build and only with one. Everything the runtime is made of is Go, so no Hive program needs a C compiler — and a C cross-compiler is the one thing a machine with the Go toolchain on it cannot be assumed to have. A build for the machine it is running on is given no environment at all, and is therefore byte for byte the build it always was.\n\n--target is a flag of build, and of build alone. check and emit compile nothing; test and container are both about this machine; and each of the four refuses the flag rather than accepting it and quietly ignoring it. run is the exception that proves the rule: everything after the entrypoint there belongs to the program being run, so a --target written after it is passed straight through, unread.",
+			explanationPt: "Como o último passo é a toolchain do Go, um programa Hive é construído para outra plataforma do jeito que qualquer programa Go é — dizendo à toolchain qual é ela. hive build recebe um --target, e nada mais recebe.\n\nUm target é um par goos/goarch, e o par é verificado antes de qualquer coisa ser compilada. `go tool dist list` nomeia toda plataforma que a toolchain conhece, e uma que ele não nomeia é recusada ali mesmo em vez de dez segundos depois, por um build falhando em uma linguagem que você não escreveu. A lista é perguntada em vez de guardada em algum lugar, então uma plataforma que o Go aprender amanhã não exige mudança nenhuma aqui. E uma plataforma que não existe é um erro no que foi digitado, então é reportada como tal — ao lado dos outros erros de linha de comando, e não contra uma linha de um programa que não tem nada de errado.\n\nO que sai diz para que serve. Um build local de main.hive é main, e um build cruzado é main-linux-arm64: dois arquivos que não podem rodar nos mesmos lugares não podem atender pelo mesmo nome, e um build cruzado que substituísse silenciosamente o local só seria descoberto ao rodá-lo. O .exe segue o target e não a máquina, então --target windows/amd64 escreve main-windows-amd64.exe de qualquer lugar.\n\nCGO_ENABLED=0 acompanha um build cruzado e somente um. Tudo de que o runtime é feito é Go, então nenhum programa Hive precisa de um compilador C — e um compilador C cruzado é a única coisa que não se pode presumir em uma máquina que tem a toolchain do Go. Um build para a própria máquina em que roda não recebe ambiente nenhum, e é portanto byte a byte o build que sempre foi.\n\n--target é uma flag do build, e só do build. check e emit não compilam nada; test e container são sobre esta máquina; e cada um dos quatro recusa a flag em vez de aceitá-la e ignorá-la silenciosamente. run é a exceção que confirma a regra: tudo depois do entrypoint ali pertence ao programa que está sendo rodado, então um --target escrito depois dele é repassado direto, sem ser lido.",
+			examples: [
+				Example(caption: "One machine, three platforms", captionPt: "Uma máquina, três plataformas", code: `$ hive build main.hive
+Compiled main.hive -> main (1s)
+
+$ hive build main.hive --target linux/arm64
+Compiled main.hive -> main-linux-arm64 (2s)
+
+$ hive build main.hive --target=windows/amd64
+Compiled main.hive -> main-windows-amd64.exe (2s)`, codePt: `$ hive build main.hive
+Compiled main.hive -> main (1s)
+
+$ hive build main.hive --target linux/arm64
+Compiled main.hive -> main-linux-arm64 (2s)
+
+$ hive build main.hive --target=windows/amd64
+Compiled main.hive -> main-windows-amd64.exe (2s)`),
+				Example(caption: "The three ways it says no", captionPt: "As três formas de dizer não", code: `$ hive build main.hive --target linux/sparc
+hive: ` + "`" + `--target linux/sparc` + "` " + `is not a platform the Go toolchain builds for. A target is a ` + "`" + `goos/goarch` + "` " + `pair — ` + "`" + `linux/arm64` + "`" + `, ` + "`" + `darwin/arm64` + "`" + `, ` + "`" + `windows/amd64` + "` " + `— and ` + "`" + `go tool dist list` + "` " + `names every one it knows.
+
+$ hive build main.hive --target
+hive: ` + "`" + `--target` + "` " + `was given no platform to build for. It takes a ` + "`" + `goos/goarch` + "` " + `pair — ` + "`" + `hive build <entrypoint.hive> --target linux/arm64` + "`" + `.
+
+$ hive check main.hive --target linux/arm64
+hive: ` + "`" + `--target` + "` " + `is a flag of ` + "`" + `hive build` + "`" + `. ` + "`" + `check` + "` " + `builds nothing for another platform.`, codePt: `$ hive build main.hive --target linux/sparc
+hive: ` + "`" + `--target linux/sparc` + "` " + `is not a platform the Go toolchain builds for. A target is a ` + "`" + `goos/goarch` + "` " + `pair — ` + "`" + `linux/arm64` + "`" + `, ` + "`" + `darwin/arm64` + "`" + `, ` + "`" + `windows/amd64` + "` " + `— and ` + "`" + `go tool dist list` + "` " + `names every one it knows.
+
+$ hive build main.hive --target
+hive: ` + "`" + `--target` + "` " + `was given no platform to build for. It takes a ` + "`" + `goos/goarch` + "` " + `pair — ` + "`" + `hive build <entrypoint.hive> --target linux/arm64` + "`" + `.
+
+$ hive check main.hive --target linux/arm64
+hive: ` + "`" + `--target` + "` " + `is a flag of ` + "`" + `hive build` + "`" + `. ` + "`" + `check` + "` " + `builds nothing for another platform.`),
 			],
 		),
 		Slide(
