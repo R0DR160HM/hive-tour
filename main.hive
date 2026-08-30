@@ -999,8 +999,8 @@ proc main(): void {
 			title: "Strings",
 			titlePt: "Strings",
 			download: false,
-			explanation: "A double-quoted string interpolates with \{expression} and escapes with \\n, \\t, \\\", \\\\, and \\\{ for a literal brace. A backtick string is raw: no escapes and no interpolation at all, so it is the natural way to hold a block of text — or, as on this very page, a block of Hive source — untouched. Its indentation is stripped at compile time down to the shortest common margin.",
-			explanationPt: "Uma string entre aspas duplas interpola com \{expressão} e usa escapes com \\n, \\t, \\\", \\\\, e \\\{ para uma chave literal. Uma string entre crases é bruta: sem escapes e sem interpolação alguma, o que a torna a forma natural de guardar um bloco de texto — ou, como nesta própria página, um bloco de código-fonte Hive — intacto. Sua indentação é removida em tempo de compilação até a menor margem em comum.",
+			explanation: "A double-quoted string interpolates with \{expression} and escapes with \\n, \\t, \\\", \\\\, and \\\{ for a literal brace. A backtick string is raw: no escapes and no interpolation at all, so it is the natural way to hold a block of text — or, as on this very page, a block of Hive source — untouched. Its indentation is stripped at compile time down to the shortest common margin.\n\nA Str is a sequence of characters, and everything addresses it as one. len counts characters where bytes counts the UTF-8 they take, so for \"café\" they are 4 and 5. It is indexed and sliced by character too — s[0] is the first character, as a one-character Str, and s[1:3] is characters one through three with both bounds inclusive — and every one of those is proved in range at compile time, exactly as a vector's is. A Str carries no declared length, so an index into one is always guarded or comes from indexOf, whose Ok payload is a position the string really has.\n\nWhat a Str is not is storage. s[0] = \"x\" is a compile error: a string is a value, the same as an Int, and characters are not all the same width, so writing one would move every character after it. You build the new string instead.",
+			explanationPt: "Uma string entre aspas duplas interpola com \{expressão} e usa escapes com \\n, \\t, \\\", \\\\, e \\\{ para uma chave literal. Uma string entre crases é bruta: sem escapes e sem interpolação alguma, o que a torna a forma natural de guardar um bloco de texto — ou, como nesta própria página, um bloco de código-fonte Hive — intacto. Sua indentação é removida em tempo de compilação até a menor margem em comum.\n\nUma Str é uma sequência de caracteres, e tudo a endereça como tal. len conta caracteres onde bytes conta o UTF-8 que eles ocupam, então para \"café\" são 4 e 5. Ela também é indexada e fatiada por caractere — s[0] é o primeiro caractere, como uma Str de um caractere, e s[1:3] são os caracteres de um a três com os dois limites inclusivos — e cada um deles é comprovado dentro dos limites em tempo de compilação, exatamente como o de um vetor. Uma Str não carrega tamanho declarado, então um índice nela sempre está sob guarda ou vem de indexOf, cujo payload Ok é uma posição que a string realmente tem.\n\nO que uma Str não é é armazenamento. s[0] = \"x\" é um erro de compilação: uma string é um valor, igual a um Int, e caracteres não têm todos a mesma largura, então escrever um moveria todos os caracteres depois dele. Você constrói a string nova no lugar disso.",
 			examples: [
 				Example(caption: "Interpolation and escapes", captionPt: "Interpolação e escapes", code: `proc main(): void {
 	name := "bee"
@@ -1021,6 +1021,39 @@ proc main(): void {
 	raw := ` + "`\n\t\tline one\n\t\tline two\n\t`\n" + `	echo raw
 }`, codePt: `proc main(): void {
 	raw := ` + "`\n\t\tlinha um\n\t\tlinha dois\n\t`\n" + `	echo raw
+}`),
+				Example(caption: "Counted, indexed and sliced by character", captionPt: "Contada, indexada e fatiada por caractere", code: `proc main(): void {
+	s := "café au lait"
+
+	echo len(s)                  // 12 characters
+	echo bytes(s)                // 13 bytes — é takes two
+
+	if s bounds 3 {
+		echo s[3]                // "é", the fourth character
+		echo s[0:3]              // "café" — both bounds inclusive
+	}
+
+	// A position from indexOf is one the string really has, so the
+	// slice taken at it needs no guard of its own.
+	if indexOf(s, "au") is Result.Ok(at) {
+		echo s[at:]              // "au lait"
+	}
+}`, codePt: `proc main(): void {
+	s := "café au lait"
+
+	echo len(s)                  // 12 caracteres
+	echo bytes(s)                // 13 bytes — é ocupa dois
+
+	if s bounds 3 {
+		echo s[3]                // "é", o quarto caractere
+		echo s[0:3]              // "café" — os dois limites inclusivos
+	}
+
+	// Uma posição vinda de indexOf é uma que a string realmente tem,
+	// então a fatia tirada nela não precisa de guarda própria.
+	if indexOf(s, "au") is Result.Ok(at) {
+		echo s[at:]              // "au lait"
+	}
 }`),
 			],
 		),
@@ -1376,8 +1409,8 @@ test "este está errado de propósito" {
 			title: "Builtins",
 			titlePt: "Funções nativas",
 			download: false,
-			explanation: "These are always in scope, with no import needed. len counts a vector's elements or a Str's characters; bytes counts a vector's backing storage or a Str's UTF-8 bytes. append and prepend grow a mutable dynamic vector at either end; drop removes a range and hands back exactly what it removed. join concatenates a vector of Str with a separator between each pair, and split is its inverse. indexOf finds the first equal element and, unlike a bare -1, an Ok index is always safe to use unguarded. row and column pull a Table's row or column by its first cell or its top cell. map, filter and filterMap each walk a vector with a func — map transforms every element, filter keeps the ones a predicate says yes to, filterMap does both in one pass — and sort puts a vector in order, in place when it stands alone as a statement over a mut vector.\n\nA declaration of your own — a func, proc, query or type sharing one of these names — wins over the builtin at every bare call, which stays reachable as hive.<name>.",
-			explanationPt: "Estas estão sempre no escopo, sem precisar de import. len conta os elementos de um vetor ou os caracteres de uma Str; bytes conta o armazenamento de um vetor ou os bytes UTF-8 de uma Str. append e prepend fazem crescer um vetor dinâmico mutável em uma das pontas; drop remove um intervalo e devolve exatamente o que removeu. join concatena um vetor de Str com um separador entre cada par, e split é o seu inverso. indexOf encontra o primeiro elemento igual e, diferente de um -1 solto, um índice Ok é sempre seguro de usar sem guarda. row e column extraem a linha ou coluna de uma Table pela primeira célula ou pela célula do topo. map, filter e filterMap cada um percorre um vetor com um func — map transforma cada elemento, filter mantém os que um predicado diz que sim, filterMap faz as duas coisas em uma passada — e sort põe um vetor em ordem, no lugar quando aparece isolado como instrução sobre um vetor mut.\n\nUma declaração sua — um func, proc, query ou type com um desses nomes — vence a função nativa em toda chamada sem qualificação, que continua acessível como hive.<nome>.",
+			explanation: "These are always in scope, with no import needed. len counts a vector's elements or a Str's characters; bytes counts a vector's backing storage or a Str's UTF-8 bytes. append and prepend grow a mutable dynamic vector at either end; drop removes a range and hands back exactly what it removed. join concatenates a vector of Str with a separator between each pair, and split is its inverse. replaceFirst and replaceAll rewrite one occurrence of a substring or every one of them, answering with a new string rather than writing through the old. indexOf finds the first equal element — or, on a Str, the first occurrence of a substring, counted in characters — and, unlike a bare -1, an Ok index is always safe to use unguarded. row and column pull a Table's row or column by its first cell or its top cell. map, filter and filterMap each walk a vector with a func — map transforms every element, filter keeps the ones a predicate says yes to, filterMap does both in one pass — and sort puts a vector in order, in place when it stands alone as a statement over a mut vector.\n\nA declaration of your own — a func, proc, query or type sharing one of these names — wins over the builtin at every bare call, which stays reachable as hive.<name>.",
+			explanationPt: "Estas estão sempre no escopo, sem precisar de import. len conta os elementos de um vetor ou os caracteres de uma Str; bytes conta o armazenamento de um vetor ou os bytes UTF-8 de uma Str. append e prepend fazem crescer um vetor dinâmico mutável em uma das pontas; drop remove um intervalo e devolve exatamente o que removeu. join concatena um vetor de Str com um separador entre cada par, e split é o seu inverso. replaceFirst e replaceAll reescrevem uma ocorrência de um trecho ou todas elas, devolvendo uma string nova em vez de escrever sobre a antiga. indexOf encontra o primeiro elemento igual — ou, em uma Str, a primeira ocorrência de um trecho, contada em caracteres — e, diferente de um -1 solto, um índice Ok é sempre seguro de usar sem guarda. row e column extraem a linha ou coluna de uma Table pela primeira célula ou pela célula do topo. map, filter e filterMap cada um percorre um vetor com um func — map transforma cada elemento, filter mantém os que um predicado diz que sim, filterMap faz as duas coisas em uma passada — e sort põe um vetor em ordem, no lugar quando aparece isolado como instrução sobre um vetor mut.\n\nUma declaração sua — um func, proc, query ou type com um desses nomes — vence a função nativa em toda chamada sem qualificação, que continua acessível como hive.<nome>.",
 			examples: [
 				Example(caption: "Length and bytes", captionPt: "Tamanho e bytes", code: `proc main(): void {
 	fruit := ["pear", "apple", "kiwi"]
@@ -1425,6 +1458,32 @@ test "este está errado de propósito" {
 	if indexOf(fruit, "apple") is Result.Ok(i) {
 		echo fruit[i]
 	}
+}`),
+				Example(caption: "Rewriting a string", captionPt: "Reescrevendo uma string", code: `proc main(): void {
+	path := "a/b/c"
+
+	echo replaceFirst(path, "/", " > ")   // a > b/c
+	echo replaceAll(path, "/", " > ")     // a > b > c
+
+	// Neither writes through the string it was given: a Str is a
+	// value, so path is what it always was.
+	echo path                             // a/b/c
+
+	// Nothing to find is not an error — the string comes back as
+	// it was.
+	echo replaceAll(path, "z", "!")       // a/b/c
+}`, codePt: `proc main(): void {
+	caminho := "a/b/c"
+
+	echo replaceFirst(caminho, "/", " > ")   // a > b/c
+	echo replaceAll(caminho, "/", " > ")     // a > b > c
+
+	// Nenhum dos dois escreve sobre a string recebida: uma Str é um
+	// valor, então caminho é o que sempre foi.
+	echo caminho                             // a/b/c
+
+	// Não encontrar nada não é erro — a string volta como estava.
+	echo replaceAll(caminho, "z", "!")       // a/b/c
 }`),
 				Example(caption: "Walking a vector", captionPt: "Percorrendo um vetor", code: `func isLong(fruit: Str): Bool {
 	return len(fruit) > 4
@@ -1497,8 +1556,8 @@ proc main(): void {
 			title: "Bounds, proved at compile time",
 			titlePt: "Limites, comprovados em tempo de compilação",
 			download: false,
-			explanation: "A dedicated flow-sensitive pass proves every index and slice in range before the program ever runs. A literal index into a known length compiles outright; a computed index has to sit under a guard the pass can read, such as `if v bounds i \{ v[i] }` — sugar for `i >= 0 && i < len(v)`. Anything the pass cannot prove safe is a compile error, not a runtime panic — `echo v[len(v) - 1]` on its own is rejected outright, computed index and all. This very server leans on it: the slide number from the URL is checked with exactly this guard before it ever indexes the list of slides.",
-			explanationPt: "Uma passagem dedicada e sensível ao fluxo comprova que todo índice e slice está dentro dos limites antes mesmo do programa rodar. Um índice literal dentro de um tamanho conhecido compila sem mais nada; um índice calculado precisa estar sob uma guarda que a passagem saiba ler, como `if v bounds i \{ v[i] }` — açúcar sintático para `i >= 0 && i < len(v)`. Tudo que a passagem não conseguir provar seguro é um erro de compilação, não um panic em tempo de execução — `echo v[len(v) - 1]` sozinho já é rejeitado de cara, índice calculado e tudo. Este mesmo servidor se apoia nisso: o número do slide vindo da URL é verificado com exatamente essa guarda antes de indexar a lista de slides.",
+			explanation: "A dedicated flow-sensitive pass proves every index and slice in range before the program ever runs. A literal index into a known length compiles outright; a computed index has to sit under a guard the pass can read, such as `if v bounds i \{ v[i] }` — sugar for `i >= 0 && i < len(v)`. Anything the pass cannot prove safe is a compile error, not a runtime panic — `echo v[len(v) - 1]` on its own is rejected outright, computed index and all. This very server leans on it: the slide number from the URL is checked with exactly this guard before it ever indexes the list of slides.\n\nA Str is proved exactly the same way, with one difference worth knowing: a string never has a length the compiler knows, because there is no Str[3] for text. So even `s[1]` on a string literal sitting right there is refused, and every index into one is either guarded or came from indexOf.",
+			explanationPt: "Uma passagem dedicada e sensível ao fluxo comprova que todo índice e slice está dentro dos limites antes mesmo do programa rodar. Um índice literal dentro de um tamanho conhecido compila sem mais nada; um índice calculado precisa estar sob uma guarda que a passagem saiba ler, como `if v bounds i \{ v[i] }` — açúcar sintático para `i >= 0 && i < len(v)`. Tudo que a passagem não conseguir provar seguro é um erro de compilação, não um panic em tempo de execução — `echo v[len(v) - 1]` sozinho já é rejeitado de cara, índice calculado e tudo. Este mesmo servidor se apoia nisso: o número do slide vindo da URL é verificado com exatamente essa guarda antes de indexar a lista de slides.\n\nUma Str é comprovada exatamente do mesmo jeito, com uma diferença que vale saber: uma string nunca tem um tamanho que o compilador conheça, porque não existe Str[3] para texto. Então até `s[1]` em um literal de string bem ali é recusado, e todo índice em uma delas ou está sob guarda ou veio de indexOf.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
 	v := ["a", "b", "c"]
 
@@ -1506,12 +1565,34 @@ proc main(): void {
 	if v bounds last {
 		echo v[last]                 // fine — the guard covers it
 	}
+
+	// A Str carries no declared length, so even a literal index
+	// into one is guarded — or comes from indexOf, which only
+	// ever answers with a position the string really has.
+	s := "café"
+	if s bounds 3 {
+		echo s[3]
+	}
+	if indexOf(s, "f") is Result.Ok(at) {
+		echo s[at:]                  // no guard needed
+	}
 }`, codePt: `proc main(): void {
 	v := ["a", "b", "c"]
 
 	last := len(v) - 1
 	if v bounds last {
 		echo v[last]                 // tudo bem — a guarda cobre isso
+	}
+
+	// Uma Str não carrega tamanho declarado, então até um índice
+	// literal nela fica sob guarda — ou vem de indexOf, que só
+	// responde com uma posição que a string realmente tem.
+	s := "café"
+	if s bounds 3 {
+		echo s[3]
+	}
+	if indexOf(s, "f") is Result.Ok(at) {
+		echo s[at:]                  // sem precisar de guarda
 	}
 }`)],
 		),
@@ -1721,8 +1802,8 @@ proc main(): void {
 			title: "Pattern matching with is",
 			titlePt: "Casamento de padrões com is",
 			download: false,
-			explanation: "`is` checks a value against a pattern and yields a Bool, narrowing it and binding names usable right away — in the rest of the condition after &&, and in the branch body. There is no match statement; every match is an ordinary if/else if chain. Four kinds of pattern exist: a variant, a Result, a vector matched positionally with an optional ...rest, and a string template whose \{holes} bind the text between literal pieces.\n\nA string pattern refuses two things, both compile errors and both for the same reason: a pattern has to have one unambiguous reading. Two holes may not sit side by side — with no literal text between them there is nothing to say where one ends and the next begins — and a hole has to be a plain binding name, so \{a.b} or \{len(x)} is refused. A pattern binds; it does not compute.",
-			explanationPt: "`is` verifica um valor contra um padrão e produz um Bool, estreitando-o e vinculando nomes que já podem ser usados — no resto da condição depois de &&, e no corpo do ramo. Não existe instrução match; toda combinação é uma cadeia comum de if/else if. Existem quatro tipos de padrão: uma variante, um Result, um vetor combinado posicionalmente com um ...rest opcional, e um template de string cujos \{buracos} vinculam o texto entre os trechos literais.\n\nUm padrão de string recusa duas coisas, as duas erros de compilação e as duas pelo mesmo motivo: um padrão precisa ter uma leitura só. Dois buracos não podem ficar lado a lado — sem texto literal entre eles não há como dizer onde um termina e o outro começa — e um buraco precisa ser um nome de vínculo simples, então \{a.b} ou \{len(x)} é recusado. Um padrão vincula; ele não calcula.",
+			explanation: "`is` checks a value against a pattern and yields a Bool, narrowing it and binding names usable right away — in the rest of the condition after &&, and in the branch body. There is no match statement; every match is an ordinary if/else if chain. Four kinds of pattern exist: a variant, a Result, a vector matched positionally with an optional ...rest, and a string template whose \{holes} bind the text between literal pieces.\n\nA hole may also say what it takes. \{name} binds any text; \{name is (regex)} binds only text the regex matches, and the two are one construct — so a route that wants a number can insist on one, and /users/nobody stops matching it. Nothing between those parentheses is escaped by the string, because a hole is recognised by that exact shape: \{year is (\\d\{4})} is four digits rather than an interpolation of 4. The regex is read at compile time, so a malformed one is a compile error naming what is wrong with it, never a surprise at runtime — and since the hole is already the name, a group inside it groups without capturing.\n\nA string pattern refuses a few things, all compile errors and all for the same reason: a pattern has to have one unambiguous reading. Two open holes may not sit side by side — with no literal text between them there is nothing to say where one ends and the next begins, though a hole that says what it takes ends itself and may sit anywhere. A hole has to be a plain binding name, so \{a.b} or \{len(x)} is refused. A pattern binds; it does not compute.",
+			explanationPt: "`is` verifica um valor contra um padrão e produz um Bool, estreitando-o e vinculando nomes que já podem ser usados — no resto da condição depois de &&, e no corpo do ramo. Não existe instrução match; toda combinação é uma cadeia comum de if/else if. Existem quatro tipos de padrão: uma variante, um Result, um vetor combinado posicionalmente com um ...rest opcional, e um template de string cujos \{buracos} vinculam o texto entre os trechos literais.\n\nUm buraco também pode dizer o que aceita. \{nome} vincula qualquer texto; \{nome is (regex)} vincula só o texto que a regex casa, e os dois são uma construção só — então uma rota que quer um número pode exigir um, e /users/ninguem deixa de casar com ela. Nada entre esses parênteses é escapado pela string, porque um buraco é reconhecido por aquela forma exata: \{ano is (\\d\{4})} são quatro dígitos, e não uma interpolação de 4. A regex é lida em tempo de compilação, então uma malformada é um erro de compilação que diz o que há de errado com ela, nunca uma surpresa em tempo de execução — e como o buraco já é o nome, um grupo dentro dele agrupa sem capturar.\n\nUm padrão de string recusa algumas coisas, todas erros de compilação e todas pelo mesmo motivo: um padrão precisa ter uma leitura só. Dois buracos abertos não podem ficar lado a lado — sem texto literal entre eles não há como dizer onde um termina e o outro começa, embora um buraco que diz o que aceita termine a si mesmo e possa ficar em qualquer lugar. Um buraco precisa ser um nome de vínculo simples, então \{a.b} ou \{len(x)} é recusado. Um padrão vincula; ele não calcula.",
 			examples: [
 				Example(caption: "Variant patterns", captionPt: "Padrões de variante", code: `type Shape {
 	Circle    { radius: Int }
@@ -1756,8 +1837,10 @@ proc main(): void {
 	path := "/users/42/posts/7"
 	if path is "/users/{id}/posts/{postId}" { echo "{id} / {postId}" }
 
-	// Refused: two holes with no literal text between them.
+	// Refused: two open holes with no literal text between them.
 	// if path is "/users/{id}{name}" { }
+	// Fine, though — the first says where it ends:
+	// if path is "/users/{id is (\d+)}{name}" { }
 	//
 	// Refused: a hole binds, it does not compute.
 	// if path is "/users/{len(path)}" { }
@@ -1765,11 +1848,88 @@ proc main(): void {
 	path := "/users/42/posts/7"
 	if path is "/users/{id}/posts/{postId}" { echo "{id} / {postId}" }
 
-	// Recusado: dois buracos sem texto literal entre eles.
+	// Recusado: dois buracos abertos sem texto literal entre eles.
 	// if path is "/users/{id}{name}" { }
+	// Mas isto vale — o primeiro diz onde termina:
+	// if path is "/users/{id is (\d+)}{name}" { }
 	//
 	// Recusado: um buraco vincula, não calcula.
 	// if path is "/users/{len(path)}" { }
+}`),
+				Example(caption: "A hole that says what it takes", captionPt: "Um buraco que diz o que aceita", code: `func route(path: Str): Str {
+	// Only digits reach id, so /users/nobody falls through
+	// to the next branch instead of matching this one.
+	if path is "/users/{id is (\d+)}" {
+		return "user #{id}"
+	}
+	// The two kinds of hole mix freely — they are one construct.
+	if path is "/api/v{version is (\d+)}/{rest}" {
+		return "v{version}, then {rest}"
+	}
+	// Braces inside the parentheses are the regex's own: this is
+	// four digits, not an interpolation.
+	if path is "/logs/{year is (\d{4})}" {
+		return "logs for {year}"
+	}
+	return "no match"
+}
+
+proc main(): void {
+	echo route("/users/42")        // user #42
+	echo route("/users/nobody")    // no match
+	echo route("/api/v2/things")   // v2, then things
+	echo route("/logs/2026")       // logs for 2026
+}`, codePt: `func rota(caminho: Str): Str {
+	// Só dígitos chegam em id, então /usuarios/ninguem cai para
+	// o próximo ramo em vez de casar com este.
+	if caminho is "/usuarios/{id is (\d+)}" {
+		return "usuário #{id}"
+	}
+	// Os dois tipos de buraco se misturam à vontade — são uma
+	// construção só.
+	if caminho is "/api/v{versao is (\d+)}/{resto}" {
+		return "v{versao}, depois {resto}"
+	}
+	// Chaves dentro dos parênteses são da própria regex: isto são
+	// quatro dígitos, não uma interpolação.
+	if caminho is "/logs/{ano is (\d{4})}" {
+		return "logs de {ano}"
+	}
+	return "sem correspondência"
+}
+
+proc main(): void {
+	echo rota("/usuarios/42")        // usuário #42
+	echo rota("/usuarios/ninguem")   // sem correspondência
+	echo rota("/api/v2/coisas")      // v2, depois coisas
+	echo rota("/logs/2026")          // logs de 2026
+}`),
+				Example(caption: "A malformed regex is a compile error", captionPt: "Uma regex malformada é um erro de compilação", code: `proc main(): void {
+	s := "x"
+
+	// Each of these is refused before the program is built,
+	// with a message naming what is wrong with the pattern.
+
+	// if s is "{a is (a{2,1})}" { }   // {2,1} counts down
+	// if s is "{a is ((?=b)c)}" { }   // no lookaround: a match
+	//                                 // here never backtracks
+	// if s is "{a is ((b)\1)}" { }    // and no backreference
+	// if s is "{a is ((?<n>b))}" { }  // the hole is already the name
+
+	echo s
+}`, codePt: `proc main(): void {
+	s := "x"
+
+	// Cada uma destas é recusada antes do programa ser construído,
+	// com uma mensagem dizendo o que há de errado no padrão.
+
+	// if s is "{a is (a{2,1})}" { }   // {2,1} conta para trás
+	// if s is "{a is ((?=b)c)}" { }   // sem lookaround: um casamento
+	//                                 // aqui nunca retrocede
+	// if s is "{a is ((b)\1)}" { }    // e sem retrorreferência
+	// if s is "{a is ((?<n>b))}" { }  // o buraco já é o nome
+
+	echo s
 }`),
 			],
 		),
