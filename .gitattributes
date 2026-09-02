@@ -1,0 +1,4 @@
+# Hive source carries base64 in raw strings, and a carriage return inside one
+# is a byte the base64 decoder refuses. Checkouts stay LF on every platform.
+*.hive text eol=lf
+*.svg text eol=lf

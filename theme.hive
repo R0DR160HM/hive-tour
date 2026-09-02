@@ -1,0 +1,373 @@
+// The look of the tour, as text. `ui.page` writes a whole document and puts
+// its own stylesheet in the head of it — that is what makes a `hive.ui`
+// server one call rather than an afternoon — and what it writes is a set of
+// sensible defaults rather than a design. This file is the design, spliced
+// into the same head straight after it, where an equally specific rule wins
+// by coming last.
+//
+// It is layered on rather than replacing anything, and that is deliberate:
+// every rule here reaches for a class `hive.ui` already puts on the element
+// — `h-link`, `h-column`, `h-bg-good` — or for one of the custom properties
+// its stylesheet declares. Nothing reaches for a class of its own except on
+// the three things the widget set has no answer for, which are the same three
+// main.hive writes by hand: a code sample, its caption, and the block of
+// prose under them. So a view stays a view, the markup keeps no record of
+// having been styled, and dropping this one import puts the tour back to
+// stock.
+//
+// What it is not is a stylesheet for the language. `hive.ui`'s defaults are
+// what a program that has not thought about its appearance should look like,
+// and they are the right answer to that question. This is one program that
+// has thought about it.
+//
+// It is held in raw strings, where a brace is a brace and CSS can be written
+// the way CSS is written, and split into several of them for the reason the
+// tour is split into slides: so each one is about one thing.
+
+// The whole of it, as the single `<style>` the head carries.
+func styleTag(): Str {
+	return "<style>" + css() + "</style>"
+}
+
+// Order matters exactly once in here: `responsive` comes last of the layout
+// rules so its media query outranks the two-column frame `shell` sets up.
+func css(): Str {
+	return palette() + shell() + navigation() + prose() + code() + syntax() + responsive()
+}
+
+// ---------------------------------------------------------------------------
+// The names ./highlight paints with.
+//
+// They live here rather than there because a class name is half of a rule,
+// and the half that decides what the rule looks like is in this file. The
+// painter asks for a name and never spells one, so a name can be changed in
+// one place; and there is no way for a span to be emitted with a class this
+// stylesheet has no answer for, which is the failure a highlighter usually
+// has — markup painted in a colour nobody defined, indistinguishable from
+// plain text.
+//
+// They are one and two characters long because there is one of them around
+// every token of every sample on the page. `<span class="k">` against
+// `<span class="keyword">` is six bytes, and there are some hundreds of them
+// in a slide: the difference is a page a fifth smaller for no cost at all,
+// since nothing but this file and its painter ever reads them.
+
+func keywordClass(): Str {
+	return "k"
+}
+
+func builtinClass(): Str {
+	return "b"
+}
+
+func typeClass(): Str {
+	return "t"
+}
+
+func callClass(): Str {
+	return "f"
+}
+
+func stringClass(): Str {
+	return "s"
+}
+
+func escapeClass(): Str {
+	return "e"
+}
+
+func interpClass(): Str {
+	return "i"
+}
+
+func numberClass(): Str {
+	return "n"
+}
+
+func atomClass(): Str {
+	return "a"
+}
+
+func commentClass(): Str {
+	return "c"
+}
+
+func punctClass(): Str {
+	return "p"
+}
+
+// The colours, and the one real departure from stock. `hive.ui` ships a blue
+// — a good, legible, entirely generic blue — and a page about a language
+// whose mark is an amber bee has a better one available to it. So the accent
+// becomes the amber, the greys warm by a few degrees of hue to sit beside it,
+// and everything downstream of `--accent` follows without being told: every
+// link, every focus ring, every border a widget draws on its own.
+//
+// `--brand` is the one name added rather than overridden, and it is the amber
+// exactly as the drawing paints it. `--accent` is a darker mix of the same
+// hue, because the brand amber against white is barely a 2:1 contrast and
+// this one is past 4.5:1. The mark and the prose want the same colour and
+// cannot have it, so they get the same hue at two different weights.
+func palette(): Str {
+	return `:root{
+	--brand:#e29b19;
+	--brand-ink:#231c0d;
+	--bg:#fffdf9;
+	--fg:#1b1a17;
+	--muted:#6d6656;
+	--line:#ebe3d4;
+	--accent:#a96700;
+	--surface:#f8f2e5;
+	--good:#0d7a55;
+	--code:#f6f7f9;
+	--code-line:#e2e6ec;
+	--shadow:rgba(84,62,17,.10);
+	--ring:rgba(226,155,25,.45);
+	--sy-comment:#6f7a8a;
+	--sy-punct:#5d6878;
+	--sy-keyword:#7038a8;
+	--sy-type:#0d6d76;
+	--sy-string:#2a7a58;
+	--sy-hole:#a03a83;
+	--sy-name:#2361ab;
+}
+@media (prefers-color-scheme:dark){:root{
+	--brand:#e5a53a;
+	--brand-ink:#1a1610;
+	--bg:#15140f;
+	--fg:#ece7db;
+	--muted:#9d9585;
+	--line:#2c2823;
+	--accent:#e5a53a;
+	--surface:#1d1b15;
+	--good:#3fbf90;
+	--code:#15181d;
+	--code-line:#2a2f38;
+	--shadow:rgba(0,0,0,.45);
+	--ring:rgba(229,165,58,.40);
+	--sy-comment:#7c8797;
+	--sy-punct:#8d96a6;
+	--sy-keyword:#c8a4ec;
+	--sy-type:#63c4cd;
+	--sy-string:#8ccaa6;
+	--sy-hole:#e29ac9;
+	--sy-name:#8ab6f0;
+}}
+`
+}
+
+// The page itself: the type it is set in, the frame the two columns sit in,
+// and the two things a stylesheet owes a keyboard — a focus ring that is
+// visible, and one that is only there for whoever is actually using it.
+//
+// The rail down the left becomes a column that stays put while the slide
+// beside it scrolls. `hive.ui` already wrote `overflow-y:auto` onto it,
+// because the view asked to scroll; all that was ever missing was a height
+// for it to scroll inside, which is what the `100vh` here is. The rest is a
+// hairline dividing it from the reading and a fill half a step off the page.
+func shell(): Str {
+	return `html{-webkit-text-size-adjust:100%}
+body{font:15px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+letter-spacing:-.005em;text-rendering:optimizeLegibility}
+::selection{background:var(--ring);color:var(--fg)}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;
+border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:var(--muted);background-clip:content-box}
+.h-root>.h-row{align-items:stretch;min-height:100vh}
+.h-root>.h-row>.h-column:first-child{position:sticky;top:0;height:100vh;
+background:linear-gradient(180deg,var(--surface),var(--bg) 60%);
+border-right:1px solid var(--line);overscroll-behavior:contain}
+.h-root>.h-row>.h-column:last-child{max-width:900px}
+`
+}
+
+// Side by side while there is room for both, and stacked the moment there is
+// not. A 260px rail and a 40px gutter is a third of a phone, so on one the
+// rail becomes a lid instead: full width, capped at two fifths of the screen,
+// scrolling on its own, with the slide underneath it.
+//
+// The `!important`s are the price of the layout being a view rather than a
+// stylesheet. `ui.row`, `ui.width(260)` and `ui.pad(40)` are attributes of a
+// box, and `hive.ui` renders an attribute as a `style` attribute — which no
+// rule in a stylesheet outranks, however late it is written. So the four
+// properties a phone has to take back have to be taken back by force, and
+// `flex-direction` is one of them: a `ui.row` is a row inline, in every
+// viewport, and there is no attribute that says "a row until it is narrow".
+// They sit only in here, and only on those four.
+func responsive(): Str {
+	return `@media (max-width:880px){
+	.h-root>.h-row{flex-direction:column !important;min-height:0}
+	.h-root>.h-row>.h-column:first-child{position:static;height:auto;
+	max-height:38vh;width:auto !important;flex:0 0 auto !important;
+	border-right:0;border-bottom:1px solid var(--line);
+	background:var(--surface);padding:16px 20px !important}
+	.h-root>.h-row>.h-column:last-child{width:auto !important;
+	padding:28px 20px 56px !important}
+}
+`
+}
+
+// The rail down the left, and the pager at the foot of every slide. Both are
+// navigation, and both are the same argument: `hive.ui` renders a link as a
+// link, which is the right default and the wrong thing for a list of
+// fifty-three of them — at that length the blue stops being a signal and
+// becomes the background.
+//
+// So a slide in the list is set in the page's own ink and earns the accent by
+// being hovered or by being the one you are on. The one you are on is the
+// accent and a heavier weight and nothing else — the colour and the weight
+// are already two signals, and a third drawn beside them is decoration
+// pretending to be information. `hive.ui` marked it with
+// `ui.background(Tone.Muted())` and that class is what this rule hangs on, so
+// the view still describes the state and this file still decides what the
+// state looks like.
+//
+// The depth of the selectors is doing real work. A link that is a child of
+// the rail is a slide; one that is a child of a row inside the rail is half of
+// the EN/PT switch; and both carry `h-bg-muted` when they are current.
+// Telling them apart by where they sit is what lets one attribute in the view
+// mean "this one" in two places that look nothing alike.
+//
+// The `background:none` on both is not tidiness. A link that is *not* current
+// is `ui.background(Tone.Normal())`, which `hive.ui` renders as the class
+// `h-bg-normal`, which is `background:var(--bg)` — the page's own colour, and
+// therefore invisible, which is exactly right on a page whose rail is the
+// same colour as everything else. This one is not: the rail has a fill of its
+// own, so `--bg` stops being invisible and every one of the fifty-three
+// non-current slides comes out as a card. Taking the fill back off is what
+// makes a list of links look like a list of links again.
+func navigation(): Str {
+	return `.h-root>.h-row>.h-column:first-child>.h-link{
+display:block;background:none;color:var(--fg);font-size:13.5px;line-height:1.45;
+padding:5px 10px;border-radius:7px;
+transition:background .12s ease,color .12s ease}
+.h-root>.h-row>.h-column:first-child>.h-link:hover{
+background:var(--bg);color:var(--accent);text-decoration:none}
+.h-root>.h-row>.h-column:first-child>.h-link.h-bg-muted{
+background:var(--bg);color:var(--accent);font-weight:600}
+.h-root>.h-row>.h-column:first-child>.h-link.h-size-subtitle{
+font-size:15px;font-weight:700;letter-spacing:-.02em;color:var(--fg);
+padding:2px 10px 10px}
+.h-root>.h-row>.h-column:first-child>.h-link.h-size-subtitle:hover{
+background:none;color:var(--accent)}
+.h-root>.h-row>.h-column:first-child>.h-row{
+margin:0 10px 14px;padding:2px;border:1px solid var(--line);
+border-radius:8px;background:var(--bg);gap:2px !important;width:fit-content}
+.h-root>.h-row>.h-column:first-child>.h-row>.h-link{
+padding:3px 10px;border-radius:6px;background:none;font-size:11.5px;
+font-weight:700;letter-spacing:.06em;color:var(--muted)}
+.h-root>.h-row>.h-column:first-child>.h-row>.h-link:hover{
+color:var(--accent);text-decoration:none}
+.h-root>.h-row>.h-column:first-child>.h-row>.h-link.h-bg-muted{
+background:var(--brand);color:var(--brand-ink)}
+.tour-prose>.h-column>.h-row:last-child{
+margin-top:12px;padding-top:20px;border-top:1px solid var(--line)}
+.tour-prose>.h-column>.h-row:last-child .h-link{font-weight:600}
+.tour-prose>.h-column>.h-row:last-child .h-text{color:var(--muted)}
+`
+}
+
+// The reading: the headings, the paragraphs, the list of what the language
+// is, and the one button on the site.
+//
+// The button is the rule this whole file was worth writing for. `hive.ui`
+// renders `ui.link([ui.background(Tone.Good())], ...)` as an anchor carrying
+// both `h-link` and `h-bg-good`, and its own stylesheet sets a colour in each
+// of them — the green fill in one, the accent text in the other — with the
+// link rule written second. So the two disagree, the later one wins, and the
+// call that plainly means "this is the button" comes out as blue text on a
+// green field with no padding at all. One rule naming both classes at once
+// settles it, and the settlement is amber under the page's own ink: the
+// mark's colour, at the weight the mark actually paints it, which is a thing
+// this page knows and a general-purpose stylesheet cannot.
+func prose(): Str {
+	return `h1.h-size-title{font-size:31px;line-height:1.18;letter-spacing:-.028em;
+font-weight:700;margin:0}
+.h-size-subtitle{letter-spacing:-.012em}
+.h-size-caption{font-size:11.5px;font-weight:650;letter-spacing:.085em;
+text-transform:uppercase}
+.h-column>.h-text{max-width:68ch}
+.h-link{transition:color .12s ease}
+.h-icon.h-tone-good{color:var(--brand);font-weight:700}
+.h-image{filter:drop-shadow(0 2px 6px var(--shadow))}
+.h-link.h-bg-good{
+background:var(--brand);color:var(--brand-ink);font-weight:650;
+padding:9px 17px;border-radius:9px;box-shadow:0 1px 2px var(--shadow);
+transition:filter .14s ease,box-shadow .14s ease,transform .14s ease}
+.h-link.h-bg-good:hover{
+filter:brightness(1.06);box-shadow:0 4px 14px var(--shadow);
+transform:translateY(-1px);text-decoration:none}
+.h-link.h-bg-good:active{transform:translateY(0);box-shadow:0 1px 2px var(--shadow)}
+`
+}
+
+// The code samples, which are the only part of the page that is not a view
+// and never could be: `hive.ui` has no monospaced, boxed text, so main.hive
+// writes the `<pre>` by hand. What it writes carries a class and no style
+// attribute, and the style is here — which is the whole reason the class
+// exists, since a `style=` written inline in the middle of a Str is a thing
+// nobody can find again later.
+//
+// A sample is a program, and the page's job is to make it look like one you
+// could run: a fill a shade off the page, a hairline, and a monospace stack
+// that starts at the fonts a developer's machine actually has. It scrolls
+// sideways on its own rather than widening the column, because a long line in
+// one example is not a reason for every paragraph on the page to get longer.
+// What ./highlight's spans look like. Every rule is scoped under `.tour-code`,
+// so a one-letter class name can never reach anything but a code sample.
+//
+// Every one of them is cold, and that is the point of them. The page around
+// the samples is amber and warm greys all the way down — it is a site about a
+// bee — and a code theme in the same family would have the samples melting
+// into the paper they sit on. So the panel turns a few degrees blue, and
+// everything written on it is violet, teal, green, mauve and azure: nothing
+// on this list shares a hue with anything outside the box it is in. The
+// contrast is what says *this is not prose, this is a program* before a word
+// of it has been read, and it does that work at a glance and from across the
+// room, which no amount of monospace does on its own.
+//
+// Five hues and a grey, which is fewer than a code theme usually spends, and
+// the grouping is by what a thing *is* rather than by what it is called. An
+// escape and an interpolation share a colour because they are the same idea
+// twice — a hole in a string where something that is not text goes — and
+// seeing them as one thing is more use than telling them apart. A builtin and
+// a call share one because both are something being called; the builtin
+// carries the weight, because it is the one a reader may not recognise.
+//
+// The comment is the only rule that takes light from the page rather than
+// adding to it. A comment in these samples is not an aside — half the tour's
+// explanation lives in them — so it recedes rather than disappears, and it is
+// the one token deliberately kept above the contrast a body of grey text
+// would need.
+func syntax(): Str {
+	return `.tour-code .c{color:var(--sy-comment)}
+.tour-code .p{color:var(--sy-punct)}
+.tour-code .k{color:var(--sy-keyword)}
+.tour-code .t{color:var(--sy-type)}
+.tour-code .s{color:var(--sy-string)}
+.tour-code .n{color:var(--sy-hole)}
+.tour-code .a{color:var(--sy-hole)}
+.tour-code .e{color:var(--sy-hole)}
+.tour-code .i{color:var(--sy-hole)}
+.tour-code .f{color:var(--sy-name)}
+.tour-code .b{color:var(--sy-name);font-weight:600}
+`
+}
+
+func code(): Str {
+	return `.tour-example{margin:0 0 22px}
+.tour-example:last-child{margin-bottom:0}
+.tour-caption{margin:0 0 7px;font-size:11.5px;font-weight:650;
+letter-spacing:.085em;text-transform:uppercase;color:var(--muted)}
+.tour-code{margin:0;padding:15px 17px;overflow-x:auto;
+background:var(--code);border:1px solid var(--code-line);border-radius:10px;
+box-shadow:0 1px 2px var(--shadow)}
+.tour-code code{font:13px/1.62 ui-monospace,SFMono-Regular,"SF Mono",
+Menlo,Consolas,"Liberation Mono",monospace;font-variant-ligatures:none;
+letter-spacing:0;color:var(--fg)}
+.tour-prose{display:flex;flex-direction:column}
+`
+}

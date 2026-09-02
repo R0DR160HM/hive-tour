@@ -1,0 +1,380 @@
+// A Hive lexer, written in Hive, for painting Hive.
+//
+// Every code sample on this site is Hive source, and until now every one of
+// them arrived as one undifferentiated grey block — `escapeHtml` and nothing
+// else. This file is what turns one into spans a stylesheet can colour, and
+// the whole of it is a scanner over the characters of the sample.
+//
+// There is an obvious other way to do this, and the home page is the reason
+// it was not taken. Highlighting on a page is normally somebody else's
+// JavaScript — Prism, highlight.js, Shiki — fetched from a CDN and run in the
+// browser. This page says, two paragraphs above the samples, that it is
+// served by an HTTP server written in Hive with no framework underneath it
+// and no dependency it had to ask for. Reaching for a script tag to colour
+// the code would make that sentence false in the most visible way available,
+// on the one page where a reader can check it. So the colouring happens here,
+// before the response is sent, and the page still ships as one executable
+// that answers every request out of itself.
+//
+// It is a *painter*, not a parser. It never builds a tree, never resolves a
+// name and never reports an error: a sample that would not compile still gets
+// painted, and painted plausibly, because the worst thing a highlighter can
+// do is refuse. Every decision is made from the current character and at most
+// one before it, which is why the whole thing is one pass and no state beyond
+// a position.
+//
+// The keywords and the builtins below are the compiler's own lists, taken
+// from token.keywordOf and spec/13-builtins.md rather than remembered. A
+// keyword this file has not heard of paints as a plain name, which is wrong
+// but harmless — and is the reason the lists are worth keeping honest.
+import ./theme
+
+// The one entry point: a sample in, the inside of a `<code>` out. Every
+// character of the input reaches the output exactly once, HTML-escaped,
+// wrapped in a span or not — so the sample a reader copies out is the sample
+// that went in, byte for byte.
+func html(code: Str): Str {
+	chars := split(code, "")
+	mut out := ""
+	mut i := 0
+	for ; i < len(chars); {
+		// A run of one kind of thing, from `i`. Each scanner answers with the
+		// HTML for what it read and the position just past it, so the loop
+		// itself never has to know how long anything was.
+		scanned := token(chars, i)
+		out = out + scanned.html
+		// A scanner that read nothing would spin here forever, and the one
+		// thing worse than a badly painted page is a request that never
+		// answers. Nothing below can return `next <= i`, and this is what
+		// makes that a fact about the program rather than a hope.
+		if scanned.next > i {
+			i = scanned.next
+		} else {
+			out = out + escape(chars[i])
+			i = i + 1
+		}
+	}
+	return out
+}
+
+// What one scanner hands back: the painted text, and where to carry on from.
+type Scan {
+	html: Str
+	next: Int
+}
+
+// The one character at `i`, decided by what it is. Order is the whole of the
+// logic: a comment before the `/` that opens it is punctuation, a string
+// before the quote is, and a name before the digits that may sit inside one.
+func token(chars: Str[], i: Int): Scan {
+	c := at(chars, i)
+	if c == "" {
+		return Scan(html: "", next: i + 1)
+	}
+
+	if c == "/" && at(chars, i + 1) == "/" {
+		return comment(chars, i)
+	}
+	if c == "\"" {
+		return quoted(chars, i)
+	}
+	if c == "`" {
+		return raw(chars, i)
+	}
+	if c == "#" && isUpper(at(chars, i + 1)) {
+		return atom(chars, i)
+	}
+	if isDigit(c) {
+		return number(chars, i)
+	}
+	if isNameStart(c) {
+		return word(chars, i)
+	}
+	if isPunct(c) {
+		return Scan(html: span(theme.punctClass(), c), next: i + 1)
+	}
+	// Whitespace, and anything this file has no opinion about.
+	return Scan(html: escape(c), next: i + 1)
+}
+
+// `//` to the end of the line. The newline is not part of it — the spec is
+// explicit that line counting is unaffected — so it is left for the loop to
+// emit as ordinary text, which also keeps `white-space:pre` doing the right
+// thing inside the `<pre>`.
+func comment(chars: Str[], i: Int): Scan {
+	mut text := ""
+	mut j := i
+	for ; j < len(chars); {
+		if at(chars, j) == "\n" {
+			return Scan(html: span(theme.commentClass(), text), next: j)
+		}
+		text = text + at(chars, j)
+		j = j + 1
+	}
+	return Scan(html: span(theme.commentClass(), text), next: j)
+}
+
+// A double-quoted string, which is the one literal with anything inside it.
+// Three things come out differently coloured: the text, the escapes, and the
+// `{...}` interpolations, which are expression source rather than text and
+// read badly when they are painted as though they were part of the sentence.
+//
+// The interpolation is emitted as one span and not scanned into: what sits
+// between the braces is Hive, and painting it properly would mean recursing
+// with a brace-depth counter for the sake of `{name}`, which is what almost
+// every interpolation in the tour actually is. It gets its own colour, and
+// the reader can see it is a hole rather than a word.
+//
+// An unterminated string runs to the end of the sample rather than being an
+// error, because this file has no way to report one and no business doing so.
+func quoted(chars: Str[], i: Int): Scan {
+	mut out := span(theme.stringClass(), "\"")
+	mut text := ""
+	mut j := i + 1
+	for ; j < len(chars); {
+		c := at(chars, j)
+
+		// An escape is two characters, whatever the second one is: the spec
+		// says an unknown `\X` is `X` itself, so there is no such thing as a
+		// bad escape to paint differently.
+		if c == "\\" && j + 1 < len(chars) {
+			out = out + span(theme.stringClass(), text)
+			text = ""
+			out = out + span(theme.escapeClass(), c + at(chars, j + 1))
+			j = j + 2
+		} else if c == "\{" {
+			out = out + span(theme.stringClass(), text)
+			text = ""
+			hole := interpolation(chars, j)
+			out = out + hole.html
+			j = hole.next
+		} else if c == "\"" {
+			out = out + span(theme.stringClass(), text + "\"")
+			return Scan(html: out, next: j + 1)
+		} else {
+			text = text + c
+			j = j + 1
+		}
+	}
+	return Scan(html: out + span(theme.stringClass(), text), next: j)
+}
+
+// From a `{` to its matching `}`, braces counted so a nested one inside an
+// interpolated expression does not end it early. Unclosed, it takes the rest
+// of the string, which is the same forgiveness the string itself gets.
+func interpolation(chars: Str[], i: Int): Scan {
+	mut text := ""
+	mut depth := 0
+	mut j := i
+	for ; j < len(chars); {
+		c := at(chars, j)
+		if c == "\{" {
+			depth = depth + 1
+		} else if c == "}" {
+			depth = depth - 1
+		}
+		text = text + c
+		j = j + 1
+		if depth == 0 {
+			return Scan(html: span(theme.interpClass(), text), next: j)
+		}
+	}
+	return Scan(html: span(theme.interpClass(), text), next: j)
+}
+
+// A backtick string: raw, multi-line, and unable to contain a backtick, which
+// makes finding the end of one the simplest scan in the file. Every code
+// sample in ./slides is itself held in one of these.
+func raw(chars: Str[], i: Int): Scan {
+	mut text := "`"
+	mut j := i + 1
+	for ; j < len(chars); {
+		c := at(chars, j)
+		text = text + c
+		j = j + 1
+		if c == "`" {
+			return Scan(html: span(theme.stringClass(), text), next: j)
+		}
+	}
+	return Scan(html: span(theme.stringClass(), text), next: j)
+}
+
+// `#` and a PascalCase name. The `#` is not part of the name, but it is part
+// of the atom as written, so it is painted with it.
+func atom(chars: Str[], i: Int): Scan {
+	mut text := "#"
+	mut j := i + 1
+	for ; isNamePart(at(chars, j)); {
+		text = text + at(chars, j)
+		j = j + 1
+	}
+	return Scan(html: span(theme.atomClass(), text), next: j)
+}
+
+// An integer, or a float: a digit run, and then a `.` and another digit run
+// only if a digit really follows the dot. `1.0` is one number; the `0` and
+// the `.` of `s[0:3].len` are not, and neither is the trailing dot of a
+// range, which is why the digit after it is checked before the dot is taken.
+func number(chars: Str[], i: Int): Scan {
+	mut text := ""
+	mut j := i
+	for ; isDigit(at(chars, j)); {
+		text = text + at(chars, j)
+		j = j + 1
+	}
+	if at(chars, j) == "." && isDigit(at(chars, j + 1)) {
+		text = text + "."
+		j = j + 1
+		for ; isDigit(at(chars, j)); {
+			text = text + at(chars, j)
+			j = j + 1
+		}
+	}
+	return Scan(html: span(theme.numberClass(), text), next: j)
+}
+
+// A name, and then the question of what kind of name it was. In order: a
+// keyword, a builtin, a type, something being called, or a plain name.
+//
+// The last two are decided by shape rather than by knowledge, and both rules
+// are the language's own. A type is capitalised — `Str`, `Result`, and every
+// type the tour declares — because Hive spells them that way, so the rule
+// covers a user's types as well as the built-in ones without being told any
+// of their names. And a name with a `(` after it is being called, whoever
+// declared it. Neither is a lookup, which is what makes this file's lists
+// short enough to keep correct.
+func word(chars: Str[], i: Int): Scan {
+	mut text := ""
+	mut j := i
+	for ; isNamePart(at(chars, j)); {
+		text = text + at(chars, j)
+		j = j + 1
+	}
+
+	if isKeyword(text) {
+		return Scan(html: span(theme.keywordClass(), text), next: j)
+	}
+	if isBuiltin(text) {
+		return Scan(html: span(theme.builtinClass(), text), next: j)
+	}
+	if isUpper(firstOf(text)) {
+		return Scan(html: span(theme.typeClass(), text), next: j)
+	}
+	if at(chars, j) == "(" {
+		return Scan(html: span(theme.callClass(), text), next: j)
+	}
+	return Scan(html: escape(text), next: j)
+}
+
+// ---------------------------------------------------------------------------
+// The lists, and the character tests
+
+// Every keyword the language has, in the order `token.keywordOf` declares
+// them. A word here is reserved however it is spelled, so this is the whole
+// list and there is nothing conditional about any of it.
+func isKeyword(word: Str): Bool {
+	return indexOf([
+		"import", "proc", "func", "query", "test", "type", "if", "else",
+		"return", "is", "using", "with", "void", "true", "false", "echo",
+		"assert", "panic", "dyn", "mut", "async", "await", "for", "in",
+		"each", "bounds", "break", "continue",
+	], word) is Result.Ok(_)
+}
+
+// The builtins, which are always in scope and are not keywords: a program may
+// declare its own `map` or `len` and shadow one. That is exactly why they are
+// a colour of their own rather than the keyword colour — they are names, and
+// a name is something a program is allowed to take back.
+func isBuiltin(word: Str): Bool {
+	return indexOf([
+		"len", "bytes", "append", "prepend", "drop", "join", "split",
+		"replaceFirst", "replaceAll", "indexOf", "row", "column", "map",
+		"filter", "filterMap", "sort",
+	], word) is Result.Ok(_)
+}
+
+// The characters that may open a name, and the ones that may continue one.
+// A digit cannot open one, which is what makes `number` and `word` decidable
+// from the first character alone.
+func isNameStart(c: Str): Bool {
+	return isLetter(c) || c == "_"
+}
+
+func isNamePart(c: Str): Bool {
+	return isLetter(c) || isDigit(c) || c == "_"
+}
+
+func isLetter(c: Str): Bool {
+	return isUpper(c) || isLower(c)
+}
+
+func isUpper(c: Str): Bool {
+	return c >= "A" && c <= "Z"
+}
+
+func isLower(c: Str): Bool {
+	return c >= "a" && c <= "z"
+}
+
+func isDigit(c: Str): Bool {
+	return c >= "0" && c <= "9"
+}
+
+// Operators and punctuation, as one set of characters rather than as the
+// one-, two- and three-character tokens the lexer proper reads. A painter has
+// no use for the distinction: `:=` and `>=` want the same colour as `:` and
+// `>`, so there is nothing to gain by matching the longer one first.
+func isPunct(c: Str): Bool {
+	return indexOf([
+		"\{", "\}", "(", ")", "[", "]", ":", ";", ",", ".", ">", "<", "=",
+		"+", "-", "*", "/", "%", "!", "&", "|",
+	], c) is Result.Ok(_)
+}
+
+// ---------------------------------------------------------------------------
+// The small mechanical pieces
+
+// The character at `i`, or "" past the end. Every scan above runs to the end
+// of the sample and has to be able to look one past it without a guard of its
+// own, so the guard lives here once. "" is equal to none of the characters
+// anything tests for, which is what makes a look past the end simply fail
+// every test rather than need a case.
+func at(chars: Str[], i: Int): Str {
+	if chars bounds i {
+		return chars[i]
+	}
+	return ""
+}
+
+func firstOf(word: Str): Str {
+	if word bounds 0 {
+		return word[0]
+	}
+	return ""
+}
+
+// One span, or none at all. An empty run is common — every escape and every
+// interpolation flushes the text before it, whether there was any or not —
+// and `<span class="s"></span>` is bytes on the wire for nothing at all.
+func span(class: Str, text: Str): Str {
+	if text == "" {
+		return ""
+	}
+	return "<span class=\"" + class + "\">" + escape(text) + "</span>"
+}
+
+// The three characters that would otherwise be markup. This is the same job
+// main.hive's `escapeHtml` does, and it is here rather than borrowed from
+// there because ./theme is the only import this file has and a painter that
+// reached back into the server for one function would be the wrong way round:
+// the server uses this, not the other way about.
+func escapeChar(c: Str): Str {
+	if c == "&" { return "&amp;" }
+	else if c == "<" { return "&lt;" }
+	else if c == ">" { return "&gt;" }
+	return c
+}
+
+func escape(s: Str): Str {
+	return join(map(split(s, ""), escapeChar), "")
+}
