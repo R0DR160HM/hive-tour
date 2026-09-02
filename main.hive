@@ -50,6 +50,7 @@ import hive.ui
 import ./logo
 import ./highlight
 import ./icon
+import ./shots
 import ./slides
 import ./theme
 
@@ -114,6 +115,12 @@ proc handle(request: hive.net.HttpRequest): hive.net.HttpResponse {
 	}
 	if path == markPath() {
 		return rasterResponse(icon.mark(), icon.pngType())
+	}
+
+	// A picture of what a slide's code draws, for the one kind of code on this
+	// tour whose output a page cannot carry. ./shots says why there is one.
+	if path == shots.scenePath() {
+		return rasterResponse(shots.scene(), icon.pngType())
 	}
 
 	// The two files a crawler asks for that no visitor ever does. Neither
@@ -753,14 +760,44 @@ func languageSwitcherView(lang: Str, path: Str): ui.View {
 	])
 }
 
-// The slide's own column: where it sits in the tour, its title, and then
-// the marker the code examples land on once the page has been rendered.
+// The slide's own column: where it sits in the tour, its title, the picture
+// if it has one, and then the marker the code examples land on once the page
+// has been rendered.
 func headerColumn(slide: slides.Slide, idx: Int, total: Int, lang: Str): ui.View {
 	titleGroup := ui.column([ui.gap(6)], [
 		ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], slideProgress(idx, total, lang)),
 		ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], slideTitle(slide, lang)),
 	])
-	return ui.column([ui.gap(24), ui.pad(40), ui.grow(1)], [titleGroup, codeMarkerView()])
+	mut ui.View[dyn] blocks = [titleGroup]
+	for each block in shotView(slide, lang) {
+		append(blocks, block)
+	}
+	append(blocks, codeMarkerView())
+	return ui.column([ui.gap(24), ui.pad(40), ui.grow(1)], blocks)
+}
+
+// The picture, above the code that draws it, on the slides that have one —
+// and nothing at all on the fifty-two that do not.
+//
+// It answers with a vector rather than a View because there is no view that
+// means "no view here": `ui.none` would still be a child, and a column with
+// an empty child in it still spends a gap on it. An empty vector spends
+// nothing, and the caller appends whatever came back.
+//
+// This is a view like everything else on the page, which is the point. The
+// picture is of a scene, and a scene is the one thing hive.ui cannot put in a
+// document — but a *photograph* of one is an image, and an image is a widget
+// the set has always had. So nothing here is spliced HTML: it is `ui.image`
+// and a caption, and the reason it is a picture rather than the thing itself
+// is written down in ./shots rather than acted out here.
+func shotView(slide: slides.Slide, lang: Str): ui.View[dyn] {
+	if slide.shot == "" {
+		return []
+	}
+	return [ui.column([ui.gap(6)], [
+		ui.image([], slide.shot, shotAlt(lang)),
+		ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], shotCaption(lang)),
+	])]
 }
 
 // What follows the code examples: the explanation, one paragraph per view
@@ -964,6 +1001,26 @@ func homeParagraphTwo(lang: Str): Str {
 		return "Esta própria página é a prova: ela é servida por um servidor HTTP escrito em Hive, e sua interface abaixo dos exemplos de código é construída inteiramente com views do hive.ui. Não há framework por trás de nenhum dos dois — ambos são a biblioteca padrão, e nenhum é uma dependência que este programa precisou pedir."
 	}
 	return "This very page is the proof: it is served by an HTTP server written in Hive, and its interface below the code samples is built entirely out of hive.ui views. There is no framework underneath either of them — both are the standard library, and neither is a dependency this program had to ask for."
+}
+
+// What the picture is, for whoever is not being shown it, and what it says
+// under itself to everybody else. Both are deliberately about *where* the
+// picture came from rather than what is in it: a reader who cannot see it is
+// better served by knowing this is a photograph of a real window running the
+// code above than by a list of the coloured shapes in it, which the code
+// beside it already spells out in full.
+func shotAlt(lang: Str): Str {
+	if lang == "pt" {
+		return "Uma janela do hive.ui rodando o exemplo acima, fotografada"
+	}
+	return "A hive.ui window running the example above, photographed"
+}
+
+func shotCaption(lang: Str): Str {
+	if lang == "pt" {
+		return "Desenhado pelo hive.ui, em uma janela"
+	}
+	return "Drawn by hive.ui, in a window"
 }
 
 func notFoundText(lang: Str): Str {
