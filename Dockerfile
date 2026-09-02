@@ -82,6 +82,13 @@ WORKDIR /app
 COPY --from=builder /app/main /usr/local/bin/main
 
 # 8080 is where this program serves: hive.net.httpServe(8080, ...) says so.
+#
+# EXPOSE documents that and nothing more — it opens nothing. Reaching the
+# server from the machine running Docker takes `-p 8080:8080` on the run, and
+# without it the container comes up, logs that it is serving, and answers
+# nothing: it is listening on its own localhost, which is not the one the
+# browser is pointed at. `docker ps` is where the two are told apart —
+# `0.0.0.0:8080->8080/tcp` is published, a bare `8080/tcp` is only this line.
 EXPOSE 8080
 
 ENTRYPOINT ["/usr/local/bin/main"]

@@ -68,8 +68,22 @@ type PageHead {
 	next:        Str
 }
 
+// `httpServe` binds `:8080` — every interface, not just the loopback — which
+// is what makes this the same program in a container as on a laptop.
+//
+// The line it prints says the port it bound and *then* the URL, in that order,
+// and the order is the whole point of it. It used to print the URL alone, and
+// inside a container that is a sentence which is true for the program and
+// false for the person reading it: the server really is answering on
+// localhost:8080, on the container's localhost, which is not the one the
+// browser is pointed at. A container started without `-p 8080:8080` then looks
+// exactly like a working one — it builds, it runs, it says it is serving, and
+// nothing loads — and the log is the reason the search starts in the wrong
+// place. Naming the bound port first says what was actually done; the URL
+// after it is the convenience it always was, for the case where the machine
+// running this is the machine holding the browser.
 proc main(): void {
-	echo "The Hive Tour: http://localhost:8080"
+	echo "The Hive Tour — listening on :8080 (locally, http://localhost:8080)"
 	hive.net.httpServe(8080, handle)
 }
 
