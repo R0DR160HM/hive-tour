@@ -257,7 +257,12 @@ func word(chars: Str[], i: Int): Scan {
 	if isBuiltin(text) {
 		return Scan(html: span(theme.builtinClass(), text), next: j)
 	}
-	if isUpper(firstOf(text)) {
+	// The first character of the word, which is `chars[i]` — the scan started
+	// there. It used to ask the word itself for its first character, and that
+	// was a longer way round to the same one: this file already holds the
+	// sample as a vector of characters, so reaching for a Str's subscript to
+	// re-derive one it is already holding was work for nothing.
+	if isUpper(at(chars, i)) {
 		return Scan(html: span(theme.typeClass(), text), next: j)
 	}
 	if at(chars, j) == "(" {
@@ -342,13 +347,6 @@ func isPunct(c: Str): Bool {
 func at(chars: Str[], i: Int): Str {
 	if chars bounds i {
 		return chars[i]
-	}
-	return ""
-}
-
-func firstOf(word: Str): Str {
-	if word bounds 0 {
-		return word[0]
 	}
 	return ""
 }

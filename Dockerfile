@@ -50,7 +50,7 @@ ENV PATH="/usr/local/go/bin:${PATH}"
 # versioned, so this build never has to be told what "latest" means and never
 # goes stale as new releases ship.
 RUN curl -fsSL \
-      "https://github.com/R0DR160HM/hive-lang/releases/latest/download/hivec-linux-${TARGETARCH}" \
+      "https://github.com/R0DR160HM/hive-lang/releases/tag/v0.1.9/download/hivec-linux-${TARGETARCH}" \
       -o /usr/local/bin/hivec \
  && chmod +x /usr/local/bin/hivec
 
