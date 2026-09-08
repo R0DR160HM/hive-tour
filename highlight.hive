@@ -280,7 +280,7 @@ func word(chars: Str[], i: Int): Scan {
 func isKeyword(word: Str): Bool {
 	return indexOf([
 		"import", "proc", "func", "query", "test", "type", "if", "else",
-		"return", "is", "using", "with", "void", "true", "false", "echo",
+		"return", "is", "with", "void", "true", "false", "echo",
 		"assert", "panic", "dyn", "mut", "async", "await", "for", "in",
 		"each", "bounds", "break", "continue",
 	], word) is Result.Ok(_)

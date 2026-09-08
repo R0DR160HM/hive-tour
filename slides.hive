@@ -902,12 +902,12 @@ proc main(): void {
 			titlePt: "Tabelas e CSV",
 			download: false,
 			shot: "",
-			explanation: "Table is an alias for Str[dyn][dyn]: a vector of rows of cells. It is what `using` yields from a CSV, what a raw SQL query answers with, and what hive.map.toTable builds. A bare `using \"path\"` reads a comma-separated file; adding `as csv separating by \"<sep>\"` picks a different delimiter, such as a tab for a TSV — and every form answers with a Result, so the source says exactly which reader the build needs to link in.",
-			explanationPt: "Table é um alias para Str[dyn][dyn]: um vetor de linhas de células. É o que `using` produz a partir de um CSV, o que uma query SQL bruta devolve, e o que hive.map.toTable constrói. Um `using \"caminho\"` simples lê um arquivo separado por vírgulas; acrescentar `as csv separating by \"<sep>\"` escolhe outro delimitador, como uma tabulação para um TSV — e toda forma devolve um Result, então o código diz exatamente qual leitor o build precisa vincular.",
+			explanation: "Table is an alias for Str[dyn][dyn]: a vector of rows of cells. It is what hive.file.csv yields, what hive.sql.raw answers with, and what hive.map.toTable builds. hive.file.csv(path, separator) reads a separated file — the separator is always written, since there are no optional parameters in Hive, so a comma is a choice like any other. Every reader answers with a Result, and naming one is what tells the build which reader to link in.",
+			explanationPt: "Table é um alias para Str[dyn][dyn]: um vetor de linhas de células. É o que hive.file.csv produz, o que hive.sql.raw devolve, e o que hive.map.toTable constrói. hive.file.csv(caminho, separador) lê um arquivo separado — o separador é sempre escrito, já que não há parâmetros opcionais em Hive, então a vírgula é uma escolha como qualquer outra. Todo leitor devolve um Result, e nomear um é o que diz ao build qual leitor vincular.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
 	hive.file.write("./tour.csv", "name,role\nada,engineer\ngrace,admiral\n")
 
-	csv := using "./tour.csv"
+	csv := hive.file.csv("./tour.csv", ",")
 	if csv is Result.Ok(table) {
 		if len(table) > 1 {
 			echo table[1:]   // every row after the header
@@ -916,7 +916,7 @@ proc main(): void {
 }`, codePt: `proc main(): void {
 	hive.file.write("./tour.csv", "name,role\nada,engineer\ngrace,admiral\n")
 
-	csv := using "./tour.csv"
+	csv := hive.file.csv("./tour.csv", ",")
 	if csv is Result.Ok(table) {
 		if len(table) > 1 {
 			echo table[1:]   // toda linha depois do cabeçalho
@@ -1136,8 +1136,8 @@ proc main(): void {
 			titlePt: "func vs proc",
 			download: false,
 			shot: "",
-			explanation: "Both may perform I/O — echo, using, hive.net are all fine in either. The difference is what each may touch: a func cannot declare a mutex parameter (v: mut T) and cannot call a proc, so it can never write to storage its caller can see. A proc may do everything a func may, plus hold a mutex and call other procs. Programs start at proc main(): void. Nothing about the declaration says how a call runs — that is decided entirely at the call site.",
-			explanationPt: "Ambos podem fazer I/O — echo, using, hive.net funcionam nos dois. A diferença é o que cada um pode tocar: um func não pode declarar um parâmetro mutex (v: mut T) e não pode chamar um proc, então nunca pode escrever em um armazenamento que quem o chamou consiga ver. Um proc pode fazer tudo que um func faz, além de guardar um mutex e chamar outros procs. Programas começam em proc main(): void. Nada na declaração diz como uma chamada roda — isso é decidido totalmente no local da chamada.",
+			explanation: "Both may perform I/O — echo, hive.file, hive.net are all fine in either. The difference is what each may touch: a func cannot declare a mutex parameter (v: mut T) and cannot call a proc, so it can never write to storage its caller can see. A proc may do everything a func may, plus hold a mutex and call other procs. Programs start at proc main(): void. Nothing about the declaration says how a call runs — that is decided entirely at the call site.",
+			explanationPt: "Ambos podem fazer I/O — echo, hive.file, hive.net funcionam nos dois. A diferença é o que cada um pode tocar: um func não pode declarar um parâmetro mutex (v: mut T) e não pode chamar um proc, então nunca pode escrever em um armazenamento que quem o chamou consiga ver. Um proc pode fazer tudo que um func faz, além de guardar um mutex e chamar outros procs. Programas começam em proc main(): void. Nada na declaração diz como uma chamada roda — isso é decidido totalmente no local da chamada.",
 			examples: [
 				Example(caption: "func: cannot touch the caller's storage", captionPt: "func: não pode tocar no armazenamento de quem chamou", code: `func greet(name: Str): Str {
 	return "hey {name}!"
@@ -1822,8 +1822,8 @@ proc main(): void {
 			titlePt: "JSON",
 			download: false,
 			shot: "",
-			explanation: "hive.json treats a Hive type declaration as the JSON schema itself. parse(text) with T derives a decoder for T at compile time and returns a Result whose Error carries the exact path that failed to decode; parse(text) with Table instead flattens the whole document into [path, value] rows, which hive.json.get looks up by a dotted path. encode(value) derives the encoder from the static type, so it can never fail — there is no Result to check on the way out. table(text) reads a JSON array of flat objects as a headered Table.",
-			explanationPt: "hive.json trata uma declaração de tipo Hive como o próprio schema JSON. parse(text) with T deriva um decodificador para T em tempo de compilação e devolve um Result cujo Error carrega o caminho exato que falhou ao decodificar; parse(text) with Table, em vez disso, achata o documento inteiro em linhas [caminho, valor], que hive.json.get consulta por um caminho separado por pontos. encode(value) deriva o codificador a partir do tipo estático, então nunca pode falhar — não há Result para checar na saída. table(text) lê um array JSON de objetos simples como uma Table com cabeçalho.",
+			explanation: "hive.json treats a Hive type declaration as the JSON schema itself. T.fromJson(text) is the decoder T's own declaration derives, named — it returns a Result whose Error carries the exact path that failed to decode. T.Variant.fromJson(text) reads one variant's payload without the key the union is wrapped in, for a document whose variant you already know. hive.json.flatten(text) instead flattens the whole document into [path, value] rows, which hive.json.get looks up by a dotted path. encode(value) derives the encoder from the static type, so it can never fail — there is no Result to check on the way out. table(text) reads a JSON array of flat objects as a headered Table.",
+			explanationPt: "hive.json trata uma declaração de tipo Hive como o próprio schema JSON. T.fromJson(text) é o decodificador que a própria declaração de T deriva, com nome — devolve um Result cujo Error carrega o caminho exato que falhou ao decodificar. T.Variant.fromJson(text) lê a carga de uma variante sem a chave em que a união vem embrulhada, para um documento cuja variante você já conhece. hive.json.flatten(text), em vez disso, achata o documento inteiro em linhas [caminho, valor], que hive.json.get consulta por um caminho separado por pontos. encode(value) deriva o codificador a partir do tipo estático, então nunca pode falhar — não há Result para checar na saída. table(text) lê um array JSON de objetos simples como uma Table com cabeçalho.",
 			examples: [
 				Example(caption: "Encoding, and decoding into a declared type", captionPt: "Codificando, e decodificando em um tipo declarado", code: `type Greeting { name: Str }
 
@@ -1831,7 +1831,7 @@ proc main(): void {
 	body := hive.json.encode(Greeting("ada"))
 	echo body
 
-	parsed := hive.json.parse(body) with Greeting
+	parsed := Greeting.fromJson(body)
 	if parsed is Result.Ok(g) {
 		echo "hello, {g.name}!"
 	}
@@ -1841,7 +1841,7 @@ proc main(): void {
 	body := hive.json.encode(Greeting("ada"))
 	echo body
 
-	parsed := hive.json.parse(body) with Greeting
+	parsed := Greeting.fromJson(body)
 	if parsed is Result.Ok(g) {
 		echo "olá, {g.name}!"
 	}
@@ -1851,7 +1851,7 @@ proc main(): void {
 proc main(): void {
 	body := hive.json.encode(Greeting("ada"))
 
-	asTable := hive.json.parse(body) with Table
+	asTable := hive.json.flatten(body)
 	if asTable is Result.Ok(table) {
 		if hive.json.get(table, "name") is Result.Ok(name) {
 			echo name
@@ -1862,7 +1862,7 @@ proc main(): void {
 proc main(): void {
 	body := hive.json.encode(Greeting("ada"))
 
-	asTable := hive.json.parse(body) with Table
+	asTable := hive.json.flatten(body)
 	if asTable is Result.Ok(table) {
 		if hive.json.get(table, "name") is Result.Ok(name) {
 			echo name
@@ -1876,8 +1876,8 @@ proc main(): void {
 			titlePt: "Arquivos",
 			download: false,
 			shot: "",
-			explanation: "hive.file is general filesystem access, for what using doesn't cover. Contents move as a Str that holds bytes rather than validated text, so a binary file survives a read/write round trip untouched. read and lines pull a file in, write and append push one out, and delete, copy and move do what they say; exists and size ask without reading, and list and makeDir cover a directory. Everything fallible answers with a Result<_, hive.file.FileError> whose reason is a short tag: NotFound, Permission, Exists or Io.",
-			explanationPt: "hive.file é acesso geral ao sistema de arquivos, para o que using não cobre. Conteúdos se movem como uma Str que guarda bytes em vez de texto validado, então um arquivo binário sobrevive intacto a uma ida e volta de leitura/escrita. read e lines trazem um arquivo para dentro, write e append o empurram para fora, e delete, copy e move fazem o que dizem; exists e size perguntam sem ler, e list e makeDir cobrem um diretório. Tudo que é falível responde com um Result<_, hive.file.FileError> cujo reason é uma tag curta: NotFound, Permission, Exists ou Io.",
+			explanation: "hive.file is general filesystem access, and the table readers — csv, xlsx, ods — live there too. Contents move as a Str that holds bytes rather than validated text, so a binary file survives a read/write round trip untouched. read and lines pull a file in, write and append push one out, and delete, copy and move do what they say; exists and size ask without reading, and list and makeDir cover a directory. Everything fallible answers with a Result<_, hive.file.FileError> whose reason is a short tag: NotFound, Permission, Exists or Io.",
+			explanationPt: "hive.file é acesso geral ao sistema de arquivos, e os leitores de tabela — csv, xlsx, ods — também moram lá. Conteúdos se movem como uma Str que guarda bytes em vez de texto validado, então um arquivo binário sobrevive intacto a uma ida e volta de leitura/escrita. read e lines trazem um arquivo para dentro, write e append o empurram para fora, e delete, copy e move fazem o que dizem; exists e size perguntam sem ler, e list e makeDir cobrem um diretório. Tudo que é falível responde com um Result<_, hive.file.FileError> cujo reason é uma tag curta: NotFound, Permission, Exists ou Io.",
 			examples: [
 				Example(caption: "Writing and reading", captionPt: "Escrevendo e lendo", code: `proc main(): void {
 	hive.file.makeDir("./out")
@@ -1926,10 +1926,10 @@ proc main(): void {
 			titlePt: "Planilhas",
 			download: false,
 			shot: "",
-			explanation: "using reads more than a CSV. as xlsx and as ods each read a whole workbook and answer with a Result<Table[dyn], hive.TableError> — one Table per sheet, in document order, so an empty sheet is an empty Table rather than a missing one. Both readers are dependency-free. An xlsx cell arrives as the file stores it, with one exception: a date is kept internally as a day count, so the cell's own number format is consulted to catch exactly those and render them as a real date. An ods stores real dates already, so nothing there needs undoing.",
-			explanationPt: "using lê mais do que um CSV. as xlsx e as ods leem cada um uma planilha inteira e respondem com um Result<Table[dyn], hive.TableError> — uma Table por aba, na ordem do documento, então uma aba vazia é uma Table vazia em vez de uma ausente. Os dois leitores não têm dependências. Uma célula de xlsx chega como o arquivo a guarda, com uma exceção: uma data é guardada internamente como uma contagem de dias, então o formato de número da própria célula é consultado para pegar exatamente essas e renderizá-las como uma data de verdade. Um ods já guarda datas de verdade, então nada ali precisa ser desfeito.",
+			explanation: "A table is read by naming its reader. hive.file.xlsx and hive.file.ods each read a whole workbook and answer with a Result<Table[dyn], hive.file.TableError> — one Table per sheet, in document order, so an empty sheet is an empty Table rather than a missing one. Both readers are dependency-free. An xlsx cell arrives as the file stores it, with one exception: a date is kept internally as a day count, so the cell's own number format is consulted to catch exactly those and render them as a real date. An ods stores real dates already, so nothing there needs undoing.",
+			explanationPt: "Uma tabela é lida nomeando seu leitor. hive.file.xlsx e hive.file.ods leem cada um uma planilha inteira e respondem com um Result<Table[dyn], hive.file.TableError> — uma Table por aba, na ordem do documento, então uma aba vazia é uma Table vazia em vez de uma ausente. Os dois leitores não têm dependências. Uma célula de xlsx chega como o arquivo a guarda, com uma exceção: uma data é guardada internamente como uma contagem de dias, então o formato de número da própria célula é consultado para pegar exatamente essas e renderizá-las como uma data de verdade. Um ods já guarda datas de verdade, então nada ali precisa ser desfeito.",
 			examples: [Example(caption: "", captionPt: "", code: `proc main(): void {
-	sheets := using "./ledger.xlsx" as xlsx
+	sheets := hive.file.xlsx("./ledger.xlsx")
 	if sheets is Result.Ok(tables) {
 		if tables bounds 0 {
 			echo len(tables[0])
@@ -1938,7 +1938,7 @@ proc main(): void {
 		echo "no workbook yet: {err.message}"
 	}
 }`, codePt: `proc main(): void {
-	sheets := using "./ledger.xlsx" as xlsx
+	sheets := hive.file.xlsx("./ledger.xlsx")
 	if sheets is Result.Ok(tables) {
 		if tables bounds 0 {
 			echo len(tables[0])
@@ -2129,8 +2129,8 @@ proc main(): void {
 			titlePt: "Criptografia",
 			download: false,
 			shot: "",
-			explanation: "hive.crypto is pure, so it works in a func as well as a proc. sha256 and sha512 hash, and hmacSha256 authenticates with a key. encrypt and decrypt seal a string under a password with AES-256-GCM, using a fresh salt and nonce every call so the same text never encrypts alike twice; base64Encode and base64Decode move between text and base64, and randomHex draws bytes at random. jwtSign, jwtVerify and jwtDecode cover HS256 JSON Web Tokens end to end — jwtVerify checks the signature and expiry and accepts only HS256, closing off the classic algorithm-confusion attack outright, while jwtDecode reads the claims without verifying anything, and jwtHeader reads just alg/typ/kid.",
-			explanationPt: "hive.crypto é puro, então funciona tanto em um func quanto em um proc. sha256 e sha512 calculam hash, e hmacSha256 autentica com uma chave. encrypt e decrypt selam uma string sob uma senha com AES-256-GCM, usando um salt e um nonce novos em cada chamada, então o mesmo texto nunca é criptografado da mesma forma duas vezes; base64Encode e base64Decode movem entre texto e base64, e randomHex sorteia bytes aleatórios. jwtSign, jwtVerify e jwtDecode cobrem JSON Web Tokens HS256 do início ao fim — jwtVerify verifica a assinatura e a expiração e aceita apenas HS256, eliminando de cara o clássico ataque de confusão de algoritmo, enquanto jwtDecode lê as claims sem verificar nada, e jwtHeader lê apenas alg/typ/kid.",
+			explanation: "hive.crypto is pure, so it works in a func as well as a proc. sha256 and sha512 hash, and hmacSha256 authenticates with a key. encrypt and decrypt seal a string under a password with AES-256-GCM, using a fresh salt and nonce every call so the same text never encrypts alike twice; base64Encode and base64Decode move between text and base64, and randomHex draws bytes at random. jwtSign, jwtVerify and jwtDecode cover HS256 JSON Web Tokens end to end — jwtVerify checks the signature and expiry and accepts only HS256, closing off the classic algorithm-confusion attack outright, while jwtDecode reads the claims without verifying anything, and jwtHeader reads just alg/typ/kid. Both readers stop at the claims and hand them back as text: what shape they are is your program's business, so Claims.fromJson is what says so, and a bad signature stays a CryptoError while wrong-shaped claims are a JsonError.",
+			explanationPt: "hive.crypto é puro, então funciona tanto em um func quanto em um proc. sha256 e sha512 calculam hash, e hmacSha256 autentica com uma chave. encrypt e decrypt selam uma string sob uma senha com AES-256-GCM, usando um salt e um nonce novos em cada chamada, então o mesmo texto nunca é criptografado da mesma forma duas vezes; base64Encode e base64Decode movem entre texto e base64, e randomHex sorteia bytes aleatórios. jwtSign, jwtVerify e jwtDecode cobrem JSON Web Tokens HS256 do início ao fim — jwtVerify verifica a assinatura e a expiração e aceita apenas HS256, eliminando de cara o clássico ataque de confusão de algoritmo, enquanto jwtDecode lê as claims sem verificar nada, e jwtHeader lê apenas alg/typ/kid. Os dois leitores param nas claims e as devolvem como texto: que formato elas têm é assunto do seu programa, então Claims.fromJson é o que diz isso, e uma assinatura ruim continua sendo um CryptoError enquanto claims com formato errado são um JsonError.",
 			examples: [
 				Example(caption: "Hashing", captionPt: "Calculando hash", code: `proc main(): void {
 	echo hive.crypto.sha256("hive")
@@ -2170,9 +2170,11 @@ proc main(): void {
 proc main(): void {
 	token := hive.crypto.jwtSign(Claims("ada"), "secret")
 
-	verified := hive.crypto.jwtVerify(token, "secret") with Claims
-	if verified is Result.Ok(claims) {
-		echo claims.user
+	verified := hive.crypto.jwtVerify(token, "secret")
+	if verified is Result.Ok(payload) {
+		if Claims.fromJson(payload) is Result.Ok(claims) {
+			echo claims.user
+		}
 	}
 	echo hive.crypto.jwtHeader(token)
 }`, codePt: `type Claims { user: Str }
@@ -2180,9 +2182,11 @@ proc main(): void {
 proc main(): void {
 	token := hive.crypto.jwtSign(Claims("ada"), "secret")
 
-	verified := hive.crypto.jwtVerify(token, "secret") with Claims
-	if verified is Result.Ok(claims) {
-		echo claims.user
+	verified := hive.crypto.jwtVerify(token, "secret")
+	if verified is Result.Ok(payload) {
+		if Claims.fromJson(payload) is Result.Ok(claims) {
+			echo claims.user
+		}
 	}
 	echo hive.crypto.jwtHeader(token)
 }`),
@@ -2193,8 +2197,8 @@ proc main(): void {
 			titlePt: "SQL",
 			download: false,
 			shot: "",
-			explanation: "A query declaration is a func whose body is inline SQL and whose return type describes its rows. Columns are matched to fields by name, not position, so reordering a SELECT can never silently remap them, and values are always bound as parameters — never spliced into the text — so nothing a caller supplies can change what the statement means. connect opens a single connection and pool a whole pool of them, both answering with a Result<SqlConnection, SqlError>; close lets one go. SQL assembled at run time, rather than declared as a query, goes through run raw instead — untyped by construction, and easy to grep for.\n\nThe return type does more than name the row: it decides the shape of the whole result, so you can read that off the declaration without looking at the SQL at all. A declared row type comes back as Result<Row[dyn], SqlError>. A single scalar vector — Str[dyn], Int[dyn] — needs no row type at all and comes back as that column. And void marks a statement rather than a query, coming back as the number of rows it touched.\n\nBecause columns are matched by name, name them — and the compiler holds you to it. A column whose name differs from its field needs an alias (SELECT u.name AS author), a row type holds scalars only, and SELECT * against a declared row type is a compile error. It says neither how many columns come back nor what they are called, so nothing can line them up against the fields; and what it stands for changes the day somebody adds a column to the table, which would turn a query that compiled and worked into rows that no longer fit, in a program nobody edited. The rule is about the result and only the result, so count(*), a * 2, a star inside a subquery and the select list of a void statement all still compile — and so does SELECT * into a Table, which is rows of cells and has no field names to disagree with.",
-			explanationPt: "Uma declaração query é um func cujo corpo é SQL inline e cujo tipo de retorno descreve suas linhas. Colunas são associadas a campos pelo nome, não pela posição, então reordenar um SELECT nunca pode remapeá-las silenciosamente, e valores são sempre vinculados como parâmetros — nunca inseridos diretamente no texto — então nada que quem chama fornecer pode mudar o que a instrução significa. connect abre uma única conexão e pool abre um pool inteiro delas, ambos respondendo com um Result<SqlConnection, SqlError>; close libera uma. SQL montado em tempo de execução, em vez de declarado como uma query, passa por run raw em vez disso — sem tipo por construção, e fácil de encontrar com grep.\n\nO tipo de retorno faz mais do que nomear a linha: ele decide o formato do resultado inteiro, então dá para ler isso na declaração sem olhar o SQL. Um tipo de linha declarado volta como Result<Row[dyn], SqlError>. Um vetor de um escalar só — Str[dyn], Int[dyn] — não precisa de tipo de linha algum e volta como aquela coluna. E void marca uma instrução em vez de uma consulta, voltando como o número de linhas que ela tocou.\n\nComo as colunas são associadas pelo nome, nomeie-as — e o compilador cobra isso. Uma coluna cujo nome difere do campo precisa de um alias (SELECT u.name AS author), um tipo de linha guarda apenas escalares, e SELECT * contra um tipo de linha declarado é um erro de compilação. Ele não diz nem quantas colunas voltam nem como se chamam, então nada consegue alinhá-las aos campos; e o que ele representa muda no dia em que alguém adiciona uma coluna à tabela, o que transformaria uma consulta que compilava e funcionava em linhas que não cabem mais, num programa que ninguém editou. A regra é sobre o resultado e somente sobre o resultado, então count(*), a * 2, uma estrela dentro de uma subconsulta e a lista de seleção de uma instrução void continuam compilando — e SELECT * para uma Table também, que é linhas de células e não tem nomes de campo com que discordar.",
+			explanation: "A query declaration is a func whose body is inline SQL and whose return type describes its rows. Columns are matched to fields by name, not position, so reordering a SELECT can never silently remap them, and values are always bound as parameters — never spliced into the text — so nothing a caller supplies can change what the statement means. connect opens a single connection and pool a whole pool of them, both answering with a Result<SqlConnection, SqlError>; close lets one go. SQL assembled at run time, rather than declared as a query, goes through hive.sql.raw instead — untyped by construction, and easy to grep for.\n\nThe return type does more than name the row: it decides the shape of the whole result, so you can read that off the declaration without looking at the SQL at all. A declared row type comes back as Result<Row[dyn], SqlError>. A single scalar vector — Str[dyn], Int[dyn] — needs no row type at all and comes back as that column. And void marks a statement rather than a query, coming back as the number of rows it touched.\n\nBecause columns are matched by name, name them — and the compiler holds you to it. A column whose name differs from its field needs an alias (SELECT u.name AS author), a row type holds scalars only, and SELECT * against a declared row type is a compile error. It says neither how many columns come back nor what they are called, so nothing can line them up against the fields; and what it stands for changes the day somebody adds a column to the table, which would turn a query that compiled and worked into rows that no longer fit, in a program nobody edited. The rule is about the result and only the result, so count(*), a * 2, a star inside a subquery and the select list of a void statement all still compile — and so does SELECT * into a Table, which is rows of cells and has no field names to disagree with.",
+			explanationPt: "Uma declaração query é um func cujo corpo é SQL inline e cujo tipo de retorno descreve suas linhas. Colunas são associadas a campos pelo nome, não pela posição, então reordenar um SELECT nunca pode remapeá-las silenciosamente, e valores são sempre vinculados como parâmetros — nunca inseridos diretamente no texto — então nada que quem chama fornecer pode mudar o que a instrução significa. connect abre uma única conexão e pool abre um pool inteiro delas, ambos respondendo com um Result<SqlConnection, SqlError>; close libera uma. SQL montado em tempo de execução, em vez de declarado como uma query, passa por hive.sql.raw em vez disso — sem tipo por construção, e fácil de encontrar com grep.\n\nO tipo de retorno faz mais do que nomear a linha: ele decide o formato do resultado inteiro, então dá para ler isso na declaração sem olhar o SQL. Um tipo de linha declarado volta como Result<Row[dyn], SqlError>. Um vetor de um escalar só — Str[dyn], Int[dyn] — não precisa de tipo de linha algum e volta como aquela coluna. E void marca uma instrução em vez de uma consulta, voltando como o número de linhas que ela tocou.\n\nComo as colunas são associadas pelo nome, nomeie-as — e o compilador cobra isso. Uma coluna cujo nome difere do campo precisa de um alias (SELECT u.name AS author), um tipo de linha guarda apenas escalares, e SELECT * contra um tipo de linha declarado é um erro de compilação. Ele não diz nem quantas colunas voltam nem como se chamam, então nada consegue alinhá-las aos campos; e o que ele representa muda no dia em que alguém adiciona uma coluna à tabela, o que transformaria uma consulta que compilava e funcionava em linhas que não cabem mais, num programa que ninguém editou. A regra é sobre o resultado e somente sobre o resultado, então count(*), a * 2, uma estrela dentro de uma subconsulta e a lista de seleção de uma instrução void continuam compilando — e SELECT * para uma Table também, que é linhas de células e não tem nomes de campo com que discordar.",
 			examples: [
 				Example(caption: "A row type", captionPt: "Um tipo de linha", code: `type User { id: Int, name: Str }
 
@@ -2205,10 +2209,10 @@ query findUser(name: Str): User[dyn] {
 proc main(): void {
 	pooled := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if pooled is Result.Ok(db) {
-		using db run raw "CREATE TABLE users (id INTEGER, name TEXT)"
-		using db run raw "INSERT INTO users (id, name) VALUES (1, 'ada')"
+		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.raw(db, "INSERT INTO users (id, name) VALUES (1, 'ada')")
 
-		found := using db run findUser("ada")
+		found := hive.sql.run(db, findUser("ada"))
 		if found is Result.Ok(users) {
 			echo users
 		}
@@ -2225,10 +2229,10 @@ query findUser(name: Str): User[dyn] {
 proc main(): void {
 	pooled := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if pooled is Result.Ok(db) {
-		using db run raw "CREATE TABLE users (id INTEGER, name TEXT)"
-		using db run raw "INSERT INTO users (id, name) VALUES (1, 'ada')"
+		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.raw(db, "INSERT INTO users (id, name) VALUES (1, 'ada')")
 
-		found := using db run findUser("ada")
+		found := hive.sql.run(db, findUser("ada"))
 		if found is Result.Ok(users) {
 			echo users
 		}
@@ -2252,14 +2256,14 @@ query deleteUser(id: Int): void {
 proc main(): void {
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if opened is Result.Ok(db) {
-		using db run raw "CREATE TABLE users (id INTEGER, name TEXT)"
-		using db run insertUser(1, "ada")
-		using db run insertUser(2, "grace")
+		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.run(db, insertUser(1, "ada"))
+		hive.sql.run(db, insertUser(2, "grace"))
 
-		if using db run userNames() is Result.Ok(names) {
+		if hive.sql.run(db, userNames()) is Result.Ok(names) {
 			echo names                      // a Str[dyn]: the column itself
 		}
-		if using db run deleteUser(1) is Result.Ok(rows) {
+		if hive.sql.run(db, deleteUser(1)) is Result.Ok(rows) {
 			echo "deleted {rows} row"       // an Int: what the statement touched
 		}
 		hive.sql.close(db)
@@ -2279,14 +2283,14 @@ query deleteUser(id: Int): void {
 proc main(): void {
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if opened is Result.Ok(db) {
-		using db run raw "CREATE TABLE users (id INTEGER, name TEXT)"
-		using db run insertUser(1, "ada")
-		using db run insertUser(2, "grace")
+		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.run(db, insertUser(1, "ada"))
+		hive.sql.run(db, insertUser(2, "grace"))
 
-		if using db run userNames() is Result.Ok(names) {
+		if hive.sql.run(db, userNames()) is Result.Ok(names) {
 			echo names                      // um Str[dyn]: a coluna em si
 		}
-		if using db run deleteUser(1) is Result.Ok(rows) {
+		if hive.sql.run(db, deleteUser(1)) is Result.Ok(rows) {
 			echo "apagou {rows} linha"      // um Int: o que a instrução tocou
 		}
 		hive.sql.close(db)
@@ -2299,8 +2303,8 @@ proc main(): void {
 			titlePt: "Filtros opcionais: WHERE \{ }",
 			download: false,
 			shot: "",
-			explanation: "A search screen with four boxes on it is four optional predicates, and assembling that as text is where SQL injection and \"WHERE 1 = 1\" both come from. A WHERE block is the declaration that replaces it: it ANDs together the predicates whose conditions hold, and a nested or \{ } or and \{ } flips the connective for the group inside it.\n\nA group that contributes nothing disappears rather than leaving a dangling connective, a group contributing more than one predicate is parenthesised, and when no predicate holds at all there is no WHERE clause in the statement — so there is no 1 = 1 to write and none to read back in a log. Every branch's text is fixed at compile time; the only thing decided while the program runs is which branches are taken. The values still travel as bound parameters, exactly as they do in a plain query.\n\nTwo things a where block deliberately cannot do. A column name or a sort direction can never be a parameter — ORDER BY \{col} would order every row by one constant string — so make that choice a variant type and dispatch to one query per ordering. And SQL you genuinely do assemble yourself goes through run raw instead, which is untyped by construction and greppable by design.",
-			explanationPt: "Uma tela de busca com quatro campos é quatro predicados opcionais, e montar isso como texto é de onde vêm tanto a injeção de SQL quanto o \"WHERE 1 = 1\". Um bloco WHERE é a declaração que substitui isso: ele junta com AND os predicados cujas condições valem, e um or \{ } ou and \{ } aninhado inverte o conectivo do grupo dentro dele.\n\nUm grupo que não contribui com nada desaparece em vez de deixar um conectivo solto, um grupo que contribui com mais de um predicado é parentetizado, e quando nenhum predicado vale, não existe cláusula WHERE alguma na instrução — então não há 1 = 1 para escrever nem para ler depois em um log. O texto de cada ramo é fixado em tempo de compilação; a única coisa decidida enquanto o programa roda é quais ramos são tomados. Os valores continuam viajando como parâmetros vinculados, exatamente como em uma query comum.\n\nDuas coisas que um bloco where deliberadamente não faz. Um nome de coluna ou uma direção de ordenação nunca pode ser um parâmetro — ORDER BY \{col} ordenaria toda linha por uma string constante — então faça dessa escolha um tipo com variantes e despache para uma query por ordenação. E o SQL que você de fato monta na mão passa por run raw, que é sem tipo por construção e fácil de encontrar com grep.",
+			explanation: "A search screen with four boxes on it is four optional predicates, and assembling that as text is where SQL injection and \"WHERE 1 = 1\" both come from. A WHERE block is the declaration that replaces it: it ANDs together the predicates whose conditions hold, and a nested or \{ } or and \{ } flips the connective for the group inside it.\n\nA group that contributes nothing disappears rather than leaving a dangling connective, a group contributing more than one predicate is parenthesised, and when no predicate holds at all there is no WHERE clause in the statement — so there is no 1 = 1 to write and none to read back in a log. Every branch's text is fixed at compile time; the only thing decided while the program runs is which branches are taken. The values still travel as bound parameters, exactly as they do in a plain query.\n\nTwo things a where block deliberately cannot do. A column name or a sort direction can never be a parameter — ORDER BY \{col} would order every row by one constant string — so make that choice a variant type and dispatch to one query per ordering. And SQL you genuinely do assemble yourself goes through hive.sql.raw instead, which is untyped by construction and greppable by design.",
+			explanationPt: "Uma tela de busca com quatro campos é quatro predicados opcionais, e montar isso como texto é de onde vêm tanto a injeção de SQL quanto o \"WHERE 1 = 1\". Um bloco WHERE é a declaração que substitui isso: ele junta com AND os predicados cujas condições valem, e um or \{ } ou and \{ } aninhado inverte o conectivo do grupo dentro dele.\n\nUm grupo que não contribui com nada desaparece em vez de deixar um conectivo solto, um grupo que contribui com mais de um predicado é parentetizado, e quando nenhum predicado vale, não existe cláusula WHERE alguma na instrução — então não há 1 = 1 para escrever nem para ler depois em um log. O texto de cada ramo é fixado em tempo de compilação; a única coisa decidida enquanto o programa roda é quais ramos são tomados. Os valores continuam viajando como parâmetros vinculados, exatamente como em uma query comum.\n\nDuas coisas que um bloco where deliberadamente não faz. Um nome de coluna ou uma direção de ordenação nunca pode ser um parâmetro — ORDER BY \{col} ordenaria toda linha por uma string constante — então faça dessa escolha um tipo com variantes e despache para uma query por ordenação. E o SQL que você de fato monta na mão passa por hive.sql.raw, que é sem tipo por construção e fácil de encontrar com grep.",
 			examples: [Example(caption: "", captionPt: "", code: `type Colony {
 	name:   Str
 	apiary: Str
@@ -2323,17 +2327,17 @@ query findColonies(apiary: Str, minFrames: Int, small: Bool, huge: Bool): Colony
 proc main(): void {
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if opened is Result.Ok(db) {
-		using db run raw "CREATE TABLE colonies (name TEXT, apiary TEXT, frames INTEGER)"
-		using db run raw "INSERT INTO colonies VALUES ('north', 'orchard', 12)"
-		using db run raw "INSERT INTO colonies VALUES ('south', 'orchard', 2)"
-		using db run raw "INSERT INTO colonies VALUES ('east', 'meadow', 7)"
+		hive.sql.raw(db, "CREATE TABLE colonies (name TEXT, apiary TEXT, frames INTEGER)")
+		hive.sql.raw(db, "INSERT INTO colonies VALUES ('north', 'orchard', 12)")
+		hive.sql.raw(db, "INSERT INTO colonies VALUES ('south', 'orchard', 2)")
+		hive.sql.raw(db, "INSERT INTO colonies VALUES ('east', 'meadow', 7)")
 
 		// Everything off: no predicate holds, so there is no WHERE at all.
-		if using db run findColonies("", 0, false, false) is Result.Ok(all) {
+		if hive.sql.run(db, findColonies("", 0, false, false)) is Result.Ok(all) {
 			echo len(all)
 		}
 		// apiary AND frames >= 5 AND (frames > 10).
-		if using db run findColonies("orchard", 5, false, true) is Result.Ok(some) {
+		if hive.sql.run(db, findColonies("orchard", 5, false, true)) is Result.Ok(some) {
 			echo some
 		}
 		hive.sql.close(db)
@@ -2360,17 +2364,17 @@ query findColonies(apiary: Str, minFrames: Int, small: Bool, huge: Bool): Colony
 proc main(): void {
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if opened is Result.Ok(db) {
-		using db run raw "CREATE TABLE colonies (name TEXT, apiary TEXT, frames INTEGER)"
-		using db run raw "INSERT INTO colonies VALUES ('north', 'orchard', 12)"
-		using db run raw "INSERT INTO colonies VALUES ('south', 'orchard', 2)"
-		using db run raw "INSERT INTO colonies VALUES ('east', 'meadow', 7)"
+		hive.sql.raw(db, "CREATE TABLE colonies (name TEXT, apiary TEXT, frames INTEGER)")
+		hive.sql.raw(db, "INSERT INTO colonies VALUES ('north', 'orchard', 12)")
+		hive.sql.raw(db, "INSERT INTO colonies VALUES ('south', 'orchard', 2)")
+		hive.sql.raw(db, "INSERT INTO colonies VALUES ('east', 'meadow', 7)")
 
 		// Tudo desligado: nenhum predicado vale, então não há WHERE algum.
-		if using db run findColonies("", 0, false, false) is Result.Ok(all) {
+		if hive.sql.run(db, findColonies("", 0, false, false)) is Result.Ok(all) {
 			echo len(all)
 		}
 		// apiary AND frames >= 5 AND (frames > 10).
-		if using db run findColonies("orchard", 5, false, true) is Result.Ok(some) {
+		if hive.sql.run(db, findColonies("orchard", 5, false, true)) is Result.Ok(some) {
 			echo some
 		}
 		hive.sql.close(db)
@@ -2392,7 +2396,7 @@ query findUser(name: Str): User[dyn] {
 }
 
 proc lookUp(db: hive.sql.SqlConnection, name: Str): Str {
-	if using db run findUser(name) is Result.Ok(rows) {
+	if hive.sql.run(db, findUser(name)) is Result.Ok(rows) {
 		if rows bounds 0 {
 			return rows[0].name
 		}
@@ -2406,8 +2410,8 @@ proc main(): void {
 	// them all the same one.
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 8, 1)
 	if opened is Result.Ok(db) {
-		using db run raw "CREATE TABLE users (id INTEGER, name TEXT)"
-		using db run raw "INSERT INTO users (id, name) VALUES (1, 'ada'), (2, 'grace')"
+		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.raw(db, "INSERT INTO users (id, name) VALUES (1, 'ada'), (2, 'grace')")
 
 		echo await [lookUp(db, "ada"), lookUp(db, "grace")]
 		hive.sql.close(db)
@@ -2419,7 +2423,7 @@ query findUser(name: Str): User[dyn] {
 }
 
 proc lookUp(db: hive.sql.SqlConnection, name: Str): Str {
-	if using db run findUser(name) is Result.Ok(rows) {
+	if hive.sql.run(db, findUser(name)) is Result.Ok(rows) {
 		if rows bounds 0 {
 			return rows[0].name
 		}
@@ -2433,8 +2437,8 @@ proc main(): void {
 	// elas serem o mesmo banco.
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 8, 1)
 	if opened is Result.Ok(db) {
-		using db run raw "CREATE TABLE users (id INTEGER, name TEXT)"
-		using db run raw "INSERT INTO users (id, name) VALUES (1, 'ada'), (2, 'grace')"
+		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.raw(db, "INSERT INTO users (id, name) VALUES (1, 'ada'), (2, 'grace')")
 
 		echo await [lookUp(db, "ada"), lookUp(db, "grace")]
 		hive.sql.close(db)
