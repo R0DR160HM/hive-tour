@@ -181,6 +181,7 @@ border:3px solid transparent;background-clip:content-box}
 background:linear-gradient(180deg,var(--surface),var(--bg) 60%);
 border-right:1px solid var(--line);overscroll-behavior:contain}
 .h-root>.h-row>.h-column:last-child{max-width:900px}
+.h-root>.h-column{margin:0 auto;max-width:760px;min-height:100vh}
 `
 }
 
@@ -205,6 +206,8 @@ func responsive(): Str {
 	border-right:0;border-bottom:1px solid var(--line);
 	background:var(--surface);padding:16px 20px !important}
 	.h-root>.h-row>.h-column:last-child{width:auto !important;
+	padding:28px 20px 56px !important}
+	.h-root>.h-column>.h-column{width:auto !important;
 	padding:28px 20px 56px !important}
 }
 `
@@ -372,7 +375,7 @@ func code(): Str {
 .tour-example:last-child{margin-bottom:0}
 .tour-caption{margin:0 0 7px;font-size:11.5px;font-weight:650;
 letter-spacing:.085em;text-transform:uppercase;color:var(--muted)}
-.tour-code{margin:0;padding:15px 17px;overflow-x:auto;
+.tour-code{margin:0;padding:15px 17px;overflow-x:auto;tab-size:4;
 background:var(--code);border:1px solid var(--code-line);border-radius:10px;
 box-shadow:0 1px 2px var(--shadow)}
 .tour-code code{font:13px/1.62 ui-monospace,SFMono-Regular,"SF Mono",

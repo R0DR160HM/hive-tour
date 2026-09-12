@@ -11,7 +11,7 @@
 // that are not it, each because a program is easier to read when the thing it
 // does and the material it does it to are not interleaved:
 //
-//   ./slides     the tour itself, fifty-three slides of it in two languages,
+//   ./slides     the tour itself, fifty-four slides of it in two languages,
 //                and the two types that hold one. Four fifths of the whole
 //                program by weight, and none of it about HTTP.
 //   ./logo       the mark, as the paths of an SVG. A drawing is not prose,
@@ -598,12 +598,23 @@ func slideExplanation(slide: slides.Slide, lang: Str): Str {
 	return slide.explanation
 }
 
-// The landing page: what Hive is, in the same layout every slide uses, so
-// the sidebar is already there to jump into wherever looks interesting —
-// or `/1` picks it up from the beginning.
+// The landing page, and the one page with **no rail down the left**. A
+// sidebar is for somebody who is already inside the tour and wants a
+// different part of it; on the way in it is fifty-four links in front of
+// two paragraphs, which is a table of contents standing where the cover
+// should be. So the home page is one centred column, and the only way on
+// from it is the same way anybody would have gone anyway: start at the
+// beginning, or take the download.
+//
+// It is a `ui.column` at the root rather than a `ui.row` with one child
+// because the stylesheet tells the rail from the page by position — first
+// child and last child of the row — and a lone column would answer to both.
 func homeResponse(lang: Str): hive.net.HttpResponse {
 	all := slides.all()
 	content := ui.column([ui.gap(20), ui.pad(40), ui.grow(1), ui.width(680)], [
+		// The switch the rail carries everywhere else. It stays at the top of
+		// the page it is on, which here is the first thing above the mark.
+		ui.row([ui.justify(ui.Justify.End())], [languageSwitcherView(lang, "/")]),
 		// The gap is small because the drawing brings its own: the artwork is
 		// a square with the bee inside it, so a fifth of the width beside the
 		// name is margin the mark already paid for.
@@ -617,11 +628,19 @@ func homeResponse(lang: Str): hive.net.HttpResponse {
 		ui.text([], homeParagraphOne(lang)),
 		ui.text([], homeParagraphTwo(lang)),
 		highlightsView(lang),
-		ui.row([ui.gap(16), ui.align(ui.Align.Center())], [
-			ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourArrow(lang)),
-			ui.link([], releaseUrl(), downloadLabel(lang)),
-			ui.link([], repoUrl(), repoLinkLabel(lang)),
-			ui.text([ui.tone(ui.Tone.Muted())], featuresCount(lang, len(all))),
+		// Two rows rather than one. Four things abreast in 680px wrapped every
+		// label onto two lines, which made the one that matters look like the
+		// three that do not: the way on is a button of its own, and the rest
+		// are what somebody reads after deciding not to take it.
+		ui.column([ui.gap(12)], [
+			ui.row([ui.gap(16), ui.align(ui.Align.Center())], [
+				ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourArrow(lang)),
+				ui.text([ui.tone(ui.Tone.Muted())], featuresCount(lang, len(all))),
+			]),
+			ui.row([ui.gap(16), ui.align(ui.Align.Center())], [
+				ui.link([], releaseUrl(), downloadLabel(lang)),
+				ui.link([], repoUrl(), repoLinkLabel(lang)),
+			]),
 		]),
 	])
 	head := PageHead(
@@ -633,8 +652,7 @@ func homeResponse(lang: Str): hive.net.HttpResponse {
 		prev: "",
 		next: "/1",
 	)
-	top := ui.row([], [sidebarView(all, -1, lang, "/"), content])
-	body := document(head, top)
+	body := document(head, ui.column([], [content]))
 	return hive.net.HttpResponse(200, htmlHeaders(), body)
 }
 
@@ -673,17 +691,21 @@ func highlightRow(text: Str): ui.View {
 func highlightsView(lang: Str): ui.View {
 	if lang == "pt" {
 		return ui.column([ui.gap(8)], [
-			highlightRow("Um único executável — nada mais para instalar, nenhum runtime para configurar"),
-			highlightRow("Sem erros em tempo de execução e sem surpresas — um programa que compila é um programa que roda"),
-			highlightRow("Funções puras e procedimentos com efeito são coisas diferentes, e o compilador garante isso"),
-			highlightRow("HTTP, WebSockets, SQL, criptografia, uma UI e atores distribuídos — tudo na biblioteca padrão"),
+			highlightRow("Sem exceções em tempo de execução — não existe null, nada é lançado, e todo índice é provado antes de o programa rodar"),
+			highlightRow("Pequena o bastante para se aprender em um dia — este tour é a linguagem inteira, um recurso por vez"),
+			highlightRow("Feita para sistemas distribuídos desde o começo — um serviço é endereçado do mesmo jeito nesta máquina ou em outra"),
+			highlightRow("Segura por padrão — TLS entre nós, criptografia e JWT nativos, valores de SQL sempre vinculados como parâmetros, e nada que chegue a um shell"),
+			highlightRow("Testes e análise de custo são do compilador — cobertura sem framework, e um relatório do que um programa vai custar antes de rodar"),
+			highlightRow("Um único executável, e uma biblioteca padrão com HTTP, WebSockets, SQL, criptografia, uma UI e atores distribuídos"),
 		])
 	}
 	return ui.column([ui.gap(8)], [
-		highlightRow("One executable — nothing else to install, no runtime to configure"),
-		highlightRow("No runtime errors and no surprises — a program that compiles is a program that runs"),
-		highlightRow("Pure functions and effectful procedures are different things, and the compiler enforces it"),
-		highlightRow("HTTP, WebSockets, SQL, crypto, a UI and distributed actors — all in the standard library"),
+		highlightRow("No runtime exceptions — no null, nothing thrown, and every index proved before the program runs"),
+		highlightRow("Small enough to learn in a day — this tour is the whole language, one feature at a time"),
+		highlightRow("Built for distributed systems from the start — a service is addressed the same way on this machine or another"),
+		highlightRow("Secure by default — TLS between nodes, native encryption and JWTs, SQL values always bound as parameters, and nothing that reaches a shell"),
+		highlightRow("Testing and cost analysis are the compiler's — coverage with no framework, and a report on what a program will cost before it runs"),
+		highlightRow("One executable, and a standard library with HTTP, WebSockets, SQL, crypto, a UI and distributed actors in it"),
 	])
 }
 
@@ -934,9 +956,9 @@ func homePageTitle(lang: Str): Str {
 // the tour unfurls into everywhere it is pasted.
 func homeDescription(lang: Str): Str {
 	if lang == "pt" {
-		return "Um tour interativo pelo Hive: uma linguagem com memória gerenciada que resolve em tempo de compilação o que as outras deixam para depois. Um executável, sem erros em tempo de execução."
+		return "Um tour interativo pelo Hive: uma linguagem compilada sem exceções em tempo de execução, feita para sistemas distribuídos e pequena o bastante para se aprender em um dia. Um único executável."
 	}
-	return "An interactive tour of Hive: a memory-managed language that settles at compile time what others leave to runtime. One executable, and no runtime errors."
+	return "An interactive tour of Hive: a compiled language with no runtime exceptions, built for distributed systems and small enough to learn in a day. One executable."
 }
 
 func notFoundPageTitle(lang: Str): Str {
@@ -991,9 +1013,9 @@ func homeKicker(lang: Str): Str {
 
 func homeParagraphOne(lang: Str): Str {
 	if lang == "pt" {
-		return "Hive é uma linguagem com memória gerenciada. Valores se comportam como valores, e boa parte do que outras linguagens deixam para o tempo de execução — todo índice de vetor, todo ramo de um match, as colunas que uma consulta SQL devolve — é resolvido em tempo de compilação."
+		return "Hive é uma linguagem compilada, de memória gerenciada, e sem exceções em tempo de execução. Não existe null, nada é lançado, e todo índice de vetor é provado dentro dos limites antes de o programa rodar — o que outras linguagens deixam para o tempo de execução, aqui se resolve na compilação. Uma falha é um valor que você abre, não algo que passa voando por você."
 	}
-	return "Hive is a memory-managed language. Values behave like values, and a good deal of what other languages leave to runtime — every vector index, every branch of a match, the columns a SQL query comes back with — is settled at compile time instead."
+	return "Hive is a compiled, memory-managed language with no runtime exceptions. There is no null, nothing is thrown, and every vector index is proved in bounds before the program runs — what other languages leave to run time is settled at compile time instead. A failure is a value you open, not something that sails past you."
 }
 
 func homeParagraphTwo(lang: Str): Str {
