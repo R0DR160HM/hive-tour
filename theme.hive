@@ -109,7 +109,7 @@ func punctClass(): Str {
 // this one is past 4.5:1. The mark and the prose want the same colour and
 // cannot have it, so they get the same hue at two different weights.
 func palette(): Str {
-	return `:root{
+	return `:root\{
 	--brand:#e29b19;
 	--brand-ink:#231c0d;
 	--bg:#fffdf9;
@@ -131,7 +131,7 @@ func palette(): Str {
 	--sy-hole:#a03a83;
 	--sy-name:#2361ab;
 }
-@media (prefers-color-scheme:dark){:root{
+@media (prefers-color-scheme:dark)\{:root\{
 	--brand:#e5a53a;
 	--brand-ink:#1a1610;
 	--bg:#15140f;
@@ -166,22 +166,22 @@ func palette(): Str {
 // for it to scroll inside, which is what the `100vh` here is. The rest is a
 // hairline dividing it from the reading and a fill half a step off the page.
 func shell(): Str {
-	return `html{-webkit-text-size-adjust:100%}
-body{font:15px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+	return `html\{-webkit-text-size-adjust:100%}
+body\{font:15px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 letter-spacing:-.005em;text-rendering:optimizeLegibility}
-::selection{background:var(--ring);color:var(--fg)}
-:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
-*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
-::-webkit-scrollbar{width:10px;height:10px}
-::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;
+::selection\{background:var(--ring);color:var(--fg)}
+:focus-visible\{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
+*\{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+::-webkit-scrollbar\{width:10px;height:10px}
+::-webkit-scrollbar-thumb\{background:var(--line);border-radius:99px;
 border:3px solid transparent;background-clip:content-box}
-::-webkit-scrollbar-thumb:hover{background:var(--muted);background-clip:content-box}
-.h-root>.h-row{align-items:stretch;min-height:100vh}
-.h-root>.h-row>.h-column:first-child{position:sticky;top:0;height:100vh;
+::-webkit-scrollbar-thumb:hover\{background:var(--muted);background-clip:content-box}
+.h-root>.h-row\{align-items:stretch;min-height:100vh}
+.h-root>.h-row>.h-column:first-child\{position:sticky;top:0;height:100vh;
 background:linear-gradient(180deg,var(--surface),var(--bg) 60%);
 border-right:1px solid var(--line);overscroll-behavior:contain}
-.h-root>.h-row>.h-column:last-child{max-width:900px}
-.h-root>.h-column{margin:0 auto;max-width:760px;min-height:100vh}
+.h-root>.h-row>.h-column:last-child\{max-width:900px}
+.h-root>.h-column\{margin:0 auto;max-width:760px;min-height:100vh}
 `
 }
 
@@ -199,15 +199,15 @@ border-right:1px solid var(--line);overscroll-behavior:contain}
 // viewport, and there is no attribute that says "a row until it is narrow".
 // They sit only in here, and only on those four.
 func responsive(): Str {
-	return `@media (max-width:880px){
-	.h-root>.h-row{flex-direction:column !important;min-height:0}
-	.h-root>.h-row>.h-column:first-child{position:static;height:auto;
+	return `@media (max-width:880px)\{
+	.h-root>.h-row\{flex-direction:column !important;min-height:0}
+	.h-root>.h-row>.h-column:first-child\{position:static;height:auto;
 	max-height:38vh;width:auto !important;flex:0 0 auto !important;
 	border-right:0;border-bottom:1px solid var(--line);
 	background:var(--surface);padding:16px 20px !important}
-	.h-root>.h-row>.h-column:last-child{width:auto !important;
+	.h-root>.h-row>.h-column:last-child\{width:auto !important;
 	padding:28px 20px 56px !important}
-	.h-root>.h-column>.h-column{width:auto !important;
+	.h-root>.h-column>.h-column\{width:auto !important;
 	padding:28px 20px 56px !important}
 }
 `
@@ -243,33 +243,33 @@ func responsive(): Str {
 // non-current slides comes out as a card. Taking the fill back off is what
 // makes a list of links look like a list of links again.
 func navigation(): Str {
-	return `.h-root>.h-row>.h-column:first-child>.h-link{
+	return `.h-root>.h-row>.h-column:first-child>.h-link\{
 display:block;background:none;color:var(--fg);font-size:13.5px;line-height:1.45;
 padding:5px 10px;border-radius:7px;
 transition:background .12s ease,color .12s ease}
-.h-root>.h-row>.h-column:first-child>.h-link:hover{
+.h-root>.h-row>.h-column:first-child>.h-link:hover\{
 background:var(--bg);color:var(--accent);text-decoration:none}
-.h-root>.h-row>.h-column:first-child>.h-link.h-bg-muted{
+.h-root>.h-row>.h-column:first-child>.h-link.h-bg-muted\{
 background:var(--bg);color:var(--accent);font-weight:600}
-.h-root>.h-row>.h-column:first-child>.h-link.h-size-subtitle{
+.h-root>.h-row>.h-column:first-child>.h-link.h-size-subtitle\{
 font-size:15px;font-weight:700;letter-spacing:-.02em;color:var(--fg);
 padding:2px 10px 10px}
-.h-root>.h-row>.h-column:first-child>.h-link.h-size-subtitle:hover{
+.h-root>.h-row>.h-column:first-child>.h-link.h-size-subtitle:hover\{
 background:none;color:var(--accent)}
-.h-root>.h-row>.h-column:first-child>.h-row{
+.h-root>.h-row>.h-column:first-child>.h-row\{
 margin:0 10px 14px;padding:2px;border:1px solid var(--line);
 border-radius:8px;background:var(--bg);gap:2px !important;width:fit-content}
-.h-root>.h-row>.h-column:first-child>.h-row>.h-link{
+.h-root>.h-row>.h-column:first-child>.h-row>.h-link\{
 padding:3px 10px;border-radius:6px;background:none;font-size:11.5px;
 font-weight:700;letter-spacing:.06em;color:var(--muted)}
-.h-root>.h-row>.h-column:first-child>.h-row>.h-link:hover{
+.h-root>.h-row>.h-column:first-child>.h-row>.h-link:hover\{
 color:var(--accent);text-decoration:none}
-.h-root>.h-row>.h-column:first-child>.h-row>.h-link.h-bg-muted{
+.h-root>.h-row>.h-column:first-child>.h-row>.h-link.h-bg-muted\{
 background:var(--brand);color:var(--brand-ink)}
-.tour-prose>.h-column>.h-row:last-child{
+.tour-prose>.h-column>.h-row:last-child\{
 margin-top:12px;padding-top:20px;border-top:1px solid var(--line)}
-.tour-prose>.h-column>.h-row:last-child .h-link{font-weight:600}
-.tour-prose>.h-column>.h-row:last-child .h-text{color:var(--muted)}
+.tour-prose>.h-column>.h-row:last-child .h-link\{font-weight:600}
+.tour-prose>.h-column>.h-row:last-child .h-text\{color:var(--muted)}
 `
 }
 
@@ -287,15 +287,15 @@ margin-top:12px;padding-top:20px;border-top:1px solid var(--line)}
 // mark's colour, at the weight the mark actually paints it, which is a thing
 // this page knows and a general-purpose stylesheet cannot.
 func prose(): Str {
-	return `h1.h-size-title{font-size:31px;line-height:1.18;letter-spacing:-.028em;
+	return `h1.h-size-title\{font-size:31px;line-height:1.18;letter-spacing:-.028em;
 font-weight:700;margin:0}
-.h-size-subtitle{letter-spacing:-.012em}
-.h-size-caption{font-size:11.5px;font-weight:650;letter-spacing:.085em;
+.h-size-subtitle\{letter-spacing:-.012em}
+.h-size-caption\{font-size:11.5px;font-weight:650;letter-spacing:.085em;
 text-transform:uppercase}
-.h-column>.h-text{max-width:68ch}
-.h-link{transition:color .12s ease}
-.h-icon.h-tone-good{color:var(--brand);font-weight:700}
-.h-image{filter:drop-shadow(0 2px 6px var(--shadow))}
+.h-column>.h-text\{max-width:68ch}
+.h-link\{transition:color .12s ease}
+.h-icon.h-tone-good\{color:var(--brand);font-weight:700}
+.h-image\{filter:drop-shadow(0 2px 6px var(--shadow))}
 
 /* A slide's screenshot. It is a picture of a window, so it is given the edge
    a window has — the same hairline and radius the code samples carry, since
@@ -303,17 +303,17 @@ text-transform:uppercase}
    prose is talking about rather than saying. The drop-shadow above is for the
    mark on the front page, which is a cut-out with no edge of its own; this
    one has an edge, so it takes a real shadow and drops the filter. */
-.h-root>.h-row>.h-column:last-child .h-column>.h-image{
+.h-root>.h-row>.h-column:last-child .h-column>.h-image\{
 width:100%;height:auto;border:1px solid var(--code-line);border-radius:10px;
 box-shadow:0 1px 2px var(--shadow);filter:none;background:var(--code)}
-.h-link.h-bg-good{
+.h-link.h-bg-good\{
 background:var(--brand);color:var(--brand-ink);font-weight:650;
 padding:9px 17px;border-radius:9px;box-shadow:0 1px 2px var(--shadow);
 transition:filter .14s ease,box-shadow .14s ease,transform .14s ease}
-.h-link.h-bg-good:hover{
+.h-link.h-bg-good:hover\{
 filter:brightness(1.06);box-shadow:0 4px 14px var(--shadow);
 transform:translateY(-1px);text-decoration:none}
-.h-link.h-bg-good:active{transform:translateY(0);box-shadow:0 1px 2px var(--shadow)}
+.h-link.h-bg-good:active\{transform:translateY(0);box-shadow:0 1px 2px var(--shadow)}
 `
 }
 
@@ -356,31 +356,31 @@ transform:translateY(-1px);text-decoration:none}
 // the one token deliberately kept above the contrast a body of grey text
 // would need.
 func syntax(): Str {
-	return `.tour-code .c{color:var(--sy-comment)}
-.tour-code .p{color:var(--sy-punct)}
-.tour-code .k{color:var(--sy-keyword)}
-.tour-code .t{color:var(--sy-type)}
-.tour-code .s{color:var(--sy-string)}
-.tour-code .n{color:var(--sy-hole)}
-.tour-code .a{color:var(--sy-hole)}
-.tour-code .e{color:var(--sy-hole)}
-.tour-code .i{color:var(--sy-hole)}
-.tour-code .f{color:var(--sy-name)}
-.tour-code .b{color:var(--sy-name);font-weight:600}
+	return `.tour-code .c\{color:var(--sy-comment)}
+.tour-code .p\{color:var(--sy-punct)}
+.tour-code .k\{color:var(--sy-keyword)}
+.tour-code .t\{color:var(--sy-type)}
+.tour-code .s\{color:var(--sy-string)}
+.tour-code .n\{color:var(--sy-hole)}
+.tour-code .a\{color:var(--sy-hole)}
+.tour-code .e\{color:var(--sy-hole)}
+.tour-code .i\{color:var(--sy-hole)}
+.tour-code .f\{color:var(--sy-name)}
+.tour-code .b\{color:var(--sy-name);font-weight:600}
 `
 }
 
 func code(): Str {
-	return `.tour-example{margin:0 0 22px}
-.tour-example:last-child{margin-bottom:0}
-.tour-caption{margin:0 0 7px;font-size:11.5px;font-weight:650;
+	return `.tour-example\{margin:0 0 22px}
+.tour-example:last-child\{margin-bottom:0}
+.tour-caption\{margin:0 0 7px;font-size:11.5px;font-weight:650;
 letter-spacing:.085em;text-transform:uppercase;color:var(--muted)}
-.tour-code{margin:0;padding:15px 17px;overflow-x:auto;tab-size:4;
+.tour-code\{margin:0;padding:15px 17px;overflow-x:auto;tab-size:4;
 background:var(--code);border:1px solid var(--code-line);border-radius:10px;
 box-shadow:0 1px 2px var(--shadow)}
-.tour-code code{font:13px/1.62 ui-monospace,SFMono-Regular,"SF Mono",
+.tour-code code\{font:13px/1.62 ui-monospace,SFMono-Regular,"SF Mono",
 Menlo,Consolas,"Liberation Mono",monospace;font-variant-ligatures:none;
 letter-spacing:0;color:var(--fg)}
-.tour-prose{display:flex;flex-direction:column}
+.tour-prose\{display:flex;flex-direction:column}
 `
 }

@@ -182,21 +182,35 @@ func interpolation(chars: Str[], i: Int): Scan {
 	return Scan(html: span(theme.interpClass(), text), next: j)
 }
 
-// A backtick string: raw, multi-line, and unable to contain a backtick, which
-// makes finding the end of one the simplest scan in the file. Every code
-// sample in ./slides is itself held in one of these.
+// A backtick string: multi-line and unable to contain a backtick. It reads
+// `{...}` as a double-quoted string does, but its one escape is `\{`. Every
+// code sample in ./slides is itself held in one of these.
 func raw(chars: Str[], i: Int): Scan {
+	mut out := ""
 	mut text := "`"
 	mut j := i + 1
 	for ; j < len(chars); {
 		c := at(chars, j)
-		text = text + c
-		j = j + 1
-		if c == "`" {
-			return Scan(html: span(theme.stringClass(), text), next: j)
+		if c == "\\" && at(chars, j + 1) == "\{" {
+			out = out + span(theme.stringClass(), text)
+			text = ""
+			out = out + span(theme.escapeClass(), "\\\{")
+			j = j + 2
+		} else if c == "\{" {
+			out = out + span(theme.stringClass(), text)
+			text = ""
+			hole := interpolation(chars, j)
+			out = out + hole.html
+			j = hole.next
+		} else {
+			text = text + c
+			j = j + 1
+			if c == "`" {
+				return Scan(html: out + span(theme.stringClass(), text), next: j)
+			}
 		}
 	}
-	return Scan(html: span(theme.stringClass(), text), next: j)
+	return Scan(html: out + span(theme.stringClass(), text), next: j)
 }
 
 // `#` and a PascalCase name. The `#` is not part of the name, but it is part
