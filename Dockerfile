@@ -7,8 +7,9 @@
 #
 # Nothing has to be installed to build this but Docker: the image downloads Go
 # — the one thing `hivec build` needs that it does not carry as source text the
-# way it does its own runtime — downloads the compiler's latest release for the
-# platform being built for, and compiles the program with the two of them.
+# way it does its own runtime — downloads the compiler that wrote this file,
+# for the platform being built for, and compiles the program with the two of
+# them.
 #
 # Two stages: the first has Go and the compiler and does the building; the
 # second is just the binary that came out of it, with nothing else in the image
@@ -46,11 +47,17 @@ RUN set -eux; \
 	rm /tmp/go.tar.gz
 ENV PATH="/usr/local/go/bin:${PATH}"
 
-# The compiler itself, from hive-lang's latest release — named rather than
-# versioned, so this build never has to be told what "latest" means and never
-# goes stale as new releases ship.
+# The compiler itself — this one, rather than whatever release is newest on
+# the day the image is built. The program beside this file was read by the
+# compiler that wrote it, and that is the compiler that should build it: a
+# later release is a different compiler, and an image following the newest is
+# one that can stop building a program that never changed.
+#
+# `docker build --build-arg HIVEC_VERSION=v9.9.9 .` builds with another one,
+# and running `hive container` from that compiler writes it in here.
+ARG HIVEC_VERSION=v0.2.5
 RUN curl -fsSL \
-      "https://github.com/R0DR160HM/hive-lang/releases/latest/download/hivec-linux-${TARGETARCH}" \
+      "https://github.com/R0DR160HM/hive-lang/releases/download/${HIVEC_VERSION}/hivec-linux-${TARGETARCH}" \
       -o /usr/local/bin/hivec \
  && chmod +x /usr/local/bin/hivec
 
@@ -82,14 +89,6 @@ WORKDIR /app
 COPY --from=builder /app/main /usr/local/bin/main
 
 # 8080 is where this program serves: hive.net.httpServe(8080, ...) says so.
-#
-# EXPOSE documents that and nothing more — it opens nothing. Reaching the
-# server from the machine running Docker takes `-p 8080:8080` on the run, and
-# without it the container comes up, logs that it is serving, and answers
-# nothing: it is listening on its own localhost, which is not the one the
-# browser is pointed at. `docker ps` is where the two are told apart —
-# `0.0.0.0:8080->8080/tcp` is published, a bare `8080/tcp` is only this line.
 EXPOSE 8080
 
 ENTRYPOINT ["/usr/local/bin/main"]
-
