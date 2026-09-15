@@ -92,3 +92,4 @@ COPY --from=builder /app/main /usr/local/bin/main
 EXPOSE 8080
 
 ENTRYPOINT ["/usr/local/bin/main"]
+
