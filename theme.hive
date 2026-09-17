@@ -7,18 +7,77 @@
 //
 // It is layered on rather than replacing anything, and that is deliberate:
 // every rule here reaches for a class `hive.ui` already puts on the element
-// — `h-link`, `h-column`, `h-bg-good` — or for one of the custom properties
-// its stylesheet declares. Nothing reaches for a class of its own except on
-// the three things the widget set has no answer for, which are the same three
-// main.hive writes by hand: a code sample, its caption, and the block of
-// prose under them. So a view stays a view, the markup keeps no record of
-// having been styled, and dropping this one import puts the tour back to
-// stock.
+// — `h-link`, `h-column`, `h-bg-good`, `h-spacer` — or for one of the custom
+// properties its stylesheet declares. Nothing reaches for a class of its own
+// except on the three things the widget set has no answer for, which are the
+// same three main.hive writes by hand: a code sample, its caption, and the
+// block of prose under them. So a view stays a view, the markup keeps no
+// record of having been styled, and dropping this one import puts the tour
+// back to stock.
 //
 // What it is not is a stylesheet for the language. `hive.ui`'s defaults are
 // what a program that has not thought about its appearance should look like,
 // and they are the right answer to that question. This is one program that
 // has thought about it.
+//
+// ---------------------------------------------------------------------------
+// What it is trying to look like.
+//
+// A page can be tidy and say nothing, and the first version of this file was:
+// a card here, a hairline there, a rounded amber button that rose a pixel
+// under the cursor, everything in the system sans at fifteen pixels, and a
+// rail of every page in the site pinned open down the left of every page in
+// the site. Every one of those is a good default and not one of them belongs
+// to this site in particular — the same stylesheet would have served a
+// billing dashboard without a line changed, which is the whole complaint. A
+// page that could be about anything ends up looking like it is about nothing.
+//
+// So this one is about something, and the something is a printed technical
+// book. Not a skeuomorph of one: five habits a book has that a web page
+// usually does not.
+//
+//   There is no rail. A book does not carry its table of contents on every
+//   page; it has a running head saying what you are reading, a contents page
+//   of its own, and a way to turn to the next one. main.hive is where that
+//   argument is made in full, because it is an argument about what a tour is
+//   rather than about how one looks, and the layout it produces is a view
+//   like every other. What is left here is what those three things look like.
+//
+//   Things are separated by rules and space, never by cards. There is no
+//   box-shadow in this file and no element that floats above another. A
+//   figure on the page of a book is flush with the paper; so is every sample
+//   here.
+//
+//   The display face is the monospace. This is a page about a programming
+//   language: setting its headings, its contents, its labels and its one
+//   button in the same face the samples are set in ties the furniture to the
+//   subject, and costs nothing — the stack starts at fonts the reader's
+//   machine already has, because a site that claims no framework underneath
+//   it should not be downloading a typeface either. The prose stays in the
+//   sans, because prose is prose.
+//
+//   Small type is set the way a specimen sheet sets it: monospace, upper
+//   case, tracked out wide. A running head, a figure label and a caption all
+//   read as apparatus rather than as more sentences.
+//
+//   Corners are square. A radius is the single most legible mark of the house
+//   style being rejected here, and taking it off — from the samples, the
+//   screenshots, the button, the focus ring — does more to change what the
+//   page looks like than any colour would.
+//
+// The one ornament is the hexagon, and there is one of it: the bullet against
+// each of the claims the front page makes, which is the mark of the language
+// reduced to its outline at twenty pixels. Nothing else in here is drawn for
+// the sake of drawing.
+//
+// There was a second one for a while — the same hexagon tiled into a comb,
+// washed across the top of every page behind the running head. It was a nice
+// piece of work and it was wallpaper. A page that has taken off its shadows,
+// its radii and its rail, so that what is left is type and rules and paper,
+// does not then want a pattern printed on the paper: every one of those other
+// removals was the page getting out of the way of the reading, and the comb
+// was the one thing left standing in front of it. A plain ground is not an
+// absence of an idea here. It is the idea.
 //
 // It is held in raw strings, where a brace is a brace and CSS can be written
 // the way CSS is written, and split into several of them for the reason the
@@ -30,7 +89,7 @@ func styleTag(): Str {
 }
 
 // Order matters exactly once in here: `responsive` comes last of the layout
-// rules so its media query outranks the two-column frame `shell` sets up.
+// rules so its media query outranks the frame `shell` sets up.
 func css(): Str {
 	return palette() + shell() + navigation() + prose() + code() + syntax() + responsive()
 }
@@ -96,33 +155,58 @@ func punctClass(): Str {
 	return "p"
 }
 
-// The colours, and the one real departure from stock. `hive.ui` ships a blue
-// — a good, legible, entirely generic blue — and a page about a language
-// whose mark is an amber bee has a better one available to it. So the accent
-// becomes the amber, the greys warm by a few degrees of hue to sit beside it,
-// and everything downstream of `--accent` follows without being told: every
-// link, every focus ring, every border a widget draws on its own.
+// The two faces and the colours.
 //
-// `--brand` is the one name added rather than overridden, and it is the amber
-// exactly as the drawing paints it. `--accent` is a darker mix of the same
-// hue, because the brand amber against white is barely a 2:1 contrast and
-// this one is past 4.5:1. The mark and the prose want the same colour and
-// cannot have it, so they get the same hue at two different weights.
+// `hive.ui` ships a blue — a good, legible, entirely generic blue — and a
+// page about a language whose mark is an amber bee has a better one
+// available to it. So the accent becomes the amber, the greys warm by a few
+// degrees of hue to sit beside it, and everything downstream of `--accent`
+// follows without being told: every link, every focus ring, every border a
+// widget draws on its own.
+//
+// `--brand` is the amber exactly as the drawing paints it. `--accent` is a
+// darker mix of the same hue, because the brand amber against paper is barely
+// a 2:1 contrast and this one is past 4.5:1. The mark and the prose want the
+// same colour and cannot have it, so they get the same hue at two different
+// weights. `--rule` is the third name in the family: the page's own ink, for
+// the few hairlines that are structure rather than decoration. `--line` stays
+// for everything lighter.
+//
+// `--invert` is the field the button turns into, and it is its own name rather
+// than a reuse of `--rule` because the two themes need opposite things from
+// it. Inverting means amber text on a dark field, and in the dark theme the
+// hairline ink is a mid brown that puts that text at 3.8:1 — under the 4.5
+// this page holds itself to everywhere else. Deepening it past the page's own
+// background instead gives 9:1, and the light theme's ink already gives 7:1,
+// so the one name carries the same idea in both and the contrast is checked
+// rather than assumed. That is also why the front page's kicker is `--accent`
+// and not `--brand`: small tracked capitals in the drawing's own amber come
+// out at 2.2:1 on cream, which is the very trap the two weights exist to
+// avoid, and it is an easy one to walk back into.
+//
+// `--measure` is how wide this site is: the reading column stops there, and
+// the running head's padding is written in terms of it so the type in the
+// head starts exactly where the prose under it does. One name, because the
+// two have to agree and a number written twice is a number that will not.
 func palette(): Str {
 	return `:root\{
+	--f-sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+	--f-mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
 	--brand:#e29b19;
-	--brand-ink:#231c0d;
-	--bg:#fffdf9;
-	--fg:#1b1a17;
-	--muted:#6d6656;
-	--line:#ebe3d4;
-	--accent:#a96700;
-	--surface:#f8f2e5;
+	--brand-ink:#1f180a;
+	--bg:#fdfaf3;
+	--fg:#191714;
+	--muted:#6b6455;
+	--line:#e5dbc5;
+	--rule:#231f18;
+	--invert:#231f18;
+	--accent:#9a5d00;
+	--surface:#f7f0df;
 	--good:#0d7a55;
-	--code:#f6f7f9;
-	--code-line:#e2e6ec;
-	--shadow:rgba(84,62,17,.10);
-	--ring:rgba(226,155,25,.45);
+	--code:#f4f6f9;
+	--code-line:#dde3ea;
+	--ring:rgba(226,155,25,.38);
+	--measure:1080px;
 	--sy-comment:#6f7a8a;
 	--sy-punct:#5d6878;
 	--sy-keyword:#7038a8;
@@ -133,18 +217,19 @@ func palette(): Str {
 }
 @media (prefers-color-scheme:dark)\{:root\{
 	--brand:#e5a53a;
-	--brand-ink:#1a1610;
-	--bg:#15140f;
-	--fg:#ece7db;
-	--muted:#9d9585;
-	--line:#2c2823;
+	--brand-ink:#17120a;
+	--bg:#131210;
+	--fg:#ece6d9;
+	--muted:#9a9282;
+	--line:#2a2621;
+	--rule:#554c3f;
+	--invert:#0c0b09;
 	--accent:#e5a53a;
-	--surface:#1d1b15;
+	--surface:#1a1813;
 	--good:#3fbf90;
-	--code:#15181d;
-	--code-line:#2a2f38;
-	--shadow:rgba(0,0,0,.45);
-	--ring:rgba(229,165,58,.40);
+	--code:#14171c;
+	--code-line:#272c34;
+	--ring:rgba(229,165,58,.34);
 	--sy-comment:#7c8797;
 	--sy-punct:#8d96a6;
 	--sy-keyword:#c8a4ec;
@@ -156,125 +241,189 @@ func palette(): Str {
 `
 }
 
-// The page itself: the type it is set in, the frame the two columns sit in,
+// The page itself: the type it is set in, the one column everything sits in,
 // and the two things a stylesheet owes a keyboard — a focus ring that is
 // visible, and one that is only there for whoever is actually using it.
 //
-// The rail down the left becomes a column that stays put while the slide
-// beside it scrolls. `hive.ui` already wrote `overflow-y:auto` onto it,
-// because the view asked to scroll; all that was ever missing was a height
-// for it to scroll inside, which is what the `100vh` here is. The rest is a
-// hairline dividing it from the reading and a fill half a step off the page.
+// Every page in this program is now the same shape, which is what taking the
+// rail out bought: a wrapper, a running head across the top of it, and one
+// column of reading under that. So there is one frame in here instead of two,
+// and no rule anywhere in this file has to know whether it is looking at the
+// front page or a slide.
+//
+// The reading column is centred by a `max-width` and a pair of auto margins,
+// with `width:100%` written out rather than left to `stretch`. That is not
+// belt and braces: an auto margin on the cross axis of a flex container turns
+// `stretch` off, and a column that does not stretch is as wide as the longest
+// line inside it — which would make every slide a different width. The
+// explicit width is what the auto margins then have something to centre.
+//
+// The running head is full width while the type in it lines up with the
+// reading under it, which is one declaration rather than two elements: the
+// padding is whatever it takes to reach the reading's own left edge — half
+// the leftover room, plus the column's forty — with a floor for the case
+// where there is no leftover room at all. So the hairline under it runs the
+// whole window and the type above it starts exactly where the prose does.
+//
+// The wrapper carries no background of its own. `hive.ui` already paints the
+// body in `--bg`, and one colour painted once is the whole of what this page
+// wants behind it.
+//
+// The focus ring is square because everything here is, and the offset keeps
+// it clear of the thing it is ringing.
 func shell(): Str {
 	return `html\{-webkit-text-size-adjust:100%}
-body\{font:15px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-letter-spacing:-.005em;text-rendering:optimizeLegibility}
+body\{font:16px/1.7 var(--f-sans);letter-spacing:-.003em;
+text-rendering:optimizeLegibility}
 ::selection\{background:var(--ring);color:var(--fg)}
-:focus-visible\{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
+:focus-visible\{outline:2px solid var(--brand);outline-offset:3px;border-radius:0}
 *\{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 ::-webkit-scrollbar\{width:10px;height:10px}
-::-webkit-scrollbar-thumb\{background:var(--line);border-radius:99px;
+::-webkit-scrollbar-thumb\{background:var(--line);
 border:3px solid transparent;background-clip:content-box}
 ::-webkit-scrollbar-thumb:hover\{background:var(--muted);background-clip:content-box}
-.h-root>.h-row\{align-items:stretch;min-height:100vh}
-.h-root>.h-row>.h-column:first-child\{position:sticky;top:0;height:100vh;
-background:linear-gradient(180deg,var(--surface),var(--bg) 60%);
-border-right:1px solid var(--line);overscroll-behavior:contain}
-.h-root>.h-row>.h-column:last-child\{max-width:900px}
-.h-root>.h-column\{margin:0 auto;max-width:760px;min-height:100vh}
+.h-root>.h-column\{min-height:100vh}
+.h-root>.h-column>.h-column\{width:100%;max-width:var(--measure);margin-inline:auto}
+.h-root>.h-column>.h-row:first-child\{
+padding:15px max(20px,calc((100% - var(--measure)) / 2 + 40px));
+border-bottom:1px solid var(--line)}
 `
 }
 
 // Side by side while there is room for both, and stacked the moment there is
-// not. A 260px rail and a 40px gutter is a third of a phone, so on one the
-// rail becomes a lid instead: full width, capped at two fifths of the screen,
-// scrolling on its own, with the slide underneath it.
+// not. There are only two things on this site that are ever side by side now
+// — the front page's two columns and the contents' three — and both are a
+// `ui.row`, which is a row inline, in every viewport. There is no attribute
+// that says "a row until it is narrow".
 //
-// The `!important`s are the price of the layout being a view rather than a
-// stylesheet. `ui.row`, `ui.width(260)` and `ui.pad(40)` are attributes of a
-// box, and `hive.ui` renders an attribute as a `style` attribute — which no
-// rule in a stylesheet outranks, however late it is written. So the four
-// properties a phone has to take back have to be taken back by force, and
-// `flex-direction` is one of them: a `ui.row` is a row inline, in every
-// viewport, and there is no attribute that says "a row until it is narrow".
-// They sit only in here, and only on those four.
+// That is what the `!important`s are for, and it is the whole of what they
+// are for. `ui.row` and `ui.gap(52)` are attributes of a box, and `hive.ui`
+// renders an attribute as a `style` attribute — which no rule in a stylesheet
+// outranks, however late it is written. So the three properties a phone has
+// to take back have to be taken back by force. They sit only in here, and
+// only on those three.
+//
+// The running head wraps rather than being taken apart, because it is four
+// things in a line and a line too long for the window is a line that should
+// be two. `flex-wrap` is not something any attribute sets, so it costs
+// nothing to say here, and it is outside the media query because the right
+// width to wrap at is the width where it stops fitting.
+//
+// The contents is the exception to the thirty. Stacked, its three columns are
+// one list again, and a list with thirty pixels every eighteen entries reads
+// as three sections of something — which is a grouping the tour does not have
+// and the page never meant to claim. Two pixels is the gap the columns
+// themselves use, so stacking them puts the list back exactly as it would
+// have been written down the page in the first place. Which row is that one
+// is a question its contents answer: it is the row whose columns are made of
+// links, and `:has` is what asks.
 func responsive(): Str {
-	return `@media (max-width:880px)\{
-	.h-root>.h-row\{flex-direction:column !important;min-height:0}
-	.h-root>.h-row>.h-column:first-child\{position:static;height:auto;
-	max-height:38vh;width:auto !important;flex:0 0 auto !important;
-	border-right:0;border-bottom:1px solid var(--line);
-	background:var(--surface);padding:16px 20px !important}
-	.h-root>.h-row>.h-column:last-child\{width:auto !important;
-	padding:28px 20px 56px !important}
-	.h-root>.h-column>.h-column\{width:auto !important;
-	padding:28px 20px 56px !important}
+	return `.h-root>.h-column>.h-row:first-child\{flex-wrap:wrap;row-gap:10px}
+@media (max-width:880px)\{
+	.h-root>.h-column>.h-column\{padding:26px 20px 52px !important}
+	.h-root>.h-column>.h-column>.h-row\{flex-direction:column !important;
+	gap:30px !important}
+	.h-root>.h-column>.h-column>.h-row:has(>.h-column>.h-link)\{gap:2px !important}
 }
 `
 }
 
-// The rail down the left, and the pager at the foot of every slide. Both are
-// navigation, and both are the same argument: `hive.ui` renders a link as a
-// link, which is the right default and the wrong thing for a list of
-// fifty-three of them — at that length the blue stops being a signal and
-// becomes the background.
+// The running head, the language switch, the bar of progress, the contents,
+// and the pager at the foot of a slide. All of it is navigation, and all of
+// it is the same argument: `hive.ui` renders a link as a link, which is the
+// right default and the wrong thing for a line of apparatus across the top of
+// a page — at that size and that count the blue stops being a signal and
+// becomes the decoration.
 //
-// So a slide in the list is set in the page's own ink and earns the accent by
-// being hovered or by being the one you are on. The one you are on is the
-// accent and a heavier weight and nothing else — the colour and the weight
-// are already two signals, and a third drawn beside them is decoration
-// pretending to be information. `hive.ui` marked it with
-// `ui.background(Tone.Muted())` and that class is what this rule hangs on, so
+// So the head is set as a running head: small, monospace, upper case, tracked
+// out, in the page's own ink, earning the accent by being hovered. Four items
+// with a `ui.spacer` between the second and the third, and the spacer needs
+// no rule at all — `flex:1 1 auto` is what the widget already renders as, and
+// it is exactly right.
+//
+// The progress bar is two boxes in a row and the ratio between them, so all
+// this has to say is what the filled half is painted in. `h-bg-good` is the
+// class `ui.background(Tone.Good())` renders as, and `hive.ui`'s own
+// stylesheet paints it green; the tour paints it amber, in the one place that
+// class lands on a box rather than on the button. The empty half is left
+// alone, because the hairline under the head is already the track, and a
+// second one drawn over it would only be darker in places.
+//
+// The contents is set as the index of a book, which is what it is. Monospace,
+// so the numbers down the left edge line up into a column of their own; and a
+// hanging indent of exactly four characters, so a title long enough to wrap
+// comes back underneath the title rather than underneath the number. Four is
+// not a guess — main.hive pads the number to two digits precisely so that
+// every entry reads `NN. ` and every one of them is four characters wide. The
+// two files have to agree about that, and the comment in each of them says so.
+//
+// The language switch used to be a bordered pill with the current half filled
+// in, which is a segmented control, which is a widget out of an application
+// and not a thing the page of a book contains. Now it is two words with a
+// rule under the one you are reading in. It is marked with
+// `ui.background(Tone.Muted())` and that class is what the rule hangs on, so
 // the view still describes the state and this file still decides what the
-// state looks like.
-//
-// The depth of the selectors is doing real work. A link that is a child of
-// the rail is a slide; one that is a child of a row inside the rail is half of
-// the EN/PT switch; and both carry `h-bg-muted` when they are current.
-// Telling them apart by where they sit is what lets one attribute in the view
-// mean "this one" in two places that look nothing alike.
-//
-// The `background:none` on both is not tidiness. A link that is *not* current
-// is `ui.background(Tone.Normal())`, which `hive.ui` renders as the class
-// `h-bg-normal`, which is `background:var(--bg)` — the page's own colour, and
-// therefore invisible, which is exactly right on a page whose rail is the
-// same colour as everything else. This one is not: the rail has a fill of its
-// own, so `--bg` stops being invisible and every one of the fifty-three
-// non-current slides comes out as a card. Taking the fill back off is what
-// makes a list of links look like a list of links again.
+// state looks like. The `background:none` is not tidiness: the half that is
+// *not* current is `Tone.Normal()`, which `hive.ui` renders as
+// `background:var(--bg)`, and a fill of the page's own colour is a fill that
+// shows up the moment what is under it is not the page.
 func navigation(): Str {
-	return `.h-root>.h-row>.h-column:first-child>.h-link\{
-display:block;background:none;color:var(--fg);font-size:13.5px;line-height:1.45;
-padding:5px 10px;border-radius:7px;
-transition:background .12s ease,color .12s ease}
-.h-root>.h-row>.h-column:first-child>.h-link:hover\{
-background:var(--bg);color:var(--accent);text-decoration:none}
-.h-root>.h-row>.h-column:first-child>.h-link.h-bg-muted\{
-background:var(--bg);color:var(--accent);font-weight:600}
-.h-root>.h-row>.h-column:first-child>.h-link.h-size-subtitle\{
-font-size:15px;font-weight:700;letter-spacing:-.02em;color:var(--fg);
-padding:2px 10px 10px}
-.h-root>.h-row>.h-column:first-child>.h-link.h-size-subtitle:hover\{
-background:none;color:var(--accent)}
-.h-root>.h-row>.h-column:first-child>.h-row\{
-margin:0 10px 14px;padding:2px;border:1px solid var(--line);
-border-radius:8px;background:var(--bg);gap:2px !important;width:fit-content}
-.h-root>.h-row>.h-column:first-child>.h-row>.h-link\{
-padding:3px 10px;border-radius:6px;background:none;font-size:11.5px;
-font-weight:700;letter-spacing:.06em;color:var(--muted)}
-.h-root>.h-row>.h-column:first-child>.h-row>.h-link:hover\{
+	return `.h-root>.h-column>.h-row:first-child>.h-link\{
+background:none;color:var(--fg);font:600 11px/1.4 var(--f-mono);
+letter-spacing:.16em;text-transform:uppercase;transition:color .12s ease}
+.h-root>.h-column>.h-row:first-child>.h-link:hover\{
 color:var(--accent);text-decoration:none}
-.h-root>.h-row>.h-column:first-child>.h-row>.h-link.h-bg-muted\{
-background:var(--brand);color:var(--brand-ink)}
+.h-root>.h-column>.h-row:first-child>.h-row\{gap:14px !important}
+.h-root>.h-column>.h-row:first-child>.h-row>.h-link\{
+padding:0 0 3px;background:none;font:700 11px/1 var(--f-mono);
+letter-spacing:.14em;color:var(--muted);
+border-bottom:1px solid transparent}
+.h-root>.h-column>.h-row:first-child>.h-row>.h-link:hover\{
+color:var(--accent);text-decoration:none}
+.h-root>.h-column>.h-row:first-child>.h-row>.h-link.h-bg-muted\{
+background:none;color:var(--fg);border-bottom-color:var(--brand)}
+.h-root>.h-column>.h-row:nth-child(2)\{margin-top:-1px}
+.h-root>.h-column>.h-row>.h-column.h-bg-good\{background:var(--brand)}
+.h-root>.h-column>.h-column>.h-row>.h-column>.h-link\{
+display:block;background:none;color:var(--fg);
+font:12.5px/1.55 var(--f-mono);letter-spacing:-.01em;
+padding:3px 6px 3px calc(6px + 4ch);text-indent:-4ch;
+transition:color .12s ease,background .12s ease}
+.h-root>.h-column>.h-column>.h-row>.h-column>.h-link:hover\{
+background:var(--surface);color:var(--accent);text-decoration:none}
 .tour-prose>.h-column>.h-row:last-child\{
-margin-top:12px;padding-top:20px;border-top:1px solid var(--line)}
-.tour-prose>.h-column>.h-row:last-child .h-link\{font-weight:600}
+margin-top:16px;padding-top:18px;border-top:1px solid var(--line)}
+.tour-prose>.h-column>.h-row:last-child .h-link,
+.tour-prose>.h-column>.h-row:last-child .h-text\{
+font:600 12px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
 .tour-prose>.h-column>.h-row:last-child .h-text\{color:var(--muted)}
 `
 }
 
 // The reading: the headings, the paragraphs, the list of what the language
 // is, and the one button on the site.
+//
+// The headings are monospace, and that is the single decision this file turns
+// on. A title set in the same face as the code beneath it is a page that has
+// admitted what it is about; the same title in the system sans is a page that
+// could be selling anything. The front page takes it furthest — the name of
+// the language at sixty-odd pixels, tracked in tight, beside the mark — and
+// every page after it carries the smaller version of the same idea, over a
+// rule, under a line saying which of the fifty-four this is.
+//
+// The front page's title is told apart from every other title by where it
+// sits rather than by a class of its own. `.h-image + .h-column > h1` is a
+// drawing with a heading beside it, and the only place on the site where that
+// is true is the masthead — a slide's screenshot is inside a column with its
+// caption under it, never beside a heading. So the view says "a picture and a
+// title in a row", the stylesheet reads that back, and neither of them has to
+// carry a name for the front page.
+//
+// The claims on the front page used to be check marks, which is the bullet
+// every landing page has used for fifteen years. They are hexagons now: the
+// same `ui.icon` view, the same tick inside it, in a tile clipped to the
+// shape of the mark. Six of them down the right of the front page is the only
+// place the shape appears at all, now that the background is a plain one.
 //
 // The button is the rule this whole file was worth writing for. `hive.ui`
 // renders `ui.link([ui.background(Tone.Good())], ...)` as an anchor carrying
@@ -283,37 +432,60 @@ margin-top:12px;padding-top:20px;border-top:1px solid var(--line)}
 // link rule written second. So the two disagree, the later one wins, and the
 // call that plainly means "this is the button" comes out as blue text on a
 // green field with no padding at all. One rule naming both classes at once
-// settles it, and the settlement is amber under the page's own ink: the
-// mark's colour, at the weight the mark actually paints it, which is a thing
-// this page knows and a general-purpose stylesheet cannot.
+// settles it.
+//
+// What it settles into is amber under the page's own ink, square, with no
+// shadow and nothing that moves. It used to rise a pixel and grow a soft
+// shadow on hover, which is the gesture every button on the web makes and
+// which says only that the cursor is where the cursor plainly is. This one
+// inverts instead — ink where the amber was, amber where the ink was — which
+// is a thing ink on paper can actually do, and which is unmistakable at a
+// glance rather than a pixel of parallax you have to be looking for.
 func prose(): Str {
-	return `h1.h-size-title\{font-size:31px;line-height:1.18;letter-spacing:-.028em;
-font-weight:700;margin:0}
+	return `h1.h-size-title\{font:700 33px/1.15 var(--f-mono);
+letter-spacing:-.035em;margin:0}
+.h-root>.h-column>.h-column>.h-column:first-child\{
+padding-bottom:18px;border-bottom:1px solid var(--rule)}
+.h-image+.h-column>h1.h-size-title\{
+font-size:clamp(40px,7vw,58px);line-height:1;letter-spacing:-.045em}
+.h-image+.h-column>.h-size-caption\{color:var(--accent)}
 .h-size-subtitle\{letter-spacing:-.012em}
-.h-size-caption\{font-size:11.5px;font-weight:650;letter-spacing:.085em;
+.h-size-caption\{font:600 11px/1.4 var(--f-mono);letter-spacing:.16em;
 text-transform:uppercase}
-.h-column>.h-text\{max-width:68ch}
+.h-column>.h-text\{max-width:66ch}
 .h-link\{transition:color .12s ease}
-.h-icon.h-tone-good\{color:var(--brand);font-weight:700}
-.h-image\{filter:drop-shadow(0 2px 6px var(--shadow))}
+
+/* The claims on the front page: the tick ui.icon writes, in a hexagon. The
+   view asks for an icon and a tone and gets both — nothing here is spliced,
+   and taking this one rule out puts the plain check mark back. A CSS comment
+   inside a raw string is one of the few places on this page that cannot spell
+   a name in backticks, because a backtick is what ends the string. */
+.h-icon.h-tone-good\{display:inline-grid;place-items:center;
+width:20px;height:22px;flex:0 0 auto;margin-top:3px;font-size:11px;line-height:1;
+background:var(--brand);color:var(--brand-ink);
+clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.h-image\{filter:none}
 
 /* A slide's screenshot. It is a picture of a window, so it is given the edge
-   a window has — the same hairline and radius the code samples carry, since
-   both are the same kind of thing on the page: a box holding something the
-   prose is talking about rather than saying. The drop-shadow above is for the
-   mark on the front page, which is a cut-out with no edge of its own; this
-   one has an edge, so it takes a real shadow and drops the filter. */
-.h-root>.h-row>.h-column:last-child .h-column>.h-image\{
-width:100%;height:auto;border:1px solid var(--code-line);border-radius:10px;
-box-shadow:0 1px 2px var(--shadow);filter:none;background:var(--code)}
+   a window has — the same hairline the code samples carry, since both are the
+   same kind of thing on the page: a figure holding something the prose is
+   talking about rather than saying. Which is also why the amber rule came off
+   this at the same time it came off those: the whole point of the two being
+   dressed alike is that they go on being dressed alike. Square, flush, and no
+   shadow, because nothing on this page floats. */
+.h-root>.h-column>.h-column .h-column>.h-image\{
+width:100%;height:auto;border:1px solid var(--code-line);
+background:var(--code)}
 .h-link.h-bg-good\{
-background:var(--brand);color:var(--brand-ink);font-weight:650;
-padding:9px 17px;border-radius:9px;box-shadow:0 1px 2px var(--shadow);
-transition:filter .14s ease,box-shadow .14s ease,transform .14s ease}
+display:inline-block;background:var(--brand);color:var(--brand-ink);
+font:700 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;
+padding:13px 20px;border:1px solid var(--brand);
+transition:background .13s ease,color .13s ease,border-color .13s ease}
 .h-link.h-bg-good:hover\{
-filter:brightness(1.06);box-shadow:0 4px 14px var(--shadow);
-transform:translateY(-1px);text-decoration:none}
-.h-link.h-bg-good:active\{transform:translateY(0);box-shadow:0 1px 2px var(--shadow)}
+background:var(--invert);color:var(--brand);border-color:var(--invert);
+text-decoration:none}
+.h-link.h-bg-good:active\{
+background:var(--accent);color:var(--bg);border-color:var(--accent)}
 `
 }
 
@@ -324,11 +496,30 @@ transform:translateY(-1px);text-decoration:none}
 // exists, since a `style=` written inline in the middle of a Str is a thing
 // nobody can find again later.
 //
-// A sample is a program, and the page's job is to make it look like one you
-// could run: a fill a shade off the page, a hairline, and a monospace stack
-// that starts at the fonts a developer's machine actually has. It scrolls
-// sideways on its own rather than widening the column, because a long line in
-// one example is not a reason for every paragraph on the page to get longer.
+// A sample is a figure, and it is set the way a book sets one: a label above
+// it in small tracked capitals, and a panel flush with the text below it. A
+// hairline and nothing else — no radius, no shadow, and no rule down the left
+// edge. There was an amber one there for a while, on the reasoning that a
+// panel this cold in the middle of a page this warm wanted something of the
+// page's colour touching it. It did not: the sample already announces itself
+// twice over, by its fill and by every token inside it, and a third mark on
+// the edge was the page pointing at something that was not hiding. The panel
+// scrolls sideways on its own rather than widening the column, because a long
+// line in one example is not a reason for every paragraph on the page to get
+// longer.
+func code(): Str {
+	return `.tour-example\{margin:0 0 26px}
+.tour-example:last-child\{margin-bottom:0}
+.tour-caption\{margin:0 0 8px;font:600 11px/1.4 var(--f-mono);
+letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.tour-code\{margin:0;padding:16px 18px;overflow-x:auto;tab-size:4;
+background:var(--code);border:1px solid var(--code-line)}
+.tour-code code\{font:13.5px/1.65 var(--f-mono);font-variant-ligatures:none;
+letter-spacing:0;color:var(--fg)}
+.tour-prose\{display:flex;flex-direction:column}
+`
+}
+
 // What ./highlight's spans look like. Every rule is scoped under `.tour-code`,
 // so a one-letter class name can never reach anything but a code sample.
 //
@@ -340,7 +531,8 @@ transform:translateY(-1px);text-decoration:none}
 // on this list shares a hue with anything outside the box it is in. The
 // contrast is what says *this is not prose, this is a program* before a word
 // of it has been read, and it does that work at a glance and from across the
-// room, which no amount of monospace does on its own.
+// room — which matters more now than it did, because the headings are
+// monospace too, and the face is no longer the thing telling them apart.
 //
 // Five hues and a grey, which is fewer than a code theme usually spends, and
 // the grouping is by what a thing *is* rather than by what it is called. An
@@ -367,20 +559,5 @@ func syntax(): Str {
 .tour-code .i\{color:var(--sy-hole)}
 .tour-code .f\{color:var(--sy-name)}
 .tour-code .b\{color:var(--sy-name);font-weight:600}
-`
-}
-
-func code(): Str {
-	return `.tour-example\{margin:0 0 22px}
-.tour-example:last-child\{margin-bottom:0}
-.tour-caption\{margin:0 0 7px;font-size:11.5px;font-weight:650;
-letter-spacing:.085em;text-transform:uppercase;color:var(--muted)}
-.tour-code\{margin:0;padding:15px 17px;overflow-x:auto;tab-size:4;
-background:var(--code);border:1px solid var(--code-line);border-radius:10px;
-box-shadow:0 1px 2px var(--shadow)}
-.tour-code code\{font:13px/1.62 ui-monospace,SFMono-Regular,"SF Mono",
-Menlo,Consolas,"Liberation Mono",monospace;font-variant-ligatures:none;
-letter-spacing:0;color:var(--fg)}
-.tour-prose\{display:flex;flex-direction:column}
 `
 }

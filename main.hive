@@ -126,6 +126,10 @@ proc handle(request: hive.net.HttpRequest): hive.net.HttpResponse {
 	// The two files a crawler asks for that no visitor ever does. Neither
 	// depends on the language either: the sitemap names both of them for
 	// every page, which is the point of it.
+	if path == "/contents" {
+		return contentsResponse(lang)
+	}
+
 	if path == "/robots.txt" {
 		return robotsResponse()
 	}
@@ -433,7 +437,10 @@ func robotsResponse(): hive.net.HttpResponse {
 
 func sitemapResponse(): hive.net.HttpResponse {
 	all := slides.all()
-	mut Str[dyn] entries = [sitemapEntry("/", "en"), sitemapEntry("/", "pt")]
+	mut Str[dyn] entries = [
+		sitemapEntry("/", "en"), sitemapEntry("/", "pt"),
+		sitemapEntry("/contents", "en"), sitemapEntry("/contents", "pt"),
+	]
 	for i := 0; i < len(all); i++ {
 		append(entries, sitemapEntry("/{i + 1}", "en"))
 		append(entries, sitemapEntry("/{i + 1}", "pt"))
@@ -556,7 +563,7 @@ func renderSlide(slide: slides.Slide, idx: Int, all: slides.Slide[], lang: Str):
 		prev: previous,
 		next: following,
 	)
-	top := ui.row([], [sidebarView(all, idx, lang, path), headerColumn(slide, idx, total, lang)])
+	top := pageView(lang, path, [progressView(idx, total), headerColumn(slide, idx, total, lang)])
 	page := document(head, top)
 
 	// The examples, and then everything that follows them, in the one place
@@ -611,35 +618,54 @@ func slideExplanation(slide: slides.Slide, lang: Str): Str {
 // child and last child of the row — and a lone column would answer to both.
 func homeResponse(lang: Str): hive.net.HttpResponse {
 	all := slides.all()
-	content := ui.column([ui.gap(20), ui.pad(40), ui.grow(1), ui.width(680)], [
-		// The switch the rail carries everywhere else. It stays at the top of
-		// the page it is on, which here is the first thing above the mark.
-		ui.row([ui.justify(ui.Justify.End())], [languageSwitcherView(lang, "/")]),
-		// The gap is small because the drawing brings its own: the artwork is
-		// a square with the bee inside it, so a fifth of the width beside the
-		// name is margin the mark already paid for.
-		ui.row([ui.gap(8), ui.align(ui.Align.Center())], [
-			ui.image([ui.width(128)], "/hive-logo.svg", logoAlt(lang)),
-			ui.column([ui.gap(4)], [
-				ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], homeKicker(lang)),
-				ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], "Hive"),
+	content := ui.column([ui.gap(30), ui.pad(40), ui.grow(1)], [
+		// Two columns, and the reason is a screen rather than a taste. Stacked
+		// in one 680px column, the mark, two paragraphs, six claims and four
+		// links came to something over a thousand pixels, which is a front
+		// page that does not fit on the screen it is being read on — so the
+		// first thing it says about a language small enough to learn in a day
+		// is "scroll". Side by side the same material is under seven hundred,
+		// and everything the page has to say arrives at once.
+		//
+		// They split the room evenly. The left is prose and wants a measure;
+		// the right is six claims and wants each of them to stay short. Half
+		// and half is what gives both, and `grow` is how a view says it: the
+		// numbers are a ratio rather than a width, so the two keep their
+		// proportion at whatever width the window turns out to be.
+		ui.row([ui.gap(52), ui.align(ui.Align.Start())], [
+			ui.column([ui.gap(22), ui.grow(1)], [
+				// The gap is small because the drawing brings its own: the
+				// artwork is a square with the bee inside it, so a fifth of
+				// the width beside the name is margin the mark already paid
+				// for.
+				ui.row([ui.gap(10), ui.align(ui.Align.Center())], [
+					ui.image([ui.width(104)], "/hive-logo.svg", logoAlt(lang)),
+					ui.column([ui.gap(4)], [
+						ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], homeKicker(lang)),
+						ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], "Hive"),
+					]),
+				]),
+				ui.text([], homeParagraphOne(lang)),
+				ui.text([], homeParagraphTwo(lang)),
+				// Two rows rather than one. Four things abreast wrapped every
+				// label onto two lines, which made the one that matters look
+				// like the three that do not: the way on is a button of its
+				// own, and the rest are what somebody reads after deciding not
+				// to take it.
+				ui.column([ui.gap(14)], [
+					ui.row([ui.gap(18), ui.align(ui.Align.Center())], [
+						ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourArrow(lang)),
+						ui.link([], href("/contents", lang), contentsLabel(lang)),
+					]),
+					ui.row([ui.gap(18), ui.align(ui.Align.Center())], [
+						ui.link([], releaseUrl(), downloadLabel(lang)),
+						ui.link([], repoUrl(), repoLinkLabel(lang)),
+					]),
+				]),
 			]),
-		]),
-		ui.text([], homeParagraphOne(lang)),
-		ui.text([], homeParagraphTwo(lang)),
-		highlightsView(lang),
-		// Two rows rather than one. Four things abreast in 680px wrapped every
-		// label onto two lines, which made the one that matters look like the
-		// three that do not: the way on is a button of its own, and the rest
-		// are what somebody reads after deciding not to take it.
-		ui.column([ui.gap(12)], [
-			ui.row([ui.gap(16), ui.align(ui.Align.Center())], [
-				ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourArrow(lang)),
-				ui.text([ui.tone(ui.Tone.Muted())], featuresCount(lang, len(all))),
-			]),
-			ui.row([ui.gap(16), ui.align(ui.Align.Center())], [
-				ui.link([], releaseUrl(), downloadLabel(lang)),
-				ui.link([], repoUrl(), repoLinkLabel(lang)),
+			ui.column([ui.gap(14), ui.grow(1)], [
+				ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], featuresCount(lang, len(all))),
+				highlightsView(lang),
 			]),
 		]),
 	])
@@ -652,7 +678,7 @@ func homeResponse(lang: Str): hive.net.HttpResponse {
 		prev: "",
 		next: "/1",
 	)
-	body := document(head, ui.column([], [content]))
+	body := document(head, pageView(lang, "/", [content]))
 	return hive.net.HttpResponse(200, htmlHeaders(), body)
 }
 
@@ -681,8 +707,12 @@ func repoLinkLabel(lang: Str): Str {
 	return "View the repository"
 }
 
+// The bullet sits against the first line of the claim rather than in the
+// middle of the block of it. A claim that runs to three lines with its mark
+// floating halfway down them reads as a mark belonging to the second line,
+// which is a line it has nothing to do with.
 func highlightRow(text: Str): ui.View {
-	return ui.row([ui.gap(8), ui.align(ui.Align.Center())], [
+	return ui.row([ui.gap(10), ui.align(ui.Align.Start())], [
 		ui.icon([ui.tone(ui.Tone.Good())], ui.Icon.Check()),
 		ui.text([], text),
 	])
@@ -690,7 +720,7 @@ func highlightRow(text: Str): ui.View {
 
 func highlightsView(lang: Str): ui.View {
 	if lang == "pt" {
-		return ui.column([ui.gap(8)], [
+		return ui.column([ui.gap(11)], [
 			highlightRow("Sem exceções em tempo de execução — não existe null, nada é lançado, e todo índice é provado antes de o programa rodar"),
 			highlightRow("Pequena o bastante para se aprender em um dia — este tour é a linguagem inteira, um recurso por vez"),
 			highlightRow("Feita para sistemas distribuídos desde o começo — um serviço é endereçado do mesmo jeito nesta máquina ou em outra"),
@@ -699,7 +729,7 @@ func highlightsView(lang: Str): ui.View {
 			highlightRow("Um único executável, e uma biblioteca padrão com HTTP, WebSockets, SQL, criptografia, uma UI e atores distribuídos"),
 		])
 	}
-	return ui.column([ui.gap(8)], [
+	return ui.column([ui.gap(11)], [
 		highlightRow("No runtime exceptions — no null, nothing thrown, and every index proved before the program runs"),
 		highlightRow("Small enough to learn in a day — this tour is the whole language, one feature at a time"),
 		highlightRow("Built for distributed systems from the start — a service is addressed the same way on this machine or another"),
@@ -710,8 +740,7 @@ func highlightsView(lang: Str): ui.View {
 }
 
 func notFoundResponse(lang: Str, path: Str): hive.net.HttpResponse {
-	all := slides.all()
-	content := ui.column([ui.pad(60), ui.align(ui.Align.Center()), ui.gap(12), ui.grow(1)], [
+	content := ui.column([ui.pad(60), ui.align(ui.Align.Center()), ui.gap(14), ui.grow(1)], [
 		ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], "404"),
 		ui.text([ui.tone(ui.Tone.Muted())], notFoundText(lang)),
 		ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourPlain(lang)),
@@ -725,8 +754,7 @@ func notFoundResponse(lang: Str, path: Str): hive.net.HttpResponse {
 		prev: "",
 		next: "",
 	)
-	top := ui.row([], [sidebarView(all, -1, lang, path), content])
-	body := document(head, top)
+	body := document(head, pageView(lang, path, [content]))
 	return hive.net.HttpResponse(404, htmlHeaders(), body)
 }
 
@@ -740,32 +768,135 @@ func href(path: Str, lang: Str): Str {
 	return path
 }
 
-// The list of every slide, down the left, under a link back to the home
-// screen and the EN/PT switch. The current slide is picked out with a
-// muted background — `ui.background`, not a class of our own, since the
-// tone it takes is one `hive.ui`'s own stylesheet already knows — and the
-// switch picks out the current language the same way. `idx` of `-1` — the
-// home page and the 404 page both pass it — highlights no slide at all.
-func sidebarView(all: slides.Slide[], idx: Int, lang: Str, path: Str): ui.View {
-	mut ui.View[dyn] items = []
+// The line of small type across the top of every page, and the bar of
+// progress under it. Between them they are the whole of this tour's
+// navigation, and what they replace is a rail down the left carrying all
+// fifty-four slides at once.
+//
+// The rail went because of what it was, not because of how it looked. A list
+// of every page, pinned open beside every page, collapsing into a lid on a
+// narrow one, is the shape of a documentation site — and a tour is not one.
+// Documentation is arrived at sideways, from a search, in the middle, and it
+// owes a reader a map because no reader of it started at the start. A tour is
+// the opposite: it has a first slide, a last one, and an order that is the
+// argument. Pinning the map open beside it spends a fifth of the window, and
+// every pixel of that fifth, on a question the reader of a tour is not
+// asking. Worse, it answers it badly — fifty-four entries is well past the
+// length anybody reads as a list, so the rail was mostly a texture with one
+// line picked out of it.
+//
+// What a book does instead is what this does now. A running head says what
+// you are reading. A contents page — one click, its own address, and set out
+// properly when you get there — is where the map lives. Prev and next at the
+// foot of the slide are how you actually move, because moving one slide at a
+// time is what a tour is for. Nothing is pinned open, nothing collapses into
+// a lid, and the reading gets the whole window.
+//
+// It is `ui.spacer` that splits the head in two, which is the widget for
+// exactly this and the reason no attribute here pushes anything to an edge:
+// what is before it sits left, what is after it sits right, and the row needs
+// to know nothing else.
+func runningHeadView(lang: Str, path: Str): ui.View {
+	return ui.row([ui.gap(22), ui.align(ui.Align.Center())], [
+		ui.link([ui.size(ui.TextSize.Caption())], href("/", lang), tourTitle(lang)),
+		ui.link([ui.size(ui.TextSize.Caption())], href("/contents", lang), contentsLabel(lang)),
+		ui.spacer(),
+		languageSwitcherView(lang, path),
+	])
+}
+
+// How far through the tour this slide is, as a bar two pixels tall under the
+// running head.
+//
+// It is the one thing the rail was genuinely good at — a glance that says
+// there is a lot of this left, or nearly none — kept, and given two pixels
+// instead of two hundred and sixty. And it is a view like everything else:
+// two boxes in a row, one carrying `grow(read)` and one `grow(left)`, which
+// is how `hive.ui` says "these two split the room in that ratio". No width is
+// computed here and no percentage is written down. The ratio is the slide
+// number, and the layout is what turns a ratio into a length.
+//
+// `grow(0)` is what the last slide leaves the second box, and a share of
+// nought of the leftover room is no room at all — so the bar arrives full on
+// slide fifty-four without that being a case anybody had to write.
+func progressView(idx: Int, total: Int): ui.View {
+	return ui.row([ui.height(3)], [
+		ui.column([ui.grow(idx + 1), ui.background(ui.Tone.Good())], []),
+		ui.column([ui.grow(total - idx - 1)], []),
+	])
+}
+
+// Every page in this program is the same two things stacked: the running head,
+// and then whatever that page is. It is one function because it is one shape,
+// and because a head is the kind of thing that is wrong the moment one page
+// has a slightly different one.
+func pageView(lang: Str, path: Str, body: ui.View[dyn]): ui.View {
+	return ui.column([], [runningHeadView(lang, path)] + body)
+}
+
+// The contents, which is the rail again with both things wrong with it put
+// right: it is somewhere you go rather than something you carry, and when you
+// get there it has the whole window to be a list in.
+//
+// Three columns rather than one, because fifty-four entries down a single
+// column is a list you have to scroll to read, and a list you scroll is a
+// list you cannot see. Three columns of eighteen is one screen. They are real
+// `ui.column`s inside a `ui.row` rather than a CSS column count, so the
+// reading order is the order of the markup: one to eighteen, then nineteen to
+// thirty-six, then the rest. A stylesheet that flows one list into three
+// columns draws the same picture and hands a screen reader one long list,
+// which is fine; this hands it three, each a run of consecutive slides, which
+// is better.
+func contentsResponse(lang: Str): hive.net.HttpResponse {
+	all := slides.all()
+	total := len(all)
+	perColumn := (total + 2) / 3
+
+	mut ui.View[dyn] columns = []
+	mut ui.View[dyn] current = []
 	for i := 0; i < len(all); i++ {
-		item := all[i]
-		mut highlight := ui.Tone.Normal()
-		if i == idx {
-			highlight = ui.Tone.Muted()
+		append(current, contentsEntryView(all[i], i, lang))
+		if len(current) == perColumn {
+			append(columns, ui.column([ui.gap(2), ui.grow(1)], current))
+			current = []
 		}
-		link := ui.link(
-			[ui.background(highlight)],
-			href("/{i + 1}", lang),
-			"{i + 1}. {slideTitle(item, lang)}",
-		)
-		append(items, link)
 	}
-	home := ui.link([ui.size(ui.TextSize.Subtitle())], href("/", lang), tourTitle(lang))
-	return ui.column(
-		[ui.width(260), ui.pad(24), ui.gap(2), ui.scroll(ui.Axis.Vertical())],
-		[home, languageSwitcherView(lang, path)] + items,
+	if len(current) > 0 {
+		append(columns, ui.column([ui.gap(2), ui.grow(1)], current))
+	}
+
+	body := ui.column([ui.gap(30), ui.pad(40), ui.grow(1)], [
+		ui.column([ui.gap(6)], [
+			ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], featuresCount(lang, total)),
+			ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], contentsLabel(lang)),
+		]),
+		ui.row([ui.gap(36), ui.align(ui.Align.Start())], columns),
+	])
+	head := PageHead(
+		title: contentsLabel(lang) + pageTitleSuffix(lang),
+		description: contentsDescription(lang),
+		path: "/contents",
+		lang: lang,
+		indexable: true,
+		prev: "",
+		next: "/1",
 	)
+	return hive.net.HttpResponse(200, htmlHeaders(), document(head, pageView(lang, "/contents", [body])))
+}
+
+// One line of the contents. The number is padded to two digits, and the
+// padding is not cosmetic: ./theme sets this list in a monospace and hangs
+// every entry off a four-character indent, so a title long enough to wrap
+// comes back underneath the title rather than underneath the number. That
+// only holds while every label really is four characters before the text
+// starts, which "9. " is not and "09. " is. The two files have to agree about
+// the four, and this is the half of the agreement that produces it.
+func contentsEntryView(slide: slides.Slide, i: Int, lang: Str): ui.View {
+	mut number := "{i + 1}"
+	if i + 1 < 10 {
+		number = "0{i + 1}"
+	}
+	return ui.link([], href("/{i + 1}", lang), "{number}. {slideTitle(slide, lang)}")
 }
 
 func languageSwitcherView(lang: Str, path: Str): ui.View {
@@ -969,6 +1100,21 @@ func notFoundPageTitle(lang: Str): Str {
 func slideProgress(idx: Int, total: Int, lang: Str): Str {
 	if lang == "pt" { return "Slide {idx + 1} de {total}" }
 	return "Slide {idx + 1} of {total}"
+}
+
+// What the contents page is called, in the running head, on the page itself,
+// and in the tab. One word doing three jobs, so it is the same word in all
+// three places rather than a heading, a link label and a title that drift.
+func contentsLabel(lang: Str): Str {
+	if lang == "pt" { return "Sumário" }
+	return "Contents"
+}
+
+func contentsDescription(lang: Str): Str {
+	if lang == "pt" {
+		return "Todos os recursos do tour da linguagem Hive, em ordem, cada um em uma página."
+	}
+	return "Every feature in the Hive language tour, in order, one to a page."
 }
 
 func prevLabel(lang: Str): Str {
