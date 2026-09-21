@@ -1,0 +1,17 @@
+// Prints every slide's code samples, so an edit to ./slides can be diffed
+// against what it rendered before. Temporary; not part of the tour.
+import ./slides
+
+proc main(): void {
+	mut Int n = 0
+	for each slide in slides.all() {
+		n = n + 1
+		echo "=== {n} {slide.title} ==="
+		for each example in slide.examples {
+			echo "--- en: {example.caption}"
+			echo example.code
+			echo "--- pt: {example.captionPt}"
+			echo example.codePt
+		}
+	}
+}

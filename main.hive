@@ -11,7 +11,7 @@
 // that are not it, each because a program is easier to read when the thing it
 // does and the material it does it to are not interleaved:
 //
-//   ./slides     the tour itself, fifty-four slides of it in two languages,
+//   ./slides     the tour itself, fifty-five slides of it in two languages,
 //                and the two types that hold one. Four fifths of the whole
 //                program by weight, and none of it about HTTP.
 //   ./logo       the mark, as the paths of an SVG. A drawing is not prose,
@@ -607,7 +607,7 @@ func slideExplanation(slide: slides.Slide, lang: Str): Str {
 
 // The landing page, and the one page with **no rail down the left**. A
 // sidebar is for somebody who is already inside the tour and wants a
-// different part of it; on the way in it is fifty-four links in front of
+// different part of it; on the way in it is fifty-five links in front of
 // two paragraphs, which is a table of contents standing where the cover
 // should be. So the home page is one centred column, and the only way on
 // from it is the same way anybody would have gone anyway: start at the
@@ -771,7 +771,7 @@ func href(path: Str, lang: Str): Str {
 // The line of small type across the top of every page, and the bar of
 // progress under it. Between them they are the whole of this tour's
 // navigation, and what they replace is a rail down the left carrying all
-// fifty-four slides at once.
+// fifty-five slides at once.
 //
 // The rail went because of what it was, not because of how it looked. A list
 // of every page, pinned open beside every page, collapsing into a lid on a
@@ -781,7 +781,7 @@ func href(path: Str, lang: Str): Str {
 // the opposite: it has a first slide, a last one, and an order that is the
 // argument. Pinning the map open beside it spends a fifth of the window, and
 // every pixel of that fifth, on a question the reader of a tour is not
-// asking. Worse, it answers it badly — fifty-four entries is well past the
+// asking. Worse, it answers it badly — fifty-five entries is well past the
 // length anybody reads as a list, so the rail was mostly a texture with one
 // line picked out of it.
 //
@@ -818,7 +818,7 @@ func runningHeadView(lang: Str, path: Str): ui.View {
 //
 // `grow(0)` is what the last slide leaves the second box, and a share of
 // nought of the leftover room is no room at all — so the bar arrives full on
-// slide fifty-four without that being a case anybody had to write.
+// slide fifty-five without that being a case anybody had to write.
 func progressView(idx: Int, total: Int): ui.View {
 	return ui.row([ui.height(3)], [
 		ui.column([ui.grow(idx + 1), ui.background(ui.Tone.Good())], []),
@@ -838,7 +838,7 @@ func pageView(lang: Str, path: Str, body: ui.View[dyn]): ui.View {
 // right: it is somewhere you go rather than something you carry, and when you
 // get there it has the whole window to be a list in.
 //
-// Three columns rather than one, because fifty-four entries down a single
+// Three columns rather than one, because fifty-five entries down a single
 // column is a list you have to scroll to read, and a list you scroll is a
 // list you cannot see. Three columns of eighteen is one screen. They are real
 // `ui.column`s inside a `ui.row` rather than a CSS column count, so the

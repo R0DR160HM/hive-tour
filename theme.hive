@@ -409,7 +409,7 @@ font:600 12px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
 // could be selling anything. The front page takes it furthest — the name of
 // the language at sixty-odd pixels, tracked in tight, beside the mark — and
 // every page after it carries the smaller version of the same idea, over a
-// rule, under a line saying which of the fifty-four this is.
+// rule, under a line saying which of the fifty-five this is.
 //
 // The front page's title is told apart from every other title by where it
 // sits rather than by a class of its own. `.h-image + .h-column > h1` is a

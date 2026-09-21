@@ -5,7 +5,7 @@
 // than this file's.
 //
 // It lives apart from the server for the reason the drawing in ./logo does.
-// The tour is fifty-four slides of prose in two languages, and a server is
+// The tour is fifty-five slides of prose in two languages, and a server is
 // about two hundred lines; kept in one file, the second is a footnote to the
 // first, and every edit to either means scrolling past all of the other. So
 // the program is in main.hive and what the program is *about* is in here.
@@ -17,7 +17,7 @@
 // run is a program the reader cannot check.
 //
 // `all` is the whole tour, in order, and its length is part of its type:
-// `Slide[54]` rather than `Slide[dyn]`. A slide added here is a slide the
+// `Slide[55]` rather than `Slide[dyn]`. A slide added here is a slide the
 // sidebar lists, a slide the pager counts to, and a slide the sitemap names,
 // because all three are built from this one vector — and the number in the
 // type is what makes adding one a change the compiler checks rather than a
@@ -40,7 +40,7 @@ type Slide {
 	shot:          Str
 }
 
-func all(): Slide[54] {
+func all(): Slide[55] {
 	return [
 		Slide(
 			title: "Hello, World",
@@ -3714,8 +3714,8 @@ setlocal errorformat=%-G\ %.%#,%f:%l:\ %m,%-G%.%#
 			titlePt: "Construindo para outra plataforma",
 			download: false,
 			shot: "",
-			explanation: "Because the last step is the Go toolchain, a Hive program is built for another platform the way any Go program is — by telling the toolchain which one. hive build takes a --target, and nothing else does.\n\nA target is a goos/goarch pair, and the pair is checked before anything is compiled. `go tool dist list` names every one the toolchain knows, and one it does not name is refused there and then rather than ten seconds later, by a build failing in a language you did not write. The list is asked for rather than kept anywhere, so a platform Go learns tomorrow needs no change here. And a platform that does not exist is a mistake in what was typed, so it is reported as one — beside the other command-line mistakes, rather than against a line of a program that has nothing wrong with it.\n\nWhat comes out says what it is for. A host build of main.hive is main, and a cross build is main-linux-arm64: two files that cannot run in the same places must not answer to one name, and a cross build that quietly replaced the local one would only be found out by running it. The .exe follows the target rather than the machine, so --target windows/amd64 writes main-windows-amd64.exe from anywhere.\n\nCGO_ENABLED=0 goes with a cross build and only with one. Everything the runtime is made of is Go, so no Hive program needs a C compiler — and a C cross-compiler is the one thing a machine with the Go toolchain on it cannot be assumed to have. A build for the machine it is running on is given no environment at all, and is therefore byte for byte the build it always was.\n\n--target is a flag of build, and of build alone. check and emit compile nothing; test and container are both about this machine; and each of the four refuses the flag rather than accepting it and quietly ignoring it. run is the exception that proves the rule: everything after the entrypoint there belongs to the program being run, so a --target written after it is passed straight through, unread.",
-			explanationPt: "Como o último passo é a toolchain do Go, um programa Hive é construído para outra plataforma do jeito que qualquer programa Go é — dizendo à toolchain qual é ela. hive build recebe um --target, e nada mais recebe.\n\nUm target é um par goos/goarch, e o par é verificado antes de qualquer coisa ser compilada. `go tool dist list` nomeia toda plataforma que a toolchain conhece, e uma que ele não nomeia é recusada ali mesmo em vez de dez segundos depois, por um build falhando em uma linguagem que você não escreveu. A lista é perguntada em vez de guardada em algum lugar, então uma plataforma que o Go aprender amanhã não exige mudança nenhuma aqui. E uma plataforma que não existe é um erro no que foi digitado, então é reportada como tal — ao lado dos outros erros de linha de comando, e não contra uma linha de um programa que não tem nada de errado.\n\nO que sai diz para que serve. Um build local de main.hive é main, e um build cruzado é main-linux-arm64: dois arquivos que não podem rodar nos mesmos lugares não podem atender pelo mesmo nome, e um build cruzado que substituísse silenciosamente o local só seria descoberto ao rodá-lo. O .exe segue o target e não a máquina, então --target windows/amd64 escreve main-windows-amd64.exe de qualquer lugar.\n\nCGO_ENABLED=0 acompanha um build cruzado e somente um. Tudo de que o runtime é feito é Go, então nenhum programa Hive precisa de um compilador C — e um compilador C cruzado é a única coisa que não se pode presumir em uma máquina que tem a toolchain do Go. Um build para a própria máquina em que roda não recebe ambiente nenhum, e é portanto byte a byte o build que sempre foi.\n\n--target é uma flag do build, e só do build. check e emit não compilam nada; test e container são sobre esta máquina; e cada um dos quatro recusa a flag em vez de aceitá-la e ignorá-la silenciosamente. run é a exceção que confirma a regra: tudo depois do entrypoint ali pertence ao programa que está sendo rodado, então um --target escrito depois dele é repassado direto, sem ser lido.",
+			explanation: "Because the last step is the Go toolchain, a Hive program is built for another platform the way any Go program is — by telling the toolchain which one. hive build takes a --target, and nothing else does.\n\nA target is a goos/goarch pair, and the pair is checked before anything is compiled. `go tool dist list` names every one the toolchain knows, and one it does not name is refused there and then rather than ten seconds later, by a build failing in a language you did not write. The list is asked for rather than kept anywhere, so a platform Go learns tomorrow needs no change here. And a platform that does not exist is a mistake in what was typed, so it is reported as one — beside the other command-line mistakes, rather than against a line of a program that has nothing wrong with it.\n\nWhat comes out says what it is for. A host build of main.hive is main, and a cross build is main-linux-arm64: two files that cannot run in the same places must not answer to one name, and a cross build that quietly replaced the local one would only be found out by running it. The .exe follows the target rather than the machine, so --target windows/amd64 writes main-windows-amd64.exe from anywhere.\n\nCGO_ENABLED=0 goes with a cross build and only with one. Everything the runtime is made of is Go, so no Hive program needs a C compiler — and a C cross-compiler is the one thing a machine with the Go toolchain on it cannot be assumed to have. A build for the machine it is running on is given no environment at all, and is therefore byte for byte the build it always was.\n\n--target belongs to the two commands that write something for a platform, build and export. check and emit compile nothing; test and container are both about this machine; and each of the four refuses the flag rather than accepting it and quietly ignoring it. run is the exception that proves the rule: everything after the entrypoint there belongs to the program being run, so a --target written after it is passed straight through, unread.",
+			explanationPt: "Como o último passo é a toolchain do Go, um programa Hive é construído para outra plataforma do jeito que qualquer programa Go é — dizendo à toolchain qual é ela. hive build recebe um --target, e nada mais recebe.\n\nUm target é um par goos/goarch, e o par é verificado antes de qualquer coisa ser compilada. `go tool dist list` nomeia toda plataforma que a toolchain conhece, e uma que ele não nomeia é recusada ali mesmo em vez de dez segundos depois, por um build falhando em uma linguagem que você não escreveu. A lista é perguntada em vez de guardada em algum lugar, então uma plataforma que o Go aprender amanhã não exige mudança nenhuma aqui. E uma plataforma que não existe é um erro no que foi digitado, então é reportada como tal — ao lado dos outros erros de linha de comando, e não contra uma linha de um programa que não tem nada de errado.\n\nO que sai diz para que serve. Um build local de main.hive é main, e um build cruzado é main-linux-arm64: dois arquivos que não podem rodar nos mesmos lugares não podem atender pelo mesmo nome, e um build cruzado que substituísse silenciosamente o local só seria descoberto ao rodá-lo. O .exe segue o target e não a máquina, então --target windows/amd64 escreve main-windows-amd64.exe de qualquer lugar.\n\nCGO_ENABLED=0 acompanha um build cruzado e somente um. Tudo de que o runtime é feito é Go, então nenhum programa Hive precisa de um compilador C — e um compilador C cruzado é a única coisa que não se pode presumir em uma máquina que tem a toolchain do Go. Um build para a própria máquina em que roda não recebe ambiente nenhum, e é portanto byte a byte o build que sempre foi.\n\n--target pertence aos dois comandos que escrevem algo para uma plataforma, build e export. check e emit não compilam nada; test e container são sobre esta máquina; e cada um dos quatro recusa a flag em vez de aceitá-la e ignorá-la silenciosamente. run é a exceção que confirma a regra: tudo depois do entrypoint ali pertence ao programa que está sendo rodado, então um --target escrito depois dele é repassado direto, sem ser lido.",
 			examples: [
 				Example(caption: "One machine, three platforms", captionPt: "Uma máquina, três plataformas", code: `$ hive build main.hive
 Compiled main.hive -> main (1s)
@@ -3739,14 +3739,101 @@ $ hive build main.hive --target
 hive: ` + "`" + `--target` + "` " + `was given no platform to build for. It takes a ` + "`" + `goos/goarch` + "` " + `pair — ` + "`" + `hive build <entrypoint.hive> --target linux/arm64` + "`" + `.
 
 $ hive check main.hive --target linux/arm64
-hive: ` + "`" + `--target` + "` " + `is a flag of ` + "`" + `hive build` + "`" + `. ` + "`" + `check` + "` " + `builds nothing for another platform.`, codePt: `$ hive build main.hive --target linux/sparc
+hive: ` + "`" + `--target` + "` " + `is a flag of ` + "`" + `hive build` + "` " + `and ` + "`" + `hive export` + "`" + `. ` + "`" + `check` + "` " + `builds nothing for another platform.`, codePt: `$ hive build main.hive --target linux/sparc
 hive: ` + "`" + `--target linux/sparc` + "` " + `is not a platform the Go toolchain builds for. A target is a ` + "`" + `goos/goarch` + "` " + `pair — ` + "`" + `linux/arm64` + "`" + `, ` + "`" + `darwin/arm64` + "`" + `, ` + "`" + `windows/amd64` + "` " + `— and ` + "`" + `go tool dist list` + "` " + `names every one it knows.
 
 $ hive build main.hive --target
 hive: ` + "`" + `--target` + "` " + `was given no platform to build for. It takes a ` + "`" + `goos/goarch` + "` " + `pair — ` + "`" + `hive build <entrypoint.hive> --target linux/arm64` + "`" + `.
 
 $ hive check main.hive --target linux/arm64
-hive: ` + "`" + `--target` + "` " + `is a flag of ` + "`" + `hive build` + "`" + `. ` + "`" + `check` + "` " + `builds nothing for another platform.`),
+hive: ` + "`" + `--target` + "` " + `is a flag of ` + "`" + `hive build` + "` " + `and ` + "`" + `hive export` + "`" + `. ` + "`" + `check` + "` " + `builds nothing for another platform.`),
+			],
+		),
+		Slide(
+			title: "Packaging an app",
+			titlePt: "Empacotando um app",
+			download: false,
+			shot: "",
+			explanation: "\n\`hive build` writes a program. `hive export` writes an app: `hive export main.hive --target android/arm64` produces main-android-arm64.apk, installable as it stands.nThe window needs nothing new. A hive.ui.window already serves its own page over loopback with every asset embedded, so what shows it on a handset is the WebView the platform already has. The program is never told it is on a phone: it serves the tree it would serve a browser, and the same view function answers both.nandroid/arm64, and no other Android target. It is the only one Go links without a C cross-compiler — the one thing a machine with the Go toolchain on it cannot be assumed to have — so the other three are refused by name rather than failing ten seconds later in a language you did not write. It is also what a handset is.nA program with no window is refused rather than packaged. An app whose activity shows nothing has no way to be started and nothing to see, so export says so and stops; hive build is what compiles a program that serves or prints.nWhat the file holds: the program itself, a fixed WebView host, a binary manifest, and assets/icon.png as the launcher icon where the program ships one. The application id comes from the entrypoint, so chat.hive is hive.chat. Nothing but Go writes any of it — the manifest, the resource table, the archive and the signature over it are the build's own work, the same way the Windows resource object is. No Android SDK, and no network.nThe signature is APK Signature Scheme v2, under a key made on first use at ~/.hive/android.key. One stable key a machine over, so a later build installs over an earlier one instead of being refused as a different app.",
+			explanationPt: "\n\`hive build` escreve um programa. `hive export` escreve um app: `hive export main.hive --target android/arm64` produz main-android-arm64.apk, instalável do jeito que sai.nA janela não precisa de nada novo. Uma hive.ui.window já serve a própria página em loopback com todos os recursos embutidos, então o que a mostra em um aparelho é a WebView que a plataforma já tem. O programa nunca fica sabendo que está em um telefone: ele serve a mesma árvore que serviria a um navegador, e a mesma função view responde aos dois.nandroid/arm64, e nenhum outro target do Android. É o único que o Go linka sem um compilador C cruzado — a única coisa que não se pode presumir em uma máquina que tem a toolchain do Go — então os outros três são recusados pelo nome, em vez de falharem dez segundos depois em uma linguagem que você não escreveu. E é também o que um aparelho é.nUm programa sem janela é recusado em vez de empacotado. Um app cuja activity não mostra nada não tem como ser iniciado nem o que mostrar, então o export diz isso e para; hive build é o que compila um programa que serve ou imprime.nO que o arquivo carrega: o programa em si, um hospedeiro WebView fixo, um manifesto binário, e assets/icon.png como ícone do lançador quando o programa traz um. O id da aplicação vem do entrypoint, então chat.hive é hive.chat. Nada além do Go escreve qualquer parte disso — o manifesto, a tabela de recursos, o arquivo compactado e a assinatura sobre ele são trabalho do próprio build, do mesmo jeito que o objeto de recurso do Windows é. Nenhum SDK do Android, e nenhuma rede.nA assinatura é o APK Signature Scheme v2, sob uma chave criada no primeiro uso em ~/.hive/android.key. Uma chave estável por máquina, então um build posterior instala sobre um anterior em vez de ser recusado como um app diferente.",
+			examples: [
+				Example(caption: "A program that is also an app", captionPt: "Um programa que também é um app", code: `import hive.ui
+
+type Msg \{
+	Tapped
+}
+
+func view(count: Int): ui.View \{
+	return ui.column([ui.pad(24), ui.gap(12), ui.align(ui.Align.Center())], [
+		ui.text([ui.size(ui.TextSize.Title())], "Tapped \{count} times"),
+		ui.button([ui.on(Msg.Tapped()), ui.tone(ui.Tone.Good())], "Tap"),
+	])
+}
+
+proc update(count: Int, msg: Msg, from: hive.syslink.Envelope): Int \{
+	if msg is Msg.Tapped \{
+		return count + 1
+	}
+	return count
+}
+
+proc main(): void \{
+	ui.window("Taps", view, update, 0)
+}`, codePt: `import hive.ui
+
+type Msg \{
+	Tapped
+}
+
+func view(count: Int): ui.View \{
+	return ui.column([ui.pad(24), ui.gap(12), ui.align(ui.Align.Center())], [
+		ui.text([ui.size(ui.TextSize.Title())], "Tocado \{count} vezes"),
+		ui.button([ui.on(Msg.Tapped()), ui.tone(ui.Tone.Good())], "Toque"),
+	])
+}
+
+proc update(count: Int, msg: Msg, from: hive.syslink.Envelope): Int \{
+	if msg is Msg.Tapped \{
+		return count + 1
+	}
+	return count
+}
+
+proc main(): void \{
+	ui.window("Toques", view, update, 0)
+}`),
+				Example(caption: "Run it here, install it there", captionPt: "Rode aqui, instale lá", code: `$ hive run taps.hive          # a window on this machine
+$ hive export taps.hive --target android/arm64
+Packaged taps.hive -> taps-android-arm64.apk (4s)
+
+$ adb install taps-android-arm64.apk
+Success`, codePt: `$ hive run taps.hive          # uma janela nesta máquina
+$ hive export taps.hive --target android/arm64
+Packaged taps.hive -> taps-android-arm64.apk (4s)
+
+$ adb install taps-android-arm64.apk
+Success`),
+				Example(caption: "The four ways it says no", captionPt: "As quatro formas de dizer não", code: `$ hive export taps.hive
+hive: ` + "`" + `hive export` + "`" + ` needs a target, and the one it knows is ` + "`" + `--target android/arm64` + "`" + `.
+
+$ hive export taps.hive --target android/amd64
+hive: ` + "`" + `--target android/amd64` + "`" + ` needs a C cross-compiler, which is the one thing a machine with the Go toolchain on it cannot be assumed to have. ` + "`" + `android/arm64` + "`" + ` is the only Android target Go links on its own, and it is what a handset is.
+
+$ hive export taps.hive --target linux/arm64
+hive: ` + "`" + `hive export` + "`" + ` knows one format, and it is Android's. It takes ` + "`" + `--target android/arm64` + "`" + `; ` + "`" + `linux/arm64` + "`" + ` has no app to be packaged into.
+
+$ hive export server.hive --target android/arm64
+server.hive:1: ` + "`" + `server.hive` + "`" + ` opens no window, so there is nothing for an app to show and no way to start it. ` + "`" + `hive build` + "`" + ` is what compiles a program that serves or prints.`, codePt: `$ hive export taps.hive
+hive: ` + "`" + `hive export` + "`" + ` needs a target, and the one it knows is ` + "`" + `--target android/arm64` + "`" + `.
+
+$ hive export taps.hive --target android/amd64
+hive: ` + "`" + `--target android/amd64` + "`" + ` needs a C cross-compiler, which is the one thing a machine with the Go toolchain on it cannot be assumed to have. ` + "`" + `android/arm64` + "`" + ` is the only Android target Go links on its own, and it is what a handset is.
+
+$ hive export taps.hive --target linux/arm64
+hive: ` + "`" + `hive export` + "`" + ` knows one format, and it is Android's. It takes ` + "`" + `--target android/arm64` + "`" + `; ` + "`" + `linux/arm64` + "`" + ` has no app to be packaged into.
+
+$ hive export server.hive --target android/arm64
+server.hive:1: ` + "`" + `server.hive` + "`" + ` opens no window, so there is nothing for an app to show and no way to start it. ` + "`" + `hive build` + "`" + ` is what compiles a program that serves or prints.`),
 			],
 		),
 		Slide(
