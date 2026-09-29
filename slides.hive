@@ -609,8 +609,8 @@ test "este está errado de propósito" \{
 			titlePt: "Funções nativas",
 			download: false,
 			shot: "",
-			explanation: "These are always in scope, with no import needed. len counts a vector's elements or a Str's characters; bytes counts a vector's backing storage or a Str's UTF-8 bytes. append and prepend grow a mutable dynamic vector at either end; drop removes a range and hands back exactly what it removed. join concatenates a vector of Str with a separator between each pair, and split is its inverse. replaceFirst and replaceAll rewrite one occurrence of a substring or every one of them, answering with a new string rather than writing through the old. indexOf finds the first equal element — or, on a Str, the first occurrence of a substring, counted in characters — and, unlike a bare -1, an Ok index is always safe to use unguarded. row and column pull a Table's row or column by its first cell or its top cell, and toTable cuts a flat vector of cells into a Table of rows that wide, the last row holding what was left. map, filter and filterMap each walk a vector with a func — map transforms every element, filter keeps the ones a predicate says yes to, filterMap does both in one pass — and sort puts a vector in order, in place when it stands alone as a statement over a mut vector.\n\nA declaration of your own — a func, proc, query or type sharing one of these names — wins over the builtin at every bare call, which stays reachable as hive.<name>.",
-			explanationPt: "Estas estão sempre no escopo, sem precisar de import. len conta os elementos de um vetor ou os caracteres de uma Str; bytes conta o armazenamento de um vetor ou os bytes UTF-8 de uma Str. append e prepend fazem crescer um vetor dinâmico mutável em uma das pontas; drop remove um intervalo e devolve exatamente o que removeu. join concatena um vetor de Str com um separador entre cada par, e split é o seu inverso. replaceFirst e replaceAll reescrevem uma ocorrência de um trecho ou todas elas, devolvendo uma string nova em vez de escrever sobre a antiga. indexOf encontra o primeiro elemento igual — ou, em uma Str, a primeira ocorrência de um trecho, contada em caracteres — e, diferente de um -1 solto, um índice Ok é sempre seguro de usar sem guarda. row e column extraem a linha ou coluna de uma Table pela primeira célula ou pela célula do topo, e toTable corta um vetor plano de células em uma Table de linhas com essa largura, a última ficando com o que sobrou. map, filter e filterMap percorrem um vetor com um func — map transforma cada elemento, filter mantém aqueles que um predicado aprova, filterMap faz as duas coisas em uma passada — e sort põe um vetor em ordem, no lugar quando aparece isolado como instrução sobre um vetor mut.\n\nUma declaração sua — um func, proc, query ou type com um desses nomes — vence a função nativa em toda chamada sem qualificação, que continua acessível como hive.<nome>.",
+			explanation: "These are always in scope, with no import needed. len counts a vector's elements or a Str's characters; bytes counts a vector's backing storage or a Str's UTF-8 bytes. append and prepend grow a mutable dynamic vector at either end; drop removes a range and hands back exactly what it removed. join concatenates a vector of Str with a separator between each pair, and split is its inverse. replaceFirst and replaceAll rewrite one occurrence of a substring or every one of them, answering with a new string rather than writing through the old. indexOf finds the first equal element — or, on a Str, the first occurrence of a substring, counted in characters — and, unlike a bare -1, an Ok index is always safe to use unguarded. row and column pull a Table's row or column by its first cell or its top cell, and toTable cuts a flat vector of cells into a Table of rows that wide, the last row holding what was left. map, filter and filterMap each walk a vector with a func — map transforms every element, filter keeps the ones a predicate says yes to, filterMap does both in one pass — and sort puts a vector in order, in place when it stands alone as a statement over a mut vector. With no comparator it uses the elements' own order, which a map, an address and a function value do not have — nor does a type holding one, hive.json.JsonValue included — so sorting those takes the func that says which of two comes first.\n\nA declaration of your own — a func, proc, query or type sharing one of these names — wins over the builtin at every bare call, which stays reachable as hive.<name>.",
+			explanationPt: "Estas estão sempre no escopo, sem precisar de import. len conta os elementos de um vetor ou os caracteres de uma Str; bytes conta o armazenamento de um vetor ou os bytes UTF-8 de uma Str. append e prepend fazem crescer um vetor dinâmico mutável em uma das pontas; drop remove um intervalo e devolve exatamente o que removeu. join concatena um vetor de Str com um separador entre cada par, e split é o seu inverso. replaceFirst e replaceAll reescrevem uma ocorrência de um trecho ou todas elas, devolvendo uma string nova em vez de escrever sobre a antiga. indexOf encontra o primeiro elemento igual — ou, em uma Str, a primeira ocorrência de um trecho, contada em caracteres — e, diferente de um -1 solto, um índice Ok é sempre seguro de usar sem guarda. row e column extraem a linha ou coluna de uma Table pela primeira célula ou pela célula do topo, e toTable corta um vetor plano de células em uma Table de linhas com essa largura, a última ficando com o que sobrou. map, filter e filterMap percorrem um vetor com um func — map transforma cada elemento, filter mantém aqueles que um predicado aprova, filterMap faz as duas coisas em uma passada — e sort põe um vetor em ordem, no lugar quando aparece isolado como instrução sobre um vetor mut. Sem comparador ele usa a ordem própria dos elementos, que um map, um endereço e um valor de função não têm — nem um tipo que guarde um deles, hive.json.JsonValue incluído — então ordenar esses pede o func que diz qual de dois vem primeiro.\n\nUma declaração sua — um func, proc, query ou type com um desses nomes — vence a função nativa em toda chamada sem qualificação, que continua acessível como hive.<nome>.",
 			examples: [
 				Example(caption: "Length and bytes", captionPt: "Tamanho e bytes", code: `proc main(): void \{
 	fruit := ["pear", "apple", "kiwi"]
@@ -1281,8 +1281,8 @@ proc main(): void \{
 			titlePt: "Funções de primeira classe",
 			download: false,
 			shot: "",
-			explanation: "A callable is a value: a bare name on its own (f := takes) or a partial application with _ holes (handler(_, db)), each hole becoming a parameter in order. A func value may be used where a proc is expected, never the reverse. Three things cannot become values: a generic callable, one with a mutex parameter, and one with a statically-sized parameter beyond a single immutable binding.\n\nIts type is written like a declaration with the name dropped — func(Int): Int, proc(hive.net.HttpRequest): hive.net.HttpResponse — and that spelling is usable as a parameter, as a return, and as a variable's own type. The func/proc split is preserved through it: a func value fills a proc slot and not the other way round. mut may not appear in a function type at all, since a value has no call site to take a mutex from.",
-			explanationPt: "Algo chamável é um valor: um nome sozinho (f := toma) ou uma aplicação parcial com buracos _ (handler(_, db)), cada buraco se tornando um parâmetro em ordem. Um valor func pode ser usado onde um proc é esperado, nunca o contrário. Três coisas não podem se tornar valores: um chamável genérico, um com parâmetro mutex, e um com parâmetro de tamanho estático além de uma única ligação imutável.\n\nSeu tipo se escreve como uma declaração sem o nome — func(Int): Int, proc(hive.net.HttpRequest): hive.net.HttpResponse — e essa grafia serve como parâmetro, como retorno e como tipo de uma variável. A divisão func/proc é preservada através dele: um valor func preenche um espaço de proc e não o contrário. mut não pode aparecer em um tipo de função, já que um valor não tem local de chamada de onde tomar um mutex.",
+			explanation: "A callable is a value: a bare name on its own (f := takes) or a partial application with _ holes (handler(_, db)), each hole becoming a parameter in order. A func value may be used where a proc is expected, never the reverse. Two things cannot become values: a generic callable, and one with a statically-sized parameter beyond a single immutable binding.\n\nIts type is written like a declaration with the names dropped — func(Int): Int, proc(hive.net.HttpRequest): hive.net.HttpResponse — and that spelling is usable as a parameter, as a return, and as a variable's own type. The func/proc split is preserved through it: a func value fills a proc slot and not the other way round. A proc that asks for a mutex is a value too, and its type says so: proc(mut Str[dyn], Str): void. A call through it hands the mutex a mut variable exactly as a direct call does; a partial application leaves a mutex position a hole, since it captures by value and a mutex captured there would be a copy nobody sees; and proc(mut T) and proc(T) are different types. A call through any function value is held to its type: how many arguments, and what each one is.",
+			explanationPt: "Algo chamável é um valor: um nome sozinho (f := toma) ou uma aplicação parcial com buracos _ (handler(_, db)), cada buraco se tornando um parâmetro em ordem. Um valor func pode ser usado onde um proc é esperado, nunca o contrário. Duas coisas não podem se tornar valores: um chamável genérico, e um com parâmetro de tamanho estático além de uma única ligação imutável.\n\nSeu tipo se escreve como uma declaração sem os nomes — func(Int): Int, proc(hive.net.HttpRequest): hive.net.HttpResponse — e essa grafia serve como parâmetro, como retorno e como tipo de uma variável. A divisão func/proc é preservada através dele: um valor func preenche um espaço de proc e não o contrário. Um proc que pede um mutex também é um valor, e o tipo dele diz isso: proc(mut Str[dyn], Str): void. Uma chamada por ele entrega ao mutex uma variável mut, exatamente como uma chamada direta; uma aplicação parcial deixa uma posição mutex como buraco, já que captura por valor e um mutex capturado ali seria uma cópia que ninguém vê; e proc(mut T) e proc(T) são tipos diferentes. Uma chamada por qualquer valor de função é conferida contra o tipo dele: quantos argumentos, e o que cada um é.",
 			examples: [
 				Example(caption: "A bare reference, and map", captionPt: "Uma referência solta, e map", code: `func double(n: Int): Int \{ return n * 2 }
 
@@ -1336,6 +1336,33 @@ proc main(): void \{
 	func(Int): Int step = double                      // como tipo de variável
 	echo applyTwice(step, 5)
 	echo picked(true)("hive")
+}`),
+				Example(caption: "A proc that asks for a mutex, as a value", captionPt: "Um proc que pede um mutex, como valor", code: `proc grow(names: mut Str[dyn], name: Str): void \{
+	append(names, name)
+}
+
+proc twice(step: proc(mut Str[dyn]): void, names: mut Str[dyn]): void \{
+	step(names)
+	step(names)
+}
+
+proc main(): void \{
+	mut Str[dyn] names = ["ada"]
+	twice(grow(_, "bee"), names)   // the mutex stays a hole
+	echo names
+}`, codePt: `proc grow(names: mut Str[dyn], name: Str): void \{
+	append(names, name)
+}
+
+proc twice(step: proc(mut Str[dyn]): void, names: mut Str[dyn]): void \{
+	step(names)
+	step(names)
+}
+
+proc main(): void \{
+	mut Str[dyn] names = ["ada"]
+	twice(grow(_, "bee"), names)   // o mutex continua um buraco
+	echo names
 }`),
 			],
 		),
@@ -1886,8 +1913,8 @@ proc main(): void \{
 			titlePt: "JSON",
 			download: false,
 			shot: "",
-			explanation: "hive.json treats a Hive type declaration as the JSON schema itself. Neither of the two calls that do the work names a format: encode(value, codec) is a builtin, T.decode(text, codec) is the decoder a declaration derives, and what says JSON is the codec handed to them — hive.json.codec(). That is what lets another format be another codec rather than a change to the language: hive.crypto.jwtCodec(secret), hive.net.queryParamsCodec() and hive.term.codec() are three more, and they go in these very same two places.\n\nA codec is an ordinary value — held in a variable, passed to a function, kept in a field — because its type already says which format it is: hive.codec.Codec<E> names the error decoding in it fails with, and every module with a codec owns its own, so this one is a Codec<hive.json.JsonError>. The encoder is still written out of the declaration wherever the codec is used, which is why none of this needs reflection. Decoding answers with a Result<T, E> whose Error carries the exact path that failed. Encoding derives from the static type, so it cannot fail: there is no Result to check on the way out. T.Variant.decode reads one variant's payload without the key the union is wrapped in, for a document whose variant you already know.\n\nA field may be annotated, and every annotation is about the codecs rather than about the field: -- JSON as <name>; is the key the field is read from and written as, in both directions, so a round trip agrees with itself; -- URL as <name>; and -- Flag as <name>; say the same for a query string and a command-line flag; and -- Default as <literal>; is what to read where the key is absent or null — which is what turns a required field into an optional one. None of them reaches the three calls below.\n\nThree more calls need no type at all. flatten(text) flattens any document into [path, value] rows, which get looks up by a dotted path, and table(text) reads a JSON array of flat objects as a headered Table.",
-			explanationPt: "hive.json trata uma declaração de tipo Hive como o próprio schema JSON. Nenhuma das duas chamadas que fazem o trabalho menciona um formato: encode(value, codec) é um builtin, T.decode(text, codec) é o decodificador que a declaração deriva, e quem diz JSON é o codec passado a elas — hive.json.codec(). É isso que permite que outro formato seja outro codec, e não uma mudança na linguagem: hive.crypto.jwtCodec(secret), hive.net.queryParamsCodec() e hive.term.codec() são mais três, e vão exatamente nesses mesmos dois lugares.\n\nUm codec é um valor comum — guardado numa variável, passado a uma função, mantido num campo — porque o seu tipo já diz qual formato ele é: hive.codec.Codec<E> nomeia o erro com que decodificar nele falha, e cada módulo com um codec tem o seu, então este é um Codec<hive.json.JsonError>. O codificador continua sendo escrito a partir da declaração onde quer que o codec seja usado, que é o motivo de nada disso precisar de reflexão. Decodificar responde com um Result<T, E> cujo Error traz o caminho exato que falhou. Codificar sai do tipo estático, então não tem como falhar: não existe Result para conferir na saída. T.Variant.decode lê o conteúdo de uma variante sem a chave que envolve a união, para um documento cuja variante você já conhece.\n\nUm campo pode ser anotado, e toda anotação é sobre os codecs, e não sobre o campo: -- JSON as <nome>; é a chave pela qual o campo é lido e escrito, nas duas direções, então uma ida e volta concorda consigo mesma; -- URL as <nome>; e -- Flag as <nome>; dizem o mesmo para uma query string e uma flag de linha de comando; e -- Default as <literal>; é o que ler quando a chave está ausente ou é null — que é o que transforma um campo obrigatório em opcional. Nenhuma delas alcança as três chamadas abaixo.\n\nOutras três chamadas não precisam de tipo nenhum. flatten(text) achata qualquer documento em linhas [caminho, valor], que get consulta por um caminho com pontos, e table(text) lê um array JSON de objetos sem aninhamento como uma Table com cabeçalho.",
+			explanation: "hive.json treats a Hive type declaration as the JSON schema itself. Neither of the two calls that do the work names a format: encode(value, codec) is a builtin, T.decode(text, codec) is the decoder a declaration derives, and what says JSON is the codec handed to them — hive.json.codec(). That is what lets another format be another codec rather than a change to the language: hive.crypto.jwtCodec(secret), hive.net.queryParamsCodec() and hive.term.codec() are three more, and they go in these very same two places.\n\nA codec is an ordinary value — held in a variable, passed to a function, kept in a field — because its type already says which format it is: hive.codec.Codec<E> names the error decoding in it fails with, and every module with a codec owns its own, so this one is a Codec<hive.json.JsonError>. The encoder is still written out of the declaration wherever the codec is used, which is why none of this needs reflection. Decoding answers with a Result<T, E> whose Error carries the exact path that failed. Encoding derives from the static type, so it cannot fail: there is no Result to check on the way out. T.Variant.decode reads one variant's payload without the key the union is wrapped in, for a document whose variant you already know.\n\nA field may be annotated, and every annotation is about the codecs rather than about the field: -- JSON as <name>; is the key the field is read from and written as, in both directions, so a round trip agrees with itself; -- URL as <name>; and -- Flag as <name>; say the same for a query string and a command-line flag; and -- Default as <literal>; is what to read where the key is absent or null — which is what turns a required field into an optional one.\n\nA document whose shape is not declared at all is a hive.json.JsonValue — String, Boolean, Int, Float, Array or Object, an ordinary union taken apart with is. Its codec is the document itself, so \"x\" reads as String(\"x\") and writes back as \"x\", and a number stays an Int or a Float the way it was written. An Object holds its properties as a hive.map.Map<Str, JsonValue>, in the order the document wrote them, so hive.map.get reads one by name. No variant is null, so a null anywhere is an error at its path; and a Table has no JSON at all, being rows of cells with nothing to name them.",
+			explanationPt: "hive.json trata uma declaração de tipo Hive como o próprio schema JSON. Nenhuma das duas chamadas que fazem o trabalho menciona um formato: encode(value, codec) é um builtin, T.decode(text, codec) é o decodificador que a declaração deriva, e quem diz JSON é o codec passado a elas — hive.json.codec(). É isso que permite que outro formato seja outro codec, e não uma mudança na linguagem: hive.crypto.jwtCodec(secret), hive.net.queryParamsCodec() e hive.term.codec() são mais três, e vão exatamente nesses mesmos dois lugares.\n\nUm codec é um valor comum — guardado numa variável, passado a uma função, mantido num campo — porque o seu tipo já diz qual formato ele é: hive.codec.Codec<E> nomeia o erro com que decodificar nele falha, e cada módulo com um codec tem o seu, então este é um Codec<hive.json.JsonError>. O codificador continua sendo escrito a partir da declaração onde quer que o codec seja usado, que é o motivo de nada disso precisar de reflexão. Decodificar responde com um Result<T, E> cujo Error traz o caminho exato que falhou. Codificar sai do tipo estático, então não tem como falhar: não existe Result para conferir na saída. T.Variant.decode lê o conteúdo de uma variante sem a chave que envolve a união, para um documento cuja variante você já conhece.\n\nUm campo pode ser anotado, e toda anotação é sobre os codecs, e não sobre o campo: -- JSON as <nome>; é a chave pela qual o campo é lido e escrito, nas duas direções, então uma ida e volta concorda consigo mesma; -- URL as <nome>; e -- Flag as <nome>; dizem o mesmo para uma query string e uma flag de linha de comando; e -- Default as <literal>; é o que ler quando a chave está ausente ou é null — que é o que transforma um campo obrigatório em opcional.\n\nUm documento cuja forma nem é declarada é um hive.json.JsonValue — String, Boolean, Int, Float, Array ou Object, uma união comum desmontada com is. O codec dele é o próprio documento, então \"x\" é lido como String(\"x\") e escrito de volta como \"x\", e um número continua Int ou Float do jeito que foi escrito. Um Object guarda suas propriedades como um hive.map.Map<Str, JsonValue>, na ordem em que o documento as escreveu, então hive.map.get lê uma pelo nome. Nenhuma variante é null, então um null em qualquer lugar é um erro no caminho dele; e uma Table não tem JSON nenhum, por ser linhas de células sem nada que as nomeie.",
 			examples: [
 				Example(caption: "The declaration is the schema, and the codec is the format", captionPt: "A declaração é o schema, e o codec é o formato", code: `type Greeting \{ name: Str }
 
@@ -1955,29 +1982,35 @@ proc main(): void \{
 	}
 }`),
 				Example(caption: "A document with no declaration behind it", captionPt: "Um documento sem declaração por trás", code: `proc main(): void \{
-	// Any shape at all, as [path, value] rows.
-	if hive.json.flatten("\\{\"keys\":\\{\"layout\":\"us\"}}") is Result.Ok(rows) \{
-		if hive.json.get(rows, "keys.layout") is Result.Ok(layout) \{
-			echo layout
+	// Any document at all, taken apart like any union.
+	text := "\\{\"name\":\"ada\",\"tags\":[\"x\",1]}"
+	if hive.json.JsonValue.decode(text, hive.json.codec()) is Result.Ok(doc) \{
+		if doc is hive.json.JsonValue.Object(properties) \{
+			if hive.map.get(properties, "name") is Result.Ok(name) && name is hive.json.JsonValue.String(value) \{
+				echo value
+			}
 		}
 	}
 
-	// One shape in particular: a list of records, as a headered Table.
-	if hive.json.table("[\\{\"city\":\"Belém\",\"pop\":1506}]") is Result.Ok(t) \{
-		echo row(t, "Belém")
-	}
+	// And one built by hand: an object's properties are a map.
+	mut hive.map.Map<Str, hive.json.JsonValue> fields = hive.map.new()
+	hive.map.set(fields, "count", hive.json.JsonValue.Int(3))
+	echo encode(hive.json.JsonValue.Object(fields), hive.json.codec())
 }`, codePt: `proc main(): void \{
-	// Qualquer formato, em linhas [caminho, valor].
-	if hive.json.flatten("\\{\"keys\":\\{\"layout\":\"us\"}}") is Result.Ok(rows) \{
-		if hive.json.get(rows, "keys.layout") is Result.Ok(layout) \{
-			echo layout
+	// Qualquer documento, desmontado como qualquer união.
+	text := "\\{\"name\":\"ada\",\"tags\":[\"x\",1]}"
+	if hive.json.JsonValue.decode(text, hive.json.codec()) is Result.Ok(doc) \{
+		if doc is hive.json.JsonValue.Object(properties) \{
+			if hive.map.get(properties, "name") is Result.Ok(name) && name is hive.json.JsonValue.String(value) \{
+				echo value
+			}
 		}
 	}
 
-	// Um formato específico: uma lista de registros, como Table com cabeçalho.
-	if hive.json.table("[\\{\"city\":\"Belém\",\"pop\":1506}]") is Result.Ok(t) \{
-		echo row(t, "Belém")
-	}
+	// E um montado à mão: as propriedades de um objeto são um map.
+	mut hive.map.Map<Str, hive.json.JsonValue> fields = hive.map.new()
+	hive.map.set(fields, "count", hive.json.JsonValue.Int(3))
+	echo encode(hive.json.JsonValue.Object(fields), hive.json.codec())
 }`),
 				Example(caption: "A codec is a value", captionPt: "Um codec é um valor", code: `type Greeting \{ name: Str }
 
@@ -2701,8 +2734,8 @@ proc main(): void \{
 			titlePt: "O módulo de UI",
 			download: false,
 			shot: "",
-			explanation: "hive.ui builds an interface as a value: a View is a tree of widgets, and every one of them takes the same two things, its attributes and then its own payload. row and column lay out children; text, image, icon and link show something; button, input, textarea, checkbox and select ask for something; table shows a Table and canvas draws on a plane, and spacer, spinner, none, overlay and inset round out the set. Attributes are just as closed a set: gap, pad, width, height, grow, align, justify and scroll lay out; size, heading, tone and background style; disabled, busy, placeholder, hint and kind describe state; and on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick and onSort carry an event, for a window rather than this kind of page. Align, Justify, TextSize, Tone, Axis, InputKind and Icon are the enumerations behind them, reached like any other library type, and each is a closed set: a Tone is Normal, Muted, Good, Warn or Danger, or an exact colour through HEX and RGBA; an InputKind is Text, Number, Date, Password or Search; and an Icon is one of eighteen — Search, Close, Check, Plus, Minus, Up, Down, Left, Right, Warning, Info, Star, Heart, Reply, Repeat, Trash, User and Menu — so a name that is not one of them is a compile error rather than a missing glyph.\n\nhtml(view) renders a tree as an HTML fragment, and page(title, view) as a whole document with a stylesheet already built in, light and dark alike — which is exactly what an httpServe handler can answer a request with directly, and what every screen in this tour but its code samples is. The same tree, shown instead by window(title, view, update, state), becomes a live page: update is a fold over its events, the same shape a hive.syslink handler folds over a mailbox, so a window has an address and needs no mutex of its own.\n\nA window is a real window, and not a tab. What opens is an application-mode browser window — no address bar, no tabs — running against a profile of its own, so it is its own process rather than something inside somebody's browser: none of their session, extensions or history is in it, and quitting a browser does not close it. Closing the window ends the program. A machine with no Chromium-family browser falls back to an ordinary tab, which is the one case where the window belongs to a browser.\n\nIts icon is assets/icon.png, beside the entrypoint: a PNG of at most 256×256, embedded into the executable by the build. Nothing in the source names it — what a window shows and what the file carries have to be one image, so there is one place to put it — and a program that ships none shows Hive's own mark rather than a browser's blank sheet. On Windows a built windowed program carries no console and carries that icon as a resource, so what opens is the window, and the file itself shows the icon in a file manager and on a pinned shortcut. A typeface arrives the same way: assets/font.woff2, beside the entrypoint, and the window is set in it. Nothing declares that one either — the rule is always written into the page, so a program that ships the file is set in its own face and one that does not falls through to the system's, with nothing to configure in either case.\n\nThat address is also why there is no command type. Every language built this way needs an answer to \"the update wants to fetch something, and must not block the screen while it does\", and most of them invent a type for it — a Cmd, a task, an effect the runtime interprets. Hive needs none, because it already has two things that add up to one: update is a proc, so it may act, and hive.syslink.self(envelope) is the window's own address, so work started with async can send its answer back as an ordinary message.\n\nAnd because a view is a value rather than a template, an interface is testable without a browser. html is the same renderer a served page uses, so a test can render a view and read the markup that comes out — which is the cheapest place there is to check that a disabled button really is disabled, and that somebody else's text cannot smuggle a script tag into your page.\n\nTwo widgets are missing from all of that, and each has a slide to itself: canvas, which draws on a plane and which a served page draws exactly as a window does, and scene, which draws in three dimensions and which only a window can draw.",
-			explanationPt: "hive.ui constrói uma interface como um valor: uma View é uma árvore de widgets, e cada um deles recebe as mesmas duas coisas, seus atributos e depois sua própria carga. row e column organizam filhos; text, image, icon e link mostram algo; button, input, textarea, checkbox e select pedem algo; table mostra uma Table e canvas desenha sobre um plano, e spacer, spinner, none, overlay e inset completam o conjunto. Os atributos são um conjunto igualmente fechado: gap, pad, width, height, grow, align, justify e scroll organizam; size, heading, tone e background estilizam; disabled, busy, placeholder, hint e kind descrevem estado; e on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick e onSort carregam um evento, para uma window e não para este tipo de página. Align, Justify, TextSize, Tone, Axis, InputKind e Icon são as enumerações por trás deles, acessadas como qualquer outro tipo da biblioteca, e cada uma é um conjunto fechado: um Tone é Normal, Muted, Good, Warn ou Danger, ou uma cor exata via HEX e RGBA; um InputKind é Text, Number, Date, Password ou Search; e um Icon é um entre dezoito — Search, Close, Check, Plus, Minus, Up, Down, Left, Right, Warning, Info, Star, Heart, Reply, Repeat, Trash, User e Menu — então um nome que não esteja nessa lista é erro de compilação, e não um ícone faltando.\n\nhtml(view) renderiza uma árvore como um fragmento HTML, e page(title, view) como um documento inteiro com uma stylesheet já embutida, claro e escuro igualmente — que é exatamente o que um handler de httpServe pode usar para responder a uma requisição diretamente, e o que toda tela deste tour, exceto suas amostras de código, é. A mesma árvore, mostrada em vez disso por window(title, view, update, state), se torna uma página viva: update é um fold sobre seus eventos, a mesma forma que um handler de hive.syslink faz fold sobre uma caixa de mensagens, então uma window tem um endereço e não precisa de mutex próprio.\n\nUma window é uma janela de verdade, e não uma aba. O que abre é uma janela de navegador em modo aplicativo — sem barra de endereço e sem abas — rodando sobre um perfil só dela, então é um processo próprio e não algo dentro do navegador de alguém: nada da sessão, das extensões ou do histórico da pessoa está ali, e fechar o navegador não fecha a janela. Fechar a janela encerra o programa. Uma máquina sem nenhum navegador da família Chromium cai para uma aba comum, que é o único caso em que a janela pertence a um navegador.\n\nO ícone dela é o assets/icon.png, ao lado do arquivo de entrada: um PNG de no máximo 256×256, embutido no executável pelo build. Nada no código-fonte o nomeia — o que a janela mostra e o que o arquivo carrega têm de ser a mesma imagem, então há um lugar só para ela — e um programa que não traz nenhuma mostra a marca do próprio Hive, em vez da folha em branco de um navegador. No Windows, um programa de janela compilado não carrega console e leva esse ícone como recurso, então o que abre é a janela, e o próprio arquivo mostra o ícone no gerenciador de arquivos e num atalho fixado. Uma fonte chega do mesmo jeito: assets/font.woff2, ao lado do arquivo de entrada, e a janela é composta nela. Nada declara essa também — a regra é sempre escrita na página, então um programa que traz o arquivo aparece na fonte dele e um que não traz cai para a do sistema, sem nada para configurar em nenhum dos dois casos.\n\nEsse endereço é também por que não existe um tipo de comando. Toda linguagem construída assim precisa de uma resposta para \"o update quer buscar algo, e não pode travar a tela enquanto busca\", e a maioria delas inventa um tipo para isso — um Cmd, uma task, um efeito que o runtime interpreta. Hive não precisa de nenhum, porque já tem duas coisas que somadas dão uma: update é um proc, então pode agir, e hive.syslink.self(envelope) é o endereço da própria window, então o trabalho iniciado com async pode mandar sua resposta de volta como uma mensagem comum.\n\nE como uma view é um valor e não um template, uma interface pode ser testada sem navegador. html é o mesmo renderizador que uma página servida usa, então um teste pode renderizar uma view e ler o markup que sai — que é o lugar mais barato que existe para conferir que um botão desabilitado está mesmo desabilitado, e que o texto de outra pessoa não consegue contrabandear uma tag de script para dentro da sua página.\n\nDois widgets ficaram de fora de tudo isso, e cada um tem um slide só para si: canvas, que desenha sobre um plano e que uma página servida desenha exatamente como uma window desenha, e scene, que desenha em três dimensões e que somente uma window consegue desenhar.",
+			explanation: "hive.ui builds an interface as a value: a View is a tree of widgets, and every one of them takes the same two things, its attributes and then its own payload. row and column lay out children; text, image, icon and link show something; button, input, textarea, checkbox and select ask for something; table shows a Table and canvas draws on a plane, and spacer, spinner, none, overlay and inset round out the set. Attributes are just as closed a set: gap, pad, width, height, grow, align, justify and scroll lay out; size, heading, tone and background style; disabled, busy, placeholder, hint and kind describe state; and on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick and onSort carry an event, for a window rather than this kind of page. Align, Justify, TextSize, Tone, Axis, InputKind and Icon are the enumerations behind them, reached like any other library type, and each is a closed set: a Tone is Normal, Muted, Good, Warn or Danger, or an exact colour through HEX and RGBA; an InputKind is Text, Number, Date, Password or Search; and an Icon is one of eighteen — Search, Close, Check, Plus, Minus, Up, Down, Left, Right, Warning, Info, Star, Heart, Reply, Repeat, Trash, User and Menu — so a name that is not one of them is a compile error rather than a missing glyph.\n\nhtml(view) renders a tree as an HTML fragment, and page(title, view) as a whole document with a stylesheet already built in, light and dark alike — which is exactly what an httpServe handler can answer a request with directly, and what every screen in this tour but its code samples is. The same tree, shown instead by window(title, view, update, state), becomes a live page: update is a service's handler, proc(mut Model, Msg): Msg, which writes the model in place for each event and answers with a message — so a window is a hive.syslink service, with an address. windowAddressed hands update that address as a third parameter, window: hive.syslink.Address, on every turn.\n\nA window is a real window, and not a tab. What opens is an application-mode browser window — no address bar, no tabs — running against a profile of its own, so it is its own process rather than something inside somebody's browser: none of their session, extensions or history is in it, and quitting a browser does not close it. Closing the window ends the program. A machine with no Chromium-family browser falls back to an ordinary tab, which is the one case where the window belongs to a browser.\n\nIts icon is assets/icon.png, beside the entrypoint: a PNG of at most 256×256, embedded into the executable by the build. Nothing in the source names it — what a window shows and what the file carries have to be one image, so there is one place to put it — and a program that ships none shows Hive's own mark rather than a browser's blank sheet. On Windows a built windowed program carries no console and carries that icon as a resource, so what opens is the window, and the file itself shows the icon in a file manager and on a pinned shortcut. A typeface arrives the same way: assets/font.woff2, beside the entrypoint, and the window is set in it. Nothing declares that one either — the rule is always written into the page, so a program that ships the file is set in its own face and one that does not falls through to the system's, with nothing to configure in either case.\n\nThat address is also why there is no command type. Every language built this way needs an answer to \"the update wants to fetch something, and must not block the screen while it does\", and most of them invent a type for it — a Cmd, a task, an effect the runtime interprets. Hive needs none, because it already has two things that add up to one: update is a proc, so it may act, and under windowAddressed it is handed the window's own address, so work started with async can send its answer back as an ordinary message.\n\nAnd because a view is a value rather than a template, an interface is testable without a browser. html is the same renderer a served page uses, so a test can render a view and read the markup that comes out — which is the cheapest place there is to check that a disabled button really is disabled, and that somebody else's text cannot smuggle a script tag into your page.\n\nTwo widgets are missing from all of that, and each has a slide to itself: canvas, which draws on a plane and which a served page draws exactly as a window does, and scene, which draws in three dimensions and which only a window can draw.",
+			explanationPt: "hive.ui constrói uma interface como um valor: uma View é uma árvore de widgets, e cada um deles recebe as mesmas duas coisas, seus atributos e depois sua própria carga. row e column organizam filhos; text, image, icon e link mostram algo; button, input, textarea, checkbox e select pedem algo; table mostra uma Table e canvas desenha sobre um plano, e spacer, spinner, none, overlay e inset completam o conjunto. Os atributos são um conjunto igualmente fechado: gap, pad, width, height, grow, align, justify e scroll organizam; size, heading, tone e background estilizam; disabled, busy, placeholder, hint e kind descrevem estado; e on, onDismiss, onInput, onSubmit, onChoose, onToggle, onPick e onSort carregam um evento, para uma window e não para este tipo de página. Align, Justify, TextSize, Tone, Axis, InputKind e Icon são as enumerações por trás deles, acessadas como qualquer outro tipo da biblioteca, e cada uma é um conjunto fechado: um Tone é Normal, Muted, Good, Warn ou Danger, ou uma cor exata via HEX e RGBA; um InputKind é Text, Number, Date, Password ou Search; e um Icon é um entre dezoito — Search, Close, Check, Plus, Minus, Up, Down, Left, Right, Warning, Info, Star, Heart, Reply, Repeat, Trash, User e Menu — então um nome que não esteja nessa lista é erro de compilação, e não um ícone faltando.\n\nhtml(view) renderiza uma árvore como um fragmento HTML, e page(title, view) como um documento inteiro com uma stylesheet já embutida, claro e escuro igualmente — que é exatamente o que um handler de httpServe pode usar para responder a uma requisição diretamente, e o que toda tela deste tour, exceto suas amostras de código, é. A mesma árvore, mostrada em vez disso por window(title, view, update, state), se torna uma página viva: update é o handler de um serviço, proc(mut Model, Msg): Msg, que escreve o modelo no lugar a cada evento e responde com uma mensagem — então uma window é um serviço hive.syslink, com um endereço. windowAddressed entrega esse endereço ao update como terceiro parâmetro, window: hive.syslink.Address, a cada turno.\n\nUma window é uma janela de verdade, e não uma aba. O que abre é uma janela de navegador em modo aplicativo — sem barra de endereço e sem abas — rodando sobre um perfil só dela, então é um processo próprio e não algo dentro do navegador de alguém: nada da sessão, das extensões ou do histórico da pessoa está ali, e fechar o navegador não fecha a janela. Fechar a janela encerra o programa. Uma máquina sem nenhum navegador da família Chromium cai para uma aba comum, que é o único caso em que a janela pertence a um navegador.\n\nO ícone dela é o assets/icon.png, ao lado do arquivo de entrada: um PNG de no máximo 256×256, embutido no executável pelo build. Nada no código-fonte o nomeia — o que a janela mostra e o que o arquivo carrega têm de ser a mesma imagem, então há um lugar só para ela — e um programa que não traz nenhuma mostra a marca do próprio Hive, em vez da folha em branco de um navegador. No Windows, um programa de janela compilado não carrega console e leva esse ícone como recurso, então o que abre é a janela, e o próprio arquivo mostra o ícone no gerenciador de arquivos e num atalho fixado. Uma fonte chega do mesmo jeito: assets/font.woff2, ao lado do arquivo de entrada, e a janela é composta nela. Nada declara essa também — a regra é sempre escrita na página, então um programa que traz o arquivo aparece na fonte dele e um que não traz cai para a do sistema, sem nada para configurar em nenhum dos dois casos.\n\nEsse endereço é também por que não existe um tipo de comando. Toda linguagem construída assim precisa de uma resposta para \"o update quer buscar algo, e não pode travar a tela enquanto busca\", e a maioria delas inventa um tipo para isso — um Cmd, uma task, um efeito que o runtime interpreta. Hive não precisa de nenhum, porque já tem duas coisas que somadas dão uma: update é um proc, então pode agir, e sob windowAddressed ele recebe o endereço da própria window, então o trabalho iniciado com async pode mandar sua resposta de volta como uma mensagem comum.\n\nE como uma view é um valor e não um template, uma interface pode ser testada sem navegador. html é o mesmo renderizador que uma página servida usa, então um teste pode renderizar uma view e ler o markup que sai — que é o lugar mais barato que existe para conferir que um botão desabilitado está mesmo desabilitado, e que o texto de outra pessoa não consegue contrabandear uma tag de script para dentro da sua página.\n\nDois widgets ficaram de fora de tudo isso, e cada um tem um slide só para si: canvas, que desenha sobre um plano e que uma página servida desenha exatamente como uma window desenha, e scene, que desenha em três dimensões e que somente uma window consegue desenhar.",
 			examples: [
 				Example(caption: "A page, served directly", captionPt: "Uma página, servida diretamente", code: `proc main(): void \{
 	view := hive.ui.column([hive.ui.pad(24), hive.ui.gap(12)], [
@@ -2752,14 +2785,14 @@ func view(model: Model): ui.View \{
 	return ui.column([ui.pad(24), ui.gap(8)], kids)
 }
 
-proc update(model: Model, msg: Msg, from: hive.syslink.Envelope): Model \{
+proc update(model: mut Model, msg: Msg, window: hive.syslink.Address): Msg \{
 	if msg is Msg.Refresh \{
-		async reload(hive.syslink.self(from))   // off it goes; nothing to hold
-		return Model(model.rows, true)           // ...and the spinner starts now
+		async reload(window)         // off it goes; nothing to hold
+		model.loading = true         // ...and the spinner starts now
 	} else if msg is Msg.Loaded(rows) \{
-		return Model(rows, false)                // it comes back as a message
+		model = Model(rows, false)   // it comes back as a message
 	}
-	return model
+	return msg
 }
 
 proc reload(window: hive.syslink.Address): void \{
@@ -2768,7 +2801,7 @@ proc reload(window: hive.syslink.Address): void \{
 }
 
 proc main(): void \{
-	ui.window("Colonies", view, update, Model([], false))
+	ui.windowAddressed("Colonies", view, update, Model([], false))
 }`, codePt: `import hive.ui
 
 type Model \{
@@ -2792,14 +2825,14 @@ func view(model: Model): ui.View \{
 	return ui.column([ui.pad(24), ui.gap(8)], kids)
 }
 
-proc update(model: Model, msg: Msg, from: hive.syslink.Envelope): Model \{
+proc update(model: mut Model, msg: Msg, window: hive.syslink.Address): Msg \{
 	if msg is Msg.Refresh \{
-		async reload(hive.syslink.self(from))   // lá vai; nada a segurar
-		return Model(model.rows, true)           // ...e o spinner começa agora
+		async reload(window)         // lá vai; nada a segurar
+		model.loading = true         // ...e o spinner começa agora
 	} else if msg is Msg.Loaded(rows) \{
-		return Model(rows, false)                // volta como uma mensagem
+		model = Model(rows, false)   // volta como uma mensagem
 	}
-	return model
+	return msg
 }
 
 proc reload(window: hive.syslink.Address): void \{
@@ -2808,7 +2841,7 @@ proc reload(window: hive.syslink.Address): void \{
 }
 
 proc main(): void \{
-	ui.window("Colônias", view, update, Model([], false))
+	ui.windowAddressed("Colônias", view, update, Model([], false))
 }`),
 				Example(caption: "An interface you can test", captionPt: "Uma interface que dá para testar", code: `import hive.ui
 
@@ -2980,8 +3013,8 @@ proc main(): void \{
 			titlePt: "Três dimensões",
 			download: false,
 			shot: "/shot/three-dimensions.png",
-			explanation: "A scene is the one widget only a window can draw, and it is a module of its own — hive.ui.scene — because it is the one thing in the standard library that carries a download: a pinned three.js, fetched on the first build that needs it and cached ever after. A window that draws no scene links none of it. A scene is a value like every other view: a camera, a sky, and a vector of shapes, rebuilt by an ordinary func from the state as often as there are frames. Nothing here is a handle — no mesh to keep, no material to allocate, no canvas to hold — so a program answers what is there right now, and never what has changed.\n\nbox, sphere, cylinder, cone, roof, ground, label, sprite and line are the shapes, and each takes its dimensions as its payload rather than as attributes, because they are what the shape is: a sphere without a radius is not a sphere with a default one. cone takes both of its radii rather than only the base — a cone in the world is hardly ever the perfect one, a track marker is snub-nosed and a nose cone ends in a blade, and a shape that could only be the perfect one gets composed around rather than used. Nought at the top is the perfect one; a top equal to the bottom is a cylinder. roof is a pitched one — a ridge down its length, a slope each side and a gable closing each end — the shape a box and a cone between them cannot make and half the built world is. ground already lies flat, so a floor costs no rotation and turn still means everywhere what it means anywhere; label always faces the viewer, because one you can read from one side only is not a label; sprite is a picture that does the same, naming a file in the program's own assets/ and standing at a size given in metres — its place is its foot rather than its middle, because what a sprite is for is something standing on the ground and one centred on its position is buried to the waist in it, and paint tints the image rather than replacing it, so one drawing made white serves every colour a scene asks of it; and line takes no position at all, since a line is between two places and has no third to call its own.\n\nat, turn and paint place and colour a shape. turn is a heading rather than three world axes: yaw first, then pitch about the shape's own lateral axis and roll about its own length, so a thing turned to face somewhere and then pitched tips nose-up the way it is facing. surface says what it is made of, which is a different question from what colour it is, and the set reads from the ground up: what you drive on — Turf, Gravel, Tarmac, Kerb — then what things are built of — Concrete, Brick, Panes, Planks, Staves, Bark, Leaves, Crowd, Mesh — then what they are finished in: Speckle, Metal, Carbon, Rubber, Glass and Gloss. Each is drawn over whatever colour the shape already is — so one pattern serves a red kerb and a blue one, and Gloss adds no pattern at all. Panes is the exception: it paints its glass a colour of its own rather than a shade of the shape's, because a window is a different material from the wall, and it lands one in every couple of metres of surface. Where a shape says nothing its kind decides: a ground is Turf, a cylinder or a cone is Staves, a sphere is Speckle, and everything else is Planks. And a colour carrying an alpha is translucent — Tone.RGBA(r, g, b, a), or an eight-digit Tone.HEX — drawn see-through and writing no depth, which is how a ghost, a tinted screen or the plume behind something gets drawn.\n\neye, aim, lens, fog, background, grain, bits, grab and crosshair go on the scene itself rather than on a shape: where the camera is and where it looks, how wide the lens is, how far you can see, the sky the fog fades into, and whether the window should hold the mouse. shadows(false) turns the sun's shadows off, and it is the one thing about the lighting a scene may say — a machine that cannot hold its frame rate can sell them before it sells anything that changes what is there. grain(px) and bits(n) are one decision in two halves: how few pixels the world is drawn into before it is blown back up unfiltered, and how few values each of its colour channels may take. grain is the short edge, and what it buys is a picture genuinely drawn small rather than a full-size one blurred — a wall a pixel wide is a pixel wide, with an edge on it. bits is per channel, and the quantisation is dithered rather than rounded, so a gradient comes out woven instead of banded; it is applied after the frame is encoded for the screen, because a display's bit depth is a fact about what it displays and not about the arithmetic behind it. Five bits is the fifteen-bit colour most handhelds had. Insets are drawn into the same buffer, so a second look at the world is grained with the first, and a scene that says neither is drawn at the size of its box in the colour the screen has. Lighting is deliberately not something a scene describes — the rig is fixed, chosen so that a solid painted a colour comes out that colour with a shaded side — so what makes a scene dark is its palette rather than a setting turned down. The events are a scene's own: onFrame reports how many milliseconds the last frame took, onRate how many hertz the screen turned out to run at, onKeyDown and onKeyUp a key's name, onLook how far the mouse moved, onGrab whether the window has the pointer, and onPad a gamepad.\n\nA gamepad is the one input a browser will not tell you about: there is no event for a stick moving, only a snapshot you have to ask for. So the runtime reads the pads once a frame and posts what changed — which makes a button on a pad the same kind of thing as a key going down, rather than a second way of hearing about input. onPad reports three things: which pad, which control on it, and where that control now is. One shape covers the whole device, because a button is a control that is only ever 0 or 1. leftX, leftY, rightX and rightY are the sticks; lt and rt the triggers; a, b, x, y, lb, rb, up, down, left, right, back, start, guide, lstick and rstick the buttons; and anything past those is reported by number. here is the pad itself: 1 when it arrives, 2 when it arrives with a layout the browser could not name, and 0 when it goes — and a pad being unplugged lets go of everything it was holding first, so a car whose controller ran flat mid-corner does not keep turning. A dead zone is applied before the event is sent, and nothing is sent until a control has actually moved, because a stick at rest is never quite at rest.\n\ninset is the one widget that draws in three dimensions without being a scene: a box on the page showing the same world from wherever its own eye, aim and lens are standing — a rear-view mirror, a replay box, a security camera. It holds a camera and no world, which is the whole of what makes it affordable: a second scene would be a second description of everything, sent every frame, while an inset is a second pass over the shapes the scene already handed over. One window draws one scene and any number of insets.\n\nA scene holds one more shape than the nine above, and that one is heard rather than drawn: it has the slide after this one to itself.\n\nA served page renders a scene's box empty — there is no socket for frames to travel down — so the examples below are shown as code only: open one in a window to actually see it.",
-			explanationPt: "Uma scene é o único widget que somente uma window consegue desenhar, e é um módulo à parte — hive.ui.scene — porque é a única coisa na biblioteca padrão que carrega um download: um three.js fixado, buscado na primeira compilação que precisa dele e guardado em cache dali em diante. Uma window que não desenha nenhuma scene não linka nada disso. Uma scene é um valor como qualquer outra view: uma câmera, um céu e um vetor de formas, reconstruído por um func comum a partir do estado tantas vezes quantos forem os frames. Nada aqui é um handle — nenhuma malha para guardar, nenhum material para alocar, nenhum canvas para segurar — então um programa responde o que está ali agora, e nunca o que mudou.\n\nbox, sphere, cylinder, cone, roof, ground, label, sprite e line são as formas, e cada uma recebe suas dimensões como carga e não como atributos, porque elas são o que a forma é: uma esfera sem raio não é uma esfera com um raio padrão. cone recebe os seus dois raios em vez de só o da base — um cone no mundo quase nunca é o perfeito, um cone de sinalização é rombudo e o bico de um carro termina em lâmina, e uma forma que só pudesse ser a perfeita acaba sendo contornada em vez de usada. Zero no topo é a perfeita; um topo igual à base é um cilindro. roof é um telhado de duas águas — uma cumeeira ao longo dele, um caimento de cada lado e uma empena fechando cada ponta — a forma que um box e um cone juntos não fazem e que metade do mundo construído tem. ground já está deitado, então um chão não custa rotação nenhuma e turn continua significando em todo lugar o que significa em qualquer lugar; label sempre encara quem olha, porque uma que só dá para ler de um lado não é uma label; sprite é uma imagem que faz o mesmo, nomeando um arquivo dentro do assets/ do próprio programa e ficando de pé num tamanho dado em metros — o lugar dela é o pé, e não o meio, porque uma sprite serve para algo que está em pé no chão e uma centrada na própria posição fica enterrada até a cintura; e paint tinge a imagem em vez de substituí-la, então um único desenho feito em branco serve a todas as cores que uma scene pedir dele; e line não recebe posição alguma, já que uma linha fica entre dois lugares e não tem um terceiro para chamar de seu.\n\nat, turn e paint posicionam e colorem uma forma. turn é uma direção, e não três eixos do mundo: primeiro a guinada, depois a inclinação em torno do eixo lateral da própria forma e o rolamento em torno do comprimento dela — então algo virado para um lado e depois inclinado levanta o nariz na direção para onde está virado. surface diz do que ela é feita, que é uma pergunta diferente de qual é a cor dela, e o conjunto se lê do chão para cima: aquilo em que se anda — Turf, Gravel, Tarmac, Kerb — depois aquilo de que as coisas são feitas — Concrete, Brick, Panes, Planks, Staves, Bark, Leaves, Crowd, Mesh — e depois o acabamento delas: Speckle, Metal, Carbon, Rubber, Glass e Gloss. Cada uma é desenhada por cima da cor que a forma já tem — então um padrão só serve para um zebrado vermelho e para um azul, e Gloss não acrescenta padrão nenhum. Panes é a exceção: pinta o vidro com uma cor própria, e não com um tom da cor da forma, porque uma janela é de um material diferente do da parede — e aparece uma a cada dois metros de superfície. Onde a forma não diz nada, o tipo dela decide: um ground é Turf, um cylinder ou um cone é Staves, uma sphere é Speckle, e todo o resto é Planks. E uma cor que carrega alpha é translúcida — Tone.RGBA(r, g, b, a), ou um Tone.HEX de oito dígitos — desenhada vazada e sem escrever profundidade, que é como se desenha um fantasma, um vidro colorido ou o rastro atrás de alguma coisa.\n\neye, aim, lens, fog, background, grain, bits, grab e crosshair vão na própria scene, e não em uma forma: onde a câmera está e para onde olha, quão aberta é a lente, até onde se enxerga, o céu no qual a névoa se dissolve, e se a window deve segurar o mouse. shadows(false) desliga as sombras do sol, e é a única coisa que uma scene tem a dizer sobre a iluminação — uma máquina que não segura a taxa de quadros pode vender as sombras antes de vender qualquer coisa que mude o que está ali. grain(px) e bits(n) são uma decisão em duas metades: em quantos pixels o mundo é desenhado antes de ser ampliado de volta sem filtro, e quantos valores cada um dos canais de cor dele pode assumir. grain é o lado menor, e o que ele compra é uma imagem de fato desenhada pequena, e não uma de tamanho inteiro borrada — uma parede de um pixel de largura tem um pixel de largura, com uma borda nele. bits é por canal, e a quantização é pontilhada em vez de arredondada, então um degradê sai tramado e não em faixas; ela é aplicada depois de o quadro ser codificado para a tela, porque a profundidade de cor de um monitor é um fato sobre o que ele mostra e não sobre a aritmética por trás disso. Cinco bits é a cor de quinze bits que a maioria dos portáteis tinha. Insets são desenhados no mesmo buffer, então uma segunda olhada no mundo tem o mesmo grão da primeira, e uma scene que não diz nenhum dos dois é desenhada no tamanho da caixa dela, com a cor que a tela tem. Iluminação deliberadamente não é algo que uma scene descreve — o conjunto é fixo, escolhido para que um sólido pintado de uma cor saia daquela cor com um lado sombreado — então o que deixa uma scene escura é a paleta dela, e não uma configuração abaixada. Os eventos são só da scene: onFrame reporta quantos milissegundos o último frame levou, onRate a quantos hertz a tela acabou rodando, onKeyDown e onKeyUp o nome de uma tecla, onLook o quanto o mouse andou, onGrab se a window está com o ponteiro, e onPad um gamepad.\n\nUm gamepad é a única entrada sobre a qual um navegador não avisa: não existe evento para um analógico se mexer, só um retrato que você precisa pedir. Então o runtime lê os controles uma vez por frame e publica o que mudou — o que faz de um botão de controle a mesma coisa que uma tecla sendo pressionada, em vez de um segundo jeito de ouvir sobre entrada. onPad reporta três coisas: qual controle, qual comando dele, e onde esse comando está agora. Uma forma só cobre o aparelho inteiro, porque um botão é um comando que só é 0 ou 1. leftX, leftY, rightX e rightY são os analógicos; lt e rt os gatilhos; a, b, x, y, lb, rb, up, down, left, right, back, start, guide, lstick e rstick os botões; e qualquer coisa além disso é reportada por número. here é o próprio controle: 1 quando ele chega, 2 quando chega com um layout que o navegador não soube nomear, e 0 quando ele vai embora — e um controle desconectado solta antes tudo que estava segurando, então um carro cujo controle ficou sem bateria no meio da curva não continua virando. Uma zona morta é aplicada antes de o evento ser enviado, e nada é enviado até um comando ter de fato se mexido, porque um analógico parado nunca está totalmente parado.\n\ninset é o único widget que desenha em três dimensões sem ser uma scene: uma caixa na página mostrando o mesmo mundo de onde quer que estejam o eye, o aim e o lens dela — um retrovisor, uma caixa de replay, uma câmera de segurança. Ela guarda uma câmera e nenhum mundo, e é só isso que a torna barata: uma segunda scene seria uma segunda descrição de tudo, enviada a cada frame, enquanto um inset é uma segunda passada sobre as formas que a scene já entregou. Uma window desenha uma scene e quantos insets quiser.\n\nUma scene guarda mais uma forma além das nove acima, e essa é ouvida em vez de desenhada: ela tem o slide seguinte só para si.\n\nUma página servida renderiza a caixa de uma scene vazia — não há socket por onde os frames viajem — então os exemplos abaixo são mostrados apenas como código: abra um deles em uma window para realmente ver.",
+			explanation: "A scene is the one widget only a window can draw, and it is a module of its own — hive.ui.scene — because it is the one thing in the standard library that carries a download: a pinned three.js, fetched on the first build that needs it and cached ever after. A window that draws no scene links none of it. A scene is a value like every other view: a camera, a sky, and a vector of shapes, rebuilt by an ordinary func from the state as often as there are frames. Nothing here is a handle — no mesh to keep, no material to allocate, no canvas to hold — so a program answers what is there right now, and never what has changed.\n\nbox, sphere, cylinder, cone, roof, ground, label, sprite and line are the shapes, and each takes its dimensions as its payload rather than as attributes, because they are what the shape is: a sphere without a radius is not a sphere with a default one. cone takes both of its radii rather than only the base — a cone in the world is hardly ever the perfect one, a track marker is snub-nosed and a nose cone ends in a blade, and a shape that could only be the perfect one gets composed around rather than used. Nought at the top is the perfect one; a top equal to the bottom is a cylinder. roof is a pitched one — a ridge down its length, a slope each side and a gable closing each end — the shape a box and a cone between them cannot make and half the built world is. ground already lies flat, so a floor costs no rotation and turn still means everywhere what it means anywhere; label always faces the viewer, because one you can read from one side only is not a label; sprite is a picture that does the same, naming a file in the program's own assets/ and standing at a size given in metres — its place is its foot rather than its middle, because what a sprite is for is something standing on the ground and one centred on its position is buried to the waist in it, and paint tints the image rather than replacing it, so one drawing made white serves every colour a scene asks of it; and line takes no position at all, since a line is between two places and has no third to call its own.\n\nat, turn and paint place and colour a shape. turn is a heading rather than three world axes: yaw first, then pitch about the shape's own lateral axis and roll about its own length, so a thing turned to face somewhere and then pitched tips nose-up the way it is facing. surface says what it is made of, which is a different question from what colour it is, and the set reads from the ground up: what you drive on — Turf, Gravel, Tarmac, Kerb — then what things are built of — Concrete, Brick, Panes, Planks, Staves, Bark, Leaves, Crowd, Mesh — then what they are finished in: Speckle, Metal, Carbon, Rubber, Glass and Gloss. Each is drawn over whatever colour the shape already is — so one pattern serves a red kerb and a blue one, and Gloss adds no pattern at all. Panes is the exception: it paints its glass a colour of its own rather than a shade of the shape's, because a window is a different material from the wall, and it lands one in every couple of metres of surface. Where a shape says nothing its kind decides: a ground is Turf, a cylinder or a cone is Staves, a sphere is Speckle, and everything else is Planks. And a colour carrying an alpha is translucent — Tone.RGBA(r, g, b, a), or an eight-digit Tone.HEX — drawn see-through and writing no depth, which is how a ghost, a tinted screen or the plume behind something gets drawn.\n\neye, aim, lens, fog, background, grain, bits, grab and crosshair go on the scene itself rather than on a shape: where the camera is and where it looks, how wide the lens is, how far you can see, the sky the fog fades into, and whether the window should hold the mouse. shadows(false) turns the sun's shadows off, and it is the one thing about the lighting a scene may say — a machine that cannot hold its frame rate can sell them before it sells anything that changes what is there. grain(px) and bits(n) are one decision in two halves: how few pixels the world is drawn into before it is blown back up unfiltered, and how few values each of its colour channels may take. grain is the short edge, and what it buys is a picture genuinely drawn small rather than a full-size one blurred — a wall a pixel wide is a pixel wide, with an edge on it. bits is per channel, and the quantisation is dithered rather than rounded, so a gradient comes out woven instead of banded; it is applied after the frame is encoded for the screen, because a display's bit depth is a fact about what it displays and not about the arithmetic behind it. Five bits is the fifteen-bit colour most handhelds had. Insets are drawn into the same buffer, so a second look at the world is grained with the first, and a scene that says neither is drawn at the size of its box in the colour the screen has. Lighting is deliberately not something a scene describes — the rig is fixed, chosen so that a solid painted a colour comes out that colour with a shaded side — so what makes a scene dark is its palette rather than a setting turned down. The events are a scene's own: onFrame reports how many milliseconds the last frame took, onRate how many hertz the screen turned out to run at, onKeyDown and onKeyUp a key's name, onLook how far the mouse moved, onGrab whether the window has the pointer, onSize how wide and how tall the scene's box landed — when it starts listening and whenever that changes — and onPad a gamepad.\n\nA gamepad is the one input a browser will not tell you about: there is no event for a stick moving, only a snapshot you have to ask for. So the runtime reads the pads once a frame and posts what changed — which makes a button on a pad the same kind of thing as a key going down, rather than a second way of hearing about input. onPad reports three things: which pad, which control on it, and where that control now is. One shape covers the whole device, because a button is a control that is only ever 0 or 1. leftX, leftY, rightX and rightY are the sticks; lt and rt the triggers; a, b, x, y, lb, rb, up, down, left, right, back, start, guide, lstick and rstick the buttons; and anything past those is reported by number. here is the pad itself: 1 when it arrives, 2 when it arrives with a layout the browser could not name, and 0 when it goes — and a pad being unplugged lets go of everything it was holding first, so a car whose controller ran flat mid-corner does not keep turning. A dead zone is applied before the event is sent, and nothing is sent until a control has actually moved, because a stick at rest is never quite at rest.\n\ninset is the one widget that draws in three dimensions without being a scene: a box on the page showing the same world from wherever its own eye, aim and lens are standing — a rear-view mirror, a replay box, a security camera. It holds a camera and no world, which is the whole of what makes it affordable: a second scene would be a second description of everything, sent every frame, while an inset is a second pass over the shapes the scene already handed over. One window draws one scene and any number of insets.\n\nA scene holds one more shape than the nine above, and that one is heard rather than drawn: it has the slide after this one to itself.\n\nA served page renders a scene's box empty — there is no socket for frames to travel down — so the examples below are shown as code only: open one in a window to actually see it.",
+			explanationPt: "Uma scene é o único widget que somente uma window consegue desenhar, e é um módulo à parte — hive.ui.scene — porque é a única coisa na biblioteca padrão que carrega um download: um three.js fixado, buscado na primeira compilação que precisa dele e guardado em cache dali em diante. Uma window que não desenha nenhuma scene não linka nada disso. Uma scene é um valor como qualquer outra view: uma câmera, um céu e um vetor de formas, reconstruído por um func comum a partir do estado tantas vezes quantos forem os frames. Nada aqui é um handle — nenhuma malha para guardar, nenhum material para alocar, nenhum canvas para segurar — então um programa responde o que está ali agora, e nunca o que mudou.\n\nbox, sphere, cylinder, cone, roof, ground, label, sprite e line são as formas, e cada uma recebe suas dimensões como carga e não como atributos, porque elas são o que a forma é: uma esfera sem raio não é uma esfera com um raio padrão. cone recebe os seus dois raios em vez de só o da base — um cone no mundo quase nunca é o perfeito, um cone de sinalização é rombudo e o bico de um carro termina em lâmina, e uma forma que só pudesse ser a perfeita acaba sendo contornada em vez de usada. Zero no topo é a perfeita; um topo igual à base é um cilindro. roof é um telhado de duas águas — uma cumeeira ao longo dele, um caimento de cada lado e uma empena fechando cada ponta — a forma que um box e um cone juntos não fazem e que metade do mundo construído tem. ground já está deitado, então um chão não custa rotação nenhuma e turn continua significando em todo lugar o que significa em qualquer lugar; label sempre encara quem olha, porque uma que só dá para ler de um lado não é uma label; sprite é uma imagem que faz o mesmo, nomeando um arquivo dentro do assets/ do próprio programa e ficando de pé num tamanho dado em metros — o lugar dela é o pé, e não o meio, porque uma sprite serve para algo que está em pé no chão e uma centrada na própria posição fica enterrada até a cintura; e paint tinge a imagem em vez de substituí-la, então um único desenho feito em branco serve a todas as cores que uma scene pedir dele; e line não recebe posição alguma, já que uma linha fica entre dois lugares e não tem um terceiro para chamar de seu.\n\nat, turn e paint posicionam e colorem uma forma. turn é uma direção, e não três eixos do mundo: primeiro a guinada, depois a inclinação em torno do eixo lateral da própria forma e o rolamento em torno do comprimento dela — então algo virado para um lado e depois inclinado levanta o nariz na direção para onde está virado. surface diz do que ela é feita, que é uma pergunta diferente de qual é a cor dela, e o conjunto se lê do chão para cima: aquilo em que se anda — Turf, Gravel, Tarmac, Kerb — depois aquilo de que as coisas são feitas — Concrete, Brick, Panes, Planks, Staves, Bark, Leaves, Crowd, Mesh — e depois o acabamento delas: Speckle, Metal, Carbon, Rubber, Glass e Gloss. Cada uma é desenhada por cima da cor que a forma já tem — então um padrão só serve para um zebrado vermelho e para um azul, e Gloss não acrescenta padrão nenhum. Panes é a exceção: pinta o vidro com uma cor própria, e não com um tom da cor da forma, porque uma janela é de um material diferente do da parede — e aparece uma a cada dois metros de superfície. Onde a forma não diz nada, o tipo dela decide: um ground é Turf, um cylinder ou um cone é Staves, uma sphere é Speckle, e todo o resto é Planks. E uma cor que carrega alpha é translúcida — Tone.RGBA(r, g, b, a), ou um Tone.HEX de oito dígitos — desenhada vazada e sem escrever profundidade, que é como se desenha um fantasma, um vidro colorido ou o rastro atrás de alguma coisa.\n\neye, aim, lens, fog, background, grain, bits, grab e crosshair vão na própria scene, e não em uma forma: onde a câmera está e para onde olha, quão aberta é a lente, até onde se enxerga, o céu no qual a névoa se dissolve, e se a window deve segurar o mouse. shadows(false) desliga as sombras do sol, e é a única coisa que uma scene tem a dizer sobre a iluminação — uma máquina que não segura a taxa de quadros pode vender as sombras antes de vender qualquer coisa que mude o que está ali. grain(px) e bits(n) são uma decisão em duas metades: em quantos pixels o mundo é desenhado antes de ser ampliado de volta sem filtro, e quantos valores cada um dos canais de cor dele pode assumir. grain é o lado menor, e o que ele compra é uma imagem de fato desenhada pequena, e não uma de tamanho inteiro borrada — uma parede de um pixel de largura tem um pixel de largura, com uma borda nele. bits é por canal, e a quantização é pontilhada em vez de arredondada, então um degradê sai tramado e não em faixas; ela é aplicada depois de o quadro ser codificado para a tela, porque a profundidade de cor de um monitor é um fato sobre o que ele mostra e não sobre a aritmética por trás disso. Cinco bits é a cor de quinze bits que a maioria dos portáteis tinha. Insets são desenhados no mesmo buffer, então uma segunda olhada no mundo tem o mesmo grão da primeira, e uma scene que não diz nenhum dos dois é desenhada no tamanho da caixa dela, com a cor que a tela tem. Iluminação deliberadamente não é algo que uma scene descreve — o conjunto é fixo, escolhido para que um sólido pintado de uma cor saia daquela cor com um lado sombreado — então o que deixa uma scene escura é a paleta dela, e não uma configuração abaixada. Os eventos são só da scene: onFrame reporta quantos milissegundos o último frame levou, onRate a quantos hertz a tela acabou rodando, onKeyDown e onKeyUp o nome de uma tecla, onLook o quanto o mouse andou, onGrab se a window está com o ponteiro, onSize a largura e a altura em que a caixa da scene ficou — ao começar a ouvir e sempre que isso muda — e onPad um gamepad.\n\nUm gamepad é a única entrada sobre a qual um navegador não avisa: não existe evento para um analógico se mexer, só um retrato que você precisa pedir. Então o runtime lê os controles uma vez por frame e publica o que mudou — o que faz de um botão de controle a mesma coisa que uma tecla sendo pressionada, em vez de um segundo jeito de ouvir sobre entrada. onPad reporta três coisas: qual controle, qual comando dele, e onde esse comando está agora. Uma forma só cobre o aparelho inteiro, porque um botão é um comando que só é 0 ou 1. leftX, leftY, rightX e rightY são os analógicos; lt e rt os gatilhos; a, b, x, y, lb, rb, up, down, left, right, back, start, guide, lstick e rstick os botões; e qualquer coisa além disso é reportada por número. here é o próprio controle: 1 quando ele chega, 2 quando chega com um layout que o navegador não soube nomear, e 0 quando ele vai embora — e um controle desconectado solta antes tudo que estava segurando, então um carro cujo controle ficou sem bateria no meio da curva não continua virando. Uma zona morta é aplicada antes de o evento ser enviado, e nada é enviado até um comando ter de fato se mexido, porque um analógico parado nunca está totalmente parado.\n\ninset é o único widget que desenha em três dimensões sem ser uma scene: uma caixa na página mostrando o mesmo mundo de onde quer que estejam o eye, o aim e o lens dela — um retrovisor, uma caixa de replay, uma câmera de segurança. Ela guarda uma câmera e nenhum mundo, e é só isso que a torna barata: uma segunda scene seria uma segunda descrição de tudo, enviada a cada frame, enquanto um inset é uma segunda passada sobre as formas que a scene já entregou. Uma window desenha uma scene e quantos insets quiser.\n\nUma scene guarda mais uma forma além das nove acima, e essa é ouvida em vez de desenhada: ela tem o slide seguinte só para si.\n\nUma página servida renderiza a caixa de uma scene vazia — não há socket por onde os frames viajem — então os exemplos abaixo são mostrados apenas como código: abra um deles em uma window para realmente ver.",
 			examples: [
 				Example(caption: "A 3D scene, in a window", captionPt: "Uma cena 3D, em uma window", code: `type Msg \{ Tick }
 
@@ -3018,8 +3051,8 @@ func view(model: Int): hive.ui.View \{
 	)
 }
 
-proc update(model: Int, msg: Msg, envelope: hive.syslink.Envelope): Int \{
-	return model
+proc update(model: mut Int, msg: Msg): Msg \{
+	return msg
 }
 
 proc main(): void \{
@@ -3059,8 +3092,8 @@ func view(model: Int): hive.ui.View \{
 	)
 }
 
-proc update(model: Int, msg: Msg, envelope: hive.syslink.Envelope): Int \{
-	return model
+proc update(model: mut Int, msg: Msg): Msg \{
+	return msg
 }
 
 proc main(): void \{
@@ -3091,11 +3124,11 @@ func view(angle: Float): hive.ui.View \{
 // A scene's onFrame reports how many milliseconds the last frame took, so
 // the turn this box makes is in real seconds rather than in frames — the
 // same box spins at the same speed at thirty frames a second or sixty.
-proc spin(angle: Float, msg: Msg, envelope: hive.syslink.Envelope): Float \{
+proc spin(angle: mut Float, msg: Msg): Msg \{
 	if msg is Msg.Tick(ms) \{
-		return angle + hive.conv.itf(ms) * 0.002
+		angle += hive.conv.itf(ms) * 0.002
 	}
-	return angle
+	return msg
 }
 
 proc main(): void \{
@@ -3125,11 +3158,11 @@ func view(angle: Float): hive.ui.View \{
 // O onFrame de uma scene reporta quantos milissegundos o último frame levou,
 // então o giro que esta caixa faz é em segundos reais, não em frames — a
 // mesma caixa gira na mesma velocidade a trinta quadros por segundo ou a sessenta.
-proc spin(angle: Float, msg: Msg, envelope: hive.syslink.Envelope): Float \{
+proc spin(angle: mut Float, msg: Msg): Msg \{
 	if msg is Msg.Tick(ms) \{
-		return angle + hive.conv.itf(ms) * 0.002
+		angle += hive.conv.itf(ms) * 0.002
 	}
-	return angle
+	return msg
 }
 
 proc main(): void \{
@@ -3178,19 +3211,16 @@ func view(kart: Kart): hive.ui.View \{
 // name, because a button is a control that is only ever 0 or 1. Nothing is
 // held on to here that the pad did not say: onPad reports what *changed*,
 // so the model remembers the last position of each control it cares about.
-proc drive(kart: Kart, msg: Msg, envelope: hive.syslink.Envelope): Kart \{
-	mut Kart it = kart
+proc drive(kart: mut Kart, msg: Msg): Msg \{
 	if msg is Msg.Padded(pad, control, at) \{
-		if control == "leftX" \{ it.steer = at }
-		if control == "rt" \{ it.throttle = at }
-		return it
-	}
-	if msg is Msg.Tick(ms) \{
+		if control == "leftX" \{ kart.steer = at }
+		if control == "rt" \{ kart.throttle = at }
+	} else if msg is Msg.Tick(ms) \{
 		step := hive.conv.itf(ms) / 1000.0
-		it.x = it.x + it.steer * it.throttle * 16.0 * step
-		it.z = it.z - it.throttle * 16.0 * step
+		kart.x = kart.x + kart.steer * kart.throttle * 16.0 * step
+		kart.z = kart.z - kart.throttle * 16.0 * step
 	}
-	return it
+	return msg
 }
 
 proc main(): void \{
@@ -3238,19 +3268,16 @@ func view(kart: Kart): hive.ui.View \{
 // nome, porque um botão é um comando que só é 0 ou 1. Nada é guardado aqui
 // que o controle não tenha dito: onPad reporta o que *mudou*, então o modelo
 // lembra a última posição de cada comando que lhe interessa.
-proc drive(kart: Kart, msg: Msg, envelope: hive.syslink.Envelope): Kart \{
-	mut Kart it = kart
+proc drive(kart: mut Kart, msg: Msg): Msg \{
 	if msg is Msg.Padded(pad, control, at) \{
-		if control == "leftX" \{ it.steer = at }
-		if control == "rt" \{ it.throttle = at }
-		return it
-	}
-	if msg is Msg.Tick(ms) \{
+		if control == "leftX" \{ kart.steer = at }
+		if control == "rt" \{ kart.throttle = at }
+	} else if msg is Msg.Tick(ms) \{
 		step := hive.conv.itf(ms) / 1000.0
-		it.x = it.x + it.steer * it.throttle * 16.0 * step
-		it.z = it.z - it.throttle * 16.0 * step
+		kart.x = kart.x + kart.steer * kart.throttle * 16.0 * step
+		kart.z = kart.z - kart.throttle * 16.0 * step
 	}
-	return it
+	return msg
 }
 
 proc main(): void \{
@@ -3317,8 +3344,8 @@ func view(cars: Car[dyn]): ui.View \{
 	], solids + noises(cars))
 }
 
-proc update(cars: Car[dyn], msg: Msg, envelope: hive.syslink.Envelope): Car[dyn] \{
-	return cars
+proc update(cars: mut Car[dyn], msg: Msg): Msg \{
+	return msg
 }
 
 proc main(): void \{
@@ -3376,8 +3403,8 @@ func view(cars: Car[dyn]): ui.View \{
 	], solids + noises(cars))
 }
 
-proc update(cars: Car[dyn], msg: Msg, envelope: hive.syslink.Envelope): Car[dyn] \{
-	return cars
+proc update(cars: mut Car[dyn], msg: Msg): Msg \{
+	return msg
 }
 
 proc main(): void \{
@@ -3439,8 +3466,8 @@ test "dois itens se somam" \{
 			titlePt: "Atores distribuídos",
 			download: false,
 			shot: "",
-			explanation: "hive.syslink gives a program addressable services, in this process or on another machine, reached by the identical statement either way. spawn starts one and register publishes it under an atom; at reaches a service on this node and on reaches one on another, both without any I/O. A service's handler is a fold over its mailbox — proc(State, Message, Envelope): State — so there is no mutex anywhere: the fold is the mutex, and answer inside it is how a deferred reply is sent. self reads a handler's own address, monitor asks to be told if another address stops, and stop ends one outright. A crash inside one service kills only that service and leaves the rest of the node running.\n\nMissing a reply on one branch is the easiest mistake there is to make in service code, and waiting out a timeout is a miserable way to be told about it: it points at the network when the problem is a missing line. So answer is a no-op when the sender used async and nothing is waiting — one handler serves both shapes without caring which it was — and a request a service handles without ever answering comes straight back as NoReply, naming the service, at once rather than at the deadline. You write nothing to get that.\n\nUnless the envelope leaves the turn. If it goes anywhere else — stored in the returned state, handed to a call the handler does not wait for, passed to a proc of your own — a reply may genuinely still be on its way, and the runtime keeps waiting. That is the deferred reply: hand the envelope to an async call and answer whenever the work is done.\n\nlisten opens this node to others at an endpoint — an ip:port — and node/peers say who it is and who else it is currently connected to. Two nodes need nothing shared beyond a cluster key, written to ~/.hive/syslink.key on first run: copy that file to the second machine, or set HIVE_SYSLINK_KEY the same on both, and every connection between them is TLS 1.3 either way.",
-			explanationPt: "hive.syslink dá a um programa serviços endereçáveis, neste processo ou em outra máquina, alcançados pela mesma instrução de qualquer forma. spawn inicia um e register o publica sob um átomo; at alcança um serviço neste nó e on alcança um em outro, ambos sem nenhum I/O. O handler de um serviço é um fold sobre sua caixa de mensagens — proc(State, Message, Envelope): State — então não há mutex em lugar nenhum: o fold é o mutex, e answer dentro dele é como uma resposta adiada é enviada. self lê o próprio endereço de um handler, monitor pede para ser avisado caso outro endereço pare, e stop encerra um serviço. Uma falha dentro de um serviço mata apenas aquele serviço e deixa o resto do nó rodando.\n\nEsquecer a resposta em um ramo é o erro mais fácil de cometer em código de serviço, e esperar um timeout até o fim é uma forma miserável de ser avisado disso: aponta para a rede quando o problema é uma linha que falta. Então answer é um no-op quando quem enviou usou async e nada está esperando — um mesmo handler serve às duas formas sem se importar com qual foi — e uma requisição que um serviço trata sem nunca responder volta na hora como NoReply, nomeando o serviço, em vez de voltar no prazo. Você não escreve nada para ter isso.\n\nA menos que o envelope saia do turno. Se ele for para qualquer outro lugar — guardado no estado retornado, entregue a uma chamada que o handler não espera, passado a um proc seu — uma resposta pode genuinamente ainda estar a caminho, e o runtime continua esperando. Essa é a resposta adiada: entregue o envelope a uma chamada async e responda quando o trabalho terminar.\n\nlisten abre este nó para outros em um endpoint — um ip:port — e node/peers dizem quem ele é e com quem mais está conectado atualmente. Dois nós não precisam de nada compartilhado além de uma chave de cluster, escrita em ~/.hive/syslink.key na primeira execução: copie esse arquivo para a segunda máquina, ou defina HIVE_SYSLINK_KEY da mesma forma nas duas, e toda conexão entre elas é TLS 1.3 de qualquer forma.",
+			explanation: "hive.syslink gives a program addressable services, in this process or on another machine, reached by the identical statement either way. spawn starts one and register publishes it under an atom; at reaches a service on this node and on reaches one on another, both without any I/O. A service's handler is one turn — proc(state: mut State, msg: Message): Message — which writes the state in place and answers with what it returns. The state is a mutex only the service's own mailbox ever holds, one message at a time, so nothing needs a lock; and because the handler is an ordinary proc, a test can call it directly with a mut variable of its own. spawnAddressed starts a handler that is also handed its own address every turn, to register itself or to give to work it starts; monitor(watcher, target, notice) posts notice to watcher when target stops, and stop ends one outright. A crash inside one service kills only that service and leaves the rest of the node running.\n\nEvery request is answered, because every turn returns: the compiler holds a handler to returning one of its own messages, so a branch that forgot is a compile error rather than a caller waiting out its timeout. An answer nobody waits for — the sender used async — is simply dropped, so one handler serves both shapes without caring which it was. Written as one if/else if chain whose every branch returns, with nothing after it, a handler also turns a message added to the mailbox later into a compile error: the chain no longer covers the type. Work too slow to hold a mailbox for goes to an async call handed the service's address, and comes back as a message of its own.\n\nlisten opens this node to others at an endpoint — an ip:port — and node/peers say who it is and who else it is currently connected to. Two nodes need nothing shared beyond a cluster key, written to ~/.hive/syslink.key on first run: copy that file to the second machine, or set HIVE_SYSLINK_KEY the same on both, and every connection between them is TLS 1.3 either way.",
+			explanationPt: "hive.syslink dá a um programa serviços endereçáveis, neste processo ou em outra máquina, alcançados pela mesma instrução de qualquer forma. spawn inicia um e register o publica sob um átomo; at alcança um serviço neste nó e on alcança um em outro, ambos sem nenhum I/O. O handler de um serviço é um turno — proc(state: mut State, msg: Message): Message — que escreve o estado no lugar e responde com o que retorna. O estado é um mutex que só a caixa de mensagens do próprio serviço segura, uma mensagem por vez, então nada precisa de trava; e como o handler é um proc comum, um teste pode chamá-lo diretamente com uma variável mut sua. spawnAddressed inicia um handler que também recebe o próprio endereço a cada turno, para se registrar ou para entregar a um trabalho que ele inicia; monitor(watcher, target, notice) envia notice a watcher quando target para, e stop encerra um serviço. Uma falha dentro de um serviço mata apenas aquele serviço e deixa o resto do nó rodando.\n\nToda requisição é respondida, porque todo turno retorna: o compilador exige que um handler retorne uma das próprias mensagens, então um ramo esquecido é erro de compilação, e não alguém esperando um timeout até o fim. Uma resposta que ninguém espera — quem enviou usou async — é simplesmente descartada, então um mesmo handler serve às duas formas sem se importar com qual foi. Escrito como uma única cadeia if/else if em que todo ramo retorna, sem nada depois dela, um handler também transforma uma mensagem acrescentada depois à caixa em erro de compilação: a cadeia deixa de cobrir o tipo. Um trabalho lento demais para segurar a caixa de mensagens vai para uma chamada async que recebe o endereço do serviço, e volta como uma mensagem própria.\n\nlisten abre este nó para outros em um endpoint — um ip:port — e node/peers dizem quem ele é e com quem mais está conectado atualmente. Dois nós não precisam de nada compartilhado além de uma chave de cluster, escrita em ~/.hive/syslink.key na primeira execução: copie esse arquivo para a segunda máquina, ou defina HIVE_SYSLINK_KEY da mesma forma nas duas, e toda conexão entre elas é TLS 1.3 de qualquer forma.",
 			examples: [
 				Example(caption: "A service on this node", captionPt: "Um serviço neste nó", code: `type Note \{
 	Say   \{ text: Str }
@@ -3448,15 +3475,16 @@ test "dois itens se somam" \{
 	Total \{ count: Int }
 }
 
-proc tally(state: Int, msg: Note, envelope: hive.syslink.Envelope): Int \{
+proc tally(state: mut Int, msg: Note): Note \{
 	if msg is Note.Say(text) \{
 		echo text
-		return state
+		return msg
 	} else if msg is Note.Count \{
-		hive.syslink.answer(envelope, Note.Total(state))
-		return state + 1
+		state += 1
+		return Note.Total(state)
+	} else if msg is Note.Total(_) \{
+		return msg
 	}
-	return state
 }
 
 proc main(): void \{
@@ -3474,15 +3502,16 @@ proc main(): void \{
 	Total \{ count: Int }
 }
 
-proc tally(state: Int, msg: Note, envelope: hive.syslink.Envelope): Int \{
+proc tally(state: mut Int, msg: Note): Note \{
 	if msg is Note.Say(text) \{
 		echo text
-		return state
+		return msg
 	} else if msg is Note.Count \{
-		hive.syslink.answer(envelope, Note.Total(state))
-		return state + 1
+		state += 1
+		return Note.Total(state)
+	} else if msg is Note.Total(_) \{
+		return msg
 	}
-	return state
 }
 
 proc main(): void \{
@@ -3495,68 +3524,72 @@ proc main(): void \{
 		echo msg
 	}
 }`),
-				Example(caption: "Answering later, and not answering at all", captionPt: "Respondendo depois, e não respondendo", code: `type Note \{
-	Ask
-	Slowly
-	Ignore
-	Answer \{ text: Str }
+				Example(caption: "Slow work, off the turn", captionPt: "Trabalho lento, fora do turno", code: `type Note \{
+	Fetch
+	Fetched \{ text: Str }
+	Latest
+	Answer  \{ text: Str }
 }
 
-proc desk(state: Int, note: Note, from: hive.syslink.Envelope): Int \{
-	if note is Note.Ask \{
-		hive.syslink.answer(from, Note.Answer("here you go"))
-	} else if note is Note.Slowly \{
-		async answerLate(from)      // the envelope leaves the turn
+proc desk(latest: mut Str, note: Note, me: hive.syslink.Address): Note \{
+	if note is Note.Fetch \{
+		async fetch(me)                // the turn ends now
+		return Note.Answer("started")
+	} else if note is Note.Fetched(text) \{
+		latest = text                  // the result arrives as a message
+		return note
+	} else if note is Note.Latest \{
+		return Note.Answer(latest)
+	} else if note is Note.Answer(_) \{
+		return note
 	}
-	return state + 1                 // Note.Ignore falls through: no answer
 }
 
-// Handed an envelope by a call nothing waits for, so the reply is allowed
-// to arrive whenever this is done.
-proc answerLate(from: hive.syslink.Envelope): void \{
+proc fetch(back: hive.syslink.Address): void \{
 	hive.task.sleep(300)
-	hive.syslink.answer(from, Note.Answer("worth the wait"))
+	async back(Note.Fetched("worth the wait"))
 }
 
 proc main(): void \{
-	desk := hive.syslink.spawn(desk, 0)
+	box := hive.syslink.spawnAddressed(desk, "nothing yet")
 
-	if desk(Note.Ask()) with timeout 500 is Result.Ok(now) \{ echo now }
-	if desk(Note.Slowly()) with timeout 1000 is Result.Ok(late) \{ echo late }
-
-	// Comes back at once, not at the deadline.
-	if desk(Note.Ignore()) with timeout 5000 is Result.Error(err) \{ echo err }
+	if box(Note.Fetch()) with timeout 500 is Result.Ok(now) \{ echo now }
+	if box(Note.Latest()) with timeout 500 is Result.Ok(first) \{ echo first }
+	hive.task.sleep(500)
+	if box(Note.Latest()) with timeout 500 is Result.Ok(later) \{ echo later }
 }`, codePt: `type Note \{
-	Ask
-	Slowly
-	Ignore
-	Answer \{ text: Str }
+	Fetch
+	Fetched \{ text: Str }
+	Latest
+	Answer  \{ text: Str }
 }
 
-proc desk(state: Int, note: Note, from: hive.syslink.Envelope): Int \{
-	if note is Note.Ask \{
-		hive.syslink.answer(from, Note.Answer("aqui está"))
-	} else if note is Note.Slowly \{
-		async answerLate(from)      // o envelope sai do turno
+proc desk(latest: mut Str, note: Note, me: hive.syslink.Address): Note \{
+	if note is Note.Fetch \{
+		async fetch(me)                // o turno termina agora
+		return Note.Answer("começou")
+	} else if note is Note.Fetched(text) \{
+		latest = text                  // o resultado chega como mensagem
+		return note
+	} else if note is Note.Latest \{
+		return Note.Answer(latest)
+	} else if note is Note.Answer(_) \{
+		return note
 	}
-	return state + 1                 // Note.Ignore passa direto: sem resposta
 }
 
-// Recebeu um envelope de uma chamada que ninguém espera, então a resposta
-// pode chegar quando isto aqui terminar.
-proc answerLate(from: hive.syslink.Envelope): void \{
+proc fetch(back: hive.syslink.Address): void \{
 	hive.task.sleep(300)
-	hive.syslink.answer(from, Note.Answer("valeu a espera"))
+	async back(Note.Fetched("valeu a espera"))
 }
 
 proc main(): void \{
-	desk := hive.syslink.spawn(desk, 0)
+	box := hive.syslink.spawnAddressed(desk, "nada ainda")
 
-	if desk(Note.Ask()) with timeout 500 is Result.Ok(now) \{ echo now }
-	if desk(Note.Slowly()) with timeout 1000 is Result.Ok(late) \{ echo late }
-
-	// Volta na hora, não no prazo.
-	if desk(Note.Ignore()) with timeout 5000 is Result.Error(err) \{ echo err }
+	if box(Note.Fetch()) with timeout 500 is Result.Ok(now) \{ echo now }
+	if box(Note.Latest()) with timeout 500 is Result.Ok(first) \{ echo first }
+	hive.task.sleep(500)
+	if box(Note.Latest()) with timeout 500 is Result.Ok(later) \{ echo later }
 }`),
 				Example(caption: "The same service, truly distributed", captionPt: "O mesmo serviço, verdadeiramente distribuído", code: `type Note \{
 	Say     \{ text: Str }
@@ -3564,15 +3597,16 @@ proc main(): void \{
 	Counted \{ seen: Int }
 }
 
-proc inbox(seen: Int, note: Note, from: hive.syslink.Envelope): Int \{
+proc inbox(seen: mut Int, note: Note): Note \{
 	if note is Note.Say(text) \{
 		echo "heard: \{text}"
-		return seen + 1
+		seen += 1
+		return note
 	} else if note is Note.HowMany \{
-		hive.syslink.answer(from, Note.Counted(seen))
-		return seen
+		return Note.Counted(seen)
+	} else if note is Note.Counted(_) \{
+		return note
 	}
-	return seen
 }
 
 // Run this exact program on two machines: a node is identified by where it
@@ -3607,15 +3641,16 @@ proc main(): void \{
 	Counted \{ seen: Int }
 }
 
-proc inbox(seen: Int, note: Note, from: hive.syslink.Envelope): Int \{
+proc inbox(seen: mut Int, note: Note): Note \{
 	if note is Note.Say(text) \{
 		echo "ouvi: \{text}"
-		return seen + 1
+		seen += 1
+		return note
 	} else if note is Note.HowMany \{
-		hive.syslink.answer(from, Note.Counted(seen))
-		return seen
+		return Note.Counted(seen)
+	} else if note is Note.Counted(_) \{
+		return note
 	}
-	return seen
 }
 
 // Rode este mesmo programa em duas máquinas: um nó é identificado por onde
@@ -3754,8 +3789,8 @@ hive: ` + "`" + `--target` + "` " + `is a flag of ` + "`" + `hive build` + "` " 
 			titlePt: "Empacotando um app",
 			download: false,
 			shot: "",
-			explanation: "\n\`hive build` writes a program. `hive export` writes an app: `hive export main.hive --target android/arm64` produces main-android-arm64.apk, installable as it stands.nThe window needs nothing new. A hive.ui.window already serves its own page over loopback with every asset embedded, so what shows it on a handset is the WebView the platform already has. The program is never told it is on a phone: it serves the tree it would serve a browser, and the same view function answers both.nandroid/arm64, and no other Android target. It is the only one Go links without a C cross-compiler — the one thing a machine with the Go toolchain on it cannot be assumed to have — so the other three are refused by name rather than failing ten seconds later in a language you did not write. It is also what a handset is.nA program with no window is refused rather than packaged. An app whose activity shows nothing has no way to be started and nothing to see, so export says so and stops; hive build is what compiles a program that serves or prints.nWhat the file holds: the program itself, a fixed WebView host, a binary manifest, and assets/icon.png as the launcher icon where the program ships one. The application id comes from the entrypoint, so chat.hive is hive.chat. Nothing but Go writes any of it — the manifest, the resource table, the archive and the signature over it are the build's own work, the same way the Windows resource object is. No Android SDK, and no network.nThe signature is APK Signature Scheme v2, under a key made on first use at ~/.hive/android.key. One stable key a machine over, so a later build installs over an earlier one instead of being refused as a different app.",
-			explanationPt: "\n\`hive build` escreve um programa. `hive export` escreve um app: `hive export main.hive --target android/arm64` produz main-android-arm64.apk, instalável do jeito que sai.nA janela não precisa de nada novo. Uma hive.ui.window já serve a própria página em loopback com todos os recursos embutidos, então o que a mostra em um aparelho é a WebView que a plataforma já tem. O programa nunca fica sabendo que está em um telefone: ele serve a mesma árvore que serviria a um navegador, e a mesma função view responde aos dois.nandroid/arm64, e nenhum outro target do Android. É o único que o Go linka sem um compilador C cruzado — a única coisa que não se pode presumir em uma máquina que tem a toolchain do Go — então os outros três são recusados pelo nome, em vez de falharem dez segundos depois em uma linguagem que você não escreveu. E é também o que um aparelho é.nUm programa sem janela é recusado em vez de empacotado. Um app cuja activity não mostra nada não tem como ser iniciado nem o que mostrar, então o export diz isso e para; hive build é o que compila um programa que serve ou imprime.nO que o arquivo carrega: o programa em si, um hospedeiro WebView fixo, um manifesto binário, e assets/icon.png como ícone do lançador quando o programa traz um. O id da aplicação vem do entrypoint, então chat.hive é hive.chat. Nada além do Go escreve qualquer parte disso — o manifesto, a tabela de recursos, o arquivo compactado e a assinatura sobre ele são trabalho do próprio build, do mesmo jeito que o objeto de recurso do Windows é. Nenhum SDK do Android, e nenhuma rede.nA assinatura é o APK Signature Scheme v2, sob uma chave criada no primeiro uso em ~/.hive/android.key. Uma chave estável por máquina, então um build posterior instala sobre um anterior em vez de ser recusado como um app diferente.",
+			explanation: "`hive build` writes a program. `hive export` writes an app: `hive export main.hive --target android/arm64` produces main-android-arm64.apk, installable as it stands.\n\nThe window needs nothing new. A hive.ui.window already serves its own page over loopback with every asset embedded, so what shows it on a handset is the WebView the platform already has. The program is never told it is on a phone: it serves the tree it would serve a browser, and the same view function answers both.\n\nandroid/arm64, and no other Android target. It is the only one Go links without a C cross-compiler — the one thing a machine with the Go toolchain on it cannot be assumed to have — so the other three are refused by name rather than failing ten seconds later in a language you did not write. It is also what a handset is.\n\nA program with no window is refused rather than packaged. An app whose activity shows nothing has no way to be started and nothing to see, so export says so and stops; hive build is what compiles a program that serves or prints.\n\nWhat the file holds: the program itself, a fixed WebView host, a binary manifest, and assets/icon.png as the launcher icon where the program ships one. The application id comes from the entrypoint, so chat.hive is hive.chat. Nothing but Go writes any of it — the manifest, the resource table, the archive and the signature over it are the build's own work, the same way the Windows resource object is. No Android SDK, and no network.\n\nThe signature is APK Signature Scheme v2, under a key made on first use at ~/.hive/android.key. One stable key a machine over, so a later build installs over an earlier one instead of being refused as a different app.",
+			explanationPt: "`hive build` escreve um programa. `hive export` escreve um app: `hive export main.hive --target android/arm64` produz main-android-arm64.apk, instalável do jeito que sai.\n\nA janela não precisa de nada novo. Uma hive.ui.window já serve a própria página em loopback com todos os recursos embutidos, então o que a mostra em um aparelho é a WebView que a plataforma já tem. O programa nunca fica sabendo que está em um telefone: ele serve a mesma árvore que serviria a um navegador, e a mesma função view responde aos dois.\n\nandroid/arm64, e nenhum outro target do Android. É o único que o Go linka sem um compilador C cruzado — a única coisa que não se pode presumir em uma máquina que tem a toolchain do Go — então os outros três são recusados pelo nome, em vez de falharem dez segundos depois em uma linguagem que você não escreveu. E é também o que um aparelho é.\n\nUm programa sem janela é recusado em vez de empacotado. Um app cuja activity não mostra nada não tem como ser iniciado nem o que mostrar, então o export diz isso e para; hive build é o que compila um programa que serve ou imprime.\n\nO que o arquivo carrega: o programa em si, um hospedeiro WebView fixo, um manifesto binário, e assets/icon.png como ícone do lançador quando o programa traz um. O id da aplicação vem do entrypoint, então chat.hive é hive.chat. Nada além do Go escreve qualquer parte disso — o manifesto, a tabela de recursos, o arquivo compactado e a assinatura sobre ele são trabalho do próprio build, do mesmo jeito que o objeto de recurso do Windows é. Nenhum SDK do Android, e nenhuma rede.\n\nA assinatura é o APK Signature Scheme v2, sob uma chave criada no primeiro uso em ~/.hive/android.key. Uma chave estável por máquina, então um build posterior instala sobre um anterior em vez de ser recusado como um app diferente.",
 			examples: [
 				Example(caption: "A program that is also an app", captionPt: "Um programa que também é um app", code: `import hive.ui
 
@@ -3770,11 +3805,11 @@ func view(count: Int): ui.View \{
 	])
 }
 
-proc update(count: Int, msg: Msg, from: hive.syslink.Envelope): Int \{
+proc update(count: mut Int, msg: Msg): Msg \{
 	if msg is Msg.Tapped \{
-		return count + 1
+		count += 1
 	}
-	return count
+	return msg
 }
 
 proc main(): void \{
@@ -3792,11 +3827,11 @@ func view(count: Int): ui.View \{
 	])
 }
 
-proc update(count: Int, msg: Msg, from: hive.syslink.Envelope): Int \{
+proc update(count: mut Int, msg: Msg): Msg \{
 	if msg is Msg.Tapped \{
-		return count + 1
+		count += 1
 	}
-	return count
+	return msg
 }
 
 proc main(): void \{
