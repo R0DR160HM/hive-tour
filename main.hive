@@ -11,7 +11,7 @@
 // that are not it, each because a program is easier to read when the thing it
 // does and the material it does it to are not interleaved:
 //
-//   ./slides     the tour itself, fifty-five slides of it in two languages,
+//   ./slides     the tour itself, seventy-three slides of it in two languages,
 //                and the two types that hold one. Four fifths of the whole
 //                program by weight, and none of it about HTTP.
 //   ./logo       the mark, as the paths of an SVG. A drawing is not prose,
@@ -556,7 +556,7 @@ func renderSlide(slide: slides.Slide, idx: Int, all: slides.Slide[], lang: Str):
 
 	head := PageHead(
 		title: slideTitle(slide, lang) + pageTitleSuffix(lang),
-		description: summarise(slideExplanation(slide, lang), 155),
+		description: summarise(plainText(slideExplanation(slide, lang)), 155),
 		path: path,
 		lang: lang,
 		indexable: true,
@@ -574,6 +574,7 @@ func renderSlide(slide: slides.Slide, idx: Int, all: slides.Slide[], lang: Str):
 	// wrapper, and it is `.tour-prose > .h-column > .h-row:last-child`.
 	spliced := examplesHtml(slide.examples, lang)
 		+ "<div class=\"tour-prose\">"
+		+ proseHtml(slideExplanation(slide, lang))
 		+ ui.html(bottomView(slide, idx, total, lang, path))
 		+ "</div>"
 	body := join(split(page, codeMarkerTag()), spliced)
@@ -607,7 +608,7 @@ func slideExplanation(slide: slides.Slide, lang: Str): Str {
 
 // The landing page, and the one page with **no rail down the left**. A
 // sidebar is for somebody who is already inside the tour and wants a
-// different part of it; on the way in it is fifty-five links in front of
+// different part of it; on the way in it is seventy-odd links in front of
 // two paragraphs, which is a table of contents standing where the cover
 // should be. So the home page is one centred column, and the only way on
 // from it is the same way anybody would have gone anyway: start at the
@@ -770,8 +771,8 @@ func href(path: Str, lang: Str): Str {
 
 // The line of small type across the top of every page, and the bar of
 // progress under it. Between them they are the whole of this tour's
-// navigation, and what they replace is a rail down the left carrying all
-// fifty-five slides at once.
+// navigation, and what they replace is a rail down the left carrying every
+// slide at once.
 //
 // The rail went because of what it was, not because of how it looked. A list
 // of every page, pinned open beside every page, collapsing into a lid on a
@@ -781,7 +782,7 @@ func href(path: Str, lang: Str): Str {
 // the opposite: it has a first slide, a last one, and an order that is the
 // argument. Pinning the map open beside it spends a fifth of the window, and
 // every pixel of that fifth, on a question the reader of a tour is not
-// asking. Worse, it answers it badly — fifty-five entries is well past the
+// asking. Worse, it answers it badly — seventy-odd entries is well past the
 // length anybody reads as a list, so the rail was mostly a texture with one
 // line picked out of it.
 //
@@ -818,7 +819,7 @@ func runningHeadView(lang: Str, path: Str): ui.View {
 //
 // `grow(0)` is what the last slide leaves the second box, and a share of
 // nought of the leftover room is no room at all — so the bar arrives full on
-// slide fifty-five without that being a case anybody had to write.
+// the last slide without that being a case anybody had to write.
 func progressView(idx: Int, total: Int): ui.View {
 	return ui.row([ui.height(3)], [
 		ui.column([ui.grow(idx + 1), ui.background(ui.Tone.Good())], []),
@@ -838,12 +839,12 @@ func pageView(lang: Str, path: Str, body: ui.View[dyn]): ui.View {
 // right: it is somewhere you go rather than something you carry, and when you
 // get there it has the whole window to be a list in.
 //
-// Three columns rather than one, because fifty-five entries down a single
+// Three columns rather than one, because seventy-three entries down a single
 // column is a list you have to scroll to read, and a list you scroll is a
-// list you cannot see. Three columns of eighteen is one screen. They are real
+// list you cannot see. Three columns of twenty-five is one screen. They are real
 // `ui.column`s inside a `ui.row` rather than a CSS column count, so the
-// reading order is the order of the markup: one to eighteen, then nineteen to
-// thirty-six, then the rest. A stylesheet that flows one list into three
+// reading order is the order of the markup: one to twenty-five, then twenty-six to
+// fifty, then the rest. A stylesheet that flows one list into three
 // columns draws the same picture and hands a screen reader one long list,
 // which is fine; this hands it three, each a run of consecutive slides, which
 // is better.
@@ -930,7 +931,7 @@ func headerColumn(slide: slides.Slide, idx: Int, total: Int, lang: Str): ui.View
 }
 
 // The picture, above the code that draws it, on the slides that have one —
-// and nothing at all on the fifty-two that do not.
+// and nothing at all on the rest.
 //
 // It answers with a vector rather than a View because there is no view that
 // means "no view here": `ui.none` would still be a child, and a column with
@@ -953,16 +954,12 @@ func shotView(slide: slides.Slide, lang: Str): ui.View[dyn] {
 	])]
 }
 
-// What follows the code examples: the explanation, one paragraph per view
-// so each wraps on its own, a download link on the two slides that ask for
+// What follows the explanation: a download link on the slides that ask for
 // one, and the prev/next pager. Rendered separately with `ui.html` and spliced in
-// right after the examples, so it still ends up inside the same column the
+// right after the prose, so it still ends up inside the same column the
 // header opened.
 func bottomView(slide: slides.Slide, idx: Int, total: Int, lang: Str, path: Str): ui.View {
 	mut ui.View[dyn] blocks = []
-	for each para in split(slideExplanation(slide, lang), "\n\n") {
-		append(blocks, ui.text([], para))
-	}
 	if slide.download {
 		append(blocks, ui.row([ui.gap(12)], [downloadLinkView(lang), repoLinkView(lang)]))
 	}
@@ -1009,7 +1006,170 @@ func exampleHtml(ex: slides.Example, lang: Str): Str {
 	return "<div class=\"tour-example\">" + captionHtml + codeBlockHtml(code) + "</div>"
 }
 
-// The one piece of literal HTML on the page: `hive.ui` has no monospaced,
+// A slide's explanation, which carries the little markup prose needs and no
+// more: a blank line between paragraphs, a list wherever lines open with
+// "- ", and inside either, `code` and **bold**. Written out by hand for the
+// reason the samples are: `hive.ui` has a text widget, and a paragraph with a
+// name set in monospace in the middle of it is not one.
+func proseHtml(text: Str): Str {
+	mut Str[dyn] out = []
+	for each para in split(text, "\n\n") {
+		mut Str[dyn] words = []
+		mut Str[dyn] items = []
+		for each line in split(para, "\n") {
+			if isItem(line) {
+				if len(words) > 0 {
+					append(out, "<p>" + inlineHtml(join(words, " ")) + "</p>")
+					words = []
+				}
+				append(items, "<li>" + inlineHtml(itemText(line)) + "</li>")
+			} else {
+				if len(items) > 0 {
+					append(out, "<ul>" + join(items, "") + "</ul>")
+					items = []
+				}
+				append(words, line)
+			}
+		}
+		if len(words) > 0 {
+			append(out, "<p>" + inlineHtml(join(words, " ")) + "</p>")
+		}
+		if len(items) > 0 {
+			append(out, "<ul>" + join(items, "") + "</ul>")
+		}
+	}
+	return "<div class=\"tour-text\">" + join(out, "") + "</div>"
+}
+
+// The same text with its markup taken off, for the places that only take
+// text: a page's description, read by a search engine or a link preview.
+func plainText(text: Str): Str {
+	unticked := join(split(text, "`"), "")
+	unbolded := join(split(unticked, "**"), "")
+	return join(split(unbolded, "\n- "), " ")
+}
+
+func isItem(line: Str): Bool {
+	if indexOf(line, "- ") is Result.Ok(at) {
+		return at == 0
+	}
+	return false
+}
+
+func itemText(line: Str): Str {
+	cs := split(line, "")
+	low := 2
+	high := len(cs) - 1
+	if cs bounds low && cs bounds high {
+		return join(cs[low:high], "")
+	}
+	return ""
+}
+
+// `code`, **bold**, and everything else escaped. A code span opens with a
+// run of backticks and closes at the next run exactly as long, so ``a `b` c``
+// can hold a backtick; one space just inside each end is padding, dropped.
+// A backtick with nothing to close it is a backtick.
+func inlineHtml(s: Str): Str {
+	cs := split(s, "")
+	mut Str[dyn] out = []
+	mut bold := false
+	mut i := 0
+	for ; i < len(cs); {
+		if cs bounds i {
+			c := cs[i]
+			if c == "`" {
+				run := tickRun(cs, i)
+				close := closingRun(cs, i + run, run)
+				if close >= 0 {
+					append(out, "<code>" + escapeHtml(spanText(cs, i + run, close - 1)) + "</code>")
+					i = close + run
+					continue
+				}
+				for n := 0; n < run; n++ {
+					append(out, "`")
+				}
+				i = i + run
+				continue
+			}
+			if c == "*" && isStar(cs, i + 1) {
+				if bold {
+					append(out, "</strong>")
+				} else {
+					append(out, "<strong>")
+				}
+				bold = bold == false
+				i = i + 2
+				continue
+			}
+			append(out, escapeChar(c))
+		}
+		i = i + 1
+	}
+	if bold {
+		append(out, "</strong>")
+	}
+	return join(out, "")
+}
+
+func isStar(cs: Str[], at: Int): Bool {
+	if cs bounds at {
+		return cs[at] == "*"
+	}
+	return false
+}
+
+// How many backticks in a row start at `from`.
+func tickRun(cs: Str[], from: Int): Int {
+	mut n := 0
+	for at := from; at < len(cs); at++ {
+		if cs bounds at {
+			if cs[at] != "`" {
+				return n
+			}
+		}
+		n = n + 1
+	}
+	return n
+}
+
+// Where the next run of exactly `run` backticks starts, or -1.
+func closingRun(cs: Str[], from: Int, run: Int): Int {
+	mut at := from
+	for ; at < len(cs); {
+		n := tickRun(cs, at)
+		if n == run {
+			return at
+		}
+		if n > 0 {
+			at = at + n
+		} else {
+			at = at + 1
+		}
+	}
+	return -1
+}
+
+func spanText(cs: Str[], low: Int, high: Int): Str {
+	mut Str[dyn] kept = []
+	for at := low; at <= high; at++ {
+		if cs bounds at {
+			append(kept, cs[at])
+		}
+	}
+	first := 0
+	last := len(kept) - 1
+	inner := 1
+	innerLast := last - 1
+	if kept bounds first && kept bounds last && kept bounds inner && kept bounds innerLast && inner <= innerLast {
+		if kept[first] == " " && kept[last] == " " {
+			return join(kept[inner:innerLast], "")
+		}
+	}
+	return join(kept, "")
+}
+
+// Literal HTML, as the prose is: `hive.ui` has no monospaced,
 // boxed text of its own, so a code example is written out by hand. The code
 // itself never changes between languages — only its `//` comments do, in
 // `codePt`.

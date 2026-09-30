@@ -1,0 +1,43 @@
+// The markup a slide's explanation carries, rendered.
+import ./main as tour
+
+test "a paragraph with a code span" {
+	assert tour.proseHtml("a `b` c") == "<div class=\"tour-text\"><p>a <code>b</code> c</p></div>"
+}
+
+test "double backticks hold a single one, padding dropped" {
+	assert tour.inlineHtml("``in `main`:``") == "<code>in `main`:</code>"
+	assert tour.inlineHtml("`` ` ``") == "<code>`</code>"
+}
+
+test "bold, and escaping outside and inside spans" {
+	assert tour.inlineHtml("**x** < `a<b>` & y") == "<strong>x</strong> &lt; <code>a&lt;b&gt;</code> &amp; y"
+}
+
+test "an unclosed backtick is a backtick" {
+	assert tour.inlineHtml("a ` b") == "a ` b"
+	assert tour.inlineHtml("``a`") == "``a`"
+}
+
+test "stars inside a code span are not bold" {
+	assert tour.inlineHtml("`**`") == "<code>**</code>"
+	assert tour.inlineHtml("`2 ** 3` is **eight**") == "<code>2 ** 3</code> is <strong>eight</strong>"
+}
+
+test "a list, with the lead-in line of its own paragraph" {
+	got := tour.proseHtml("Two:\n\n- `a`, first;\n- b.\n\nAfter.")
+	assert got == "<div class=\"tour-text\"><p>Two:</p><ul><li><code>a</code>, first;</li><li>b.</li></ul><p>After.</p></div>"
+}
+
+test "a lead-in on the line right above a list" {
+	got := tour.proseHtml("Two:\n- a\n- b")
+	assert got == "<div class=\"tour-text\"><p>Two:</p><ul><li>a</li><li>b</li></ul></div>"
+}
+
+test "the description has no markup" {
+	assert tour.plainText("`hive build` **writes** a program.") == "hive build writes a program."
+}
+
+test "unicode passes through" {
+	assert tour.inlineHtml("é — `ç`…") == "é — <code>ç</code>…"
+}

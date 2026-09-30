@@ -50,7 +50,7 @@ func html(code: Str): Str {
 		if scanned.next > i {
 			i = scanned.next
 		} else {
-			out = out + escape(chars[i])
+			out = out + escape(at(chars, i))
 			i = i + 1
 		}
 	}
