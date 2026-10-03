@@ -1,0 +1,37 @@
+// Writes every code example in the tour to `verify-out/`, one file each, so a
+// script outside can put the compiler over them. `slides.hive` promises each
+// example is a complete program; this is what makes that checkable.
+import ./slides
+import hive.file
+
+proc main(): void {
+	if hive.file.makeDir("verify-out") is Result.Error(why) {
+		echo "cannot make verify-out: {why.message}"
+		return
+	}
+	mut Str[dyn] index = []
+	mut Int n = 0
+	for each s in slides.all() {
+		mut Int i = 0
+		for each e in s.examples {
+			write(index, n, i, "en", s.title, e.code)
+			write(index, n, i, "pt", s.title, e.codePt)
+			i = i + 1
+		}
+		n = n + 1
+	}
+	if hive.file.write("verify-out/index.tsv", join(index, "\n") + "\n") is Result.Error(why) {
+		echo "cannot write the index: {why.message}"
+		return
+	}
+	echo "{len(index)} examples written"
+}
+
+proc write(index: mut Str[dyn], slide: Int, at: Int, language: Str, title: Str, code: Str): void {
+	name := "{slide}-{at}-{language}.hive"
+	if hive.file.write("verify-out/" + name, code + "\n") is Result.Error(why) {
+		echo "cannot write {name}: {why.message}"
+		return
+	}
+	append(index, name + "\t" + title)
+}

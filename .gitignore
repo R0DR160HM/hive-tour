@@ -5,3 +5,8 @@ main
 main.exe
 
 *.log
+
+# What `verify.hive` writes: every code example in the tour, one file each, for
+# the compiler to be put over. Generated on demand, never committed.
+verify.hive-build/
+verify-out/
