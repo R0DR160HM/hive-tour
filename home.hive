@@ -438,7 +438,7 @@ proc main(): void \{
 			title: "One tool, from the first line to production",
 			titlePt: "Uma ferramenta, da primeira linha à produção",
 			text: "The `hive` command checks, runs, tests and builds, and the only other thing it needs is Go. Tests are part of the language and every run reports coverage, so there is no test framework to choose.\n\n`hive analyze` points out code that will be expensive to run before it ever runs, and every error the compiler reports names the problem and says how to fix it.",
-			textPt: "O comando `hive` checa, roda, testa e constrói, e a única outra coisa de que ele precisa é o Go. Testes fazem parte da linguagem e toda execução reporta a cobertura, então não há framework de testes para escolher.\n\nO `hive analyze` aponta o código que vai sair caro antes mesmo de ele rodar, e todo erro que o compilador reporta diz qual é o problema e como corrigir.",
+			textPt: "O comando `hive` checa, roda, testa e constrói, e a única outra coisa de que ele precisa é o Go. Testes fazem parte da linguagem e toda execução reporta a cobertura, então não há framework de testes para escolher.\n\nO `hive analyze` aponta o código que vai sair caro antes mesmo dele rodar, e todo erro que o compilador reporta diz qual é o problema e como corrigir.",
 			reads: ["Testing", "Every command", "What an error looks like"],
 			examples: [],
 		),
