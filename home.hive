@@ -1,0 +1,538 @@
+// What the front page says, in both languages, and the shapes it is held in.
+// Nothing here knows anything about HTML or HTTP: main.hive lays it out and
+// ./theme decides what it looks like. It is apart from the server for the
+// reason ./slides is — a page of prose about a language, interleaved with the
+// code that serves it, reads as neither.
+//
+// The front page used to be one screen: the mark, two paragraphs, six claims
+// and a way in. That is a cover, and a cover is the right first thing for a
+// tour to show — but most people who arrive here are not yet taking the tour.
+// They are deciding whether Hive is worth a project, and a cover cannot
+// answer that. So the page goes on past the fold, in the order that decision
+// is made: what it is, why somebody would pick it, whether it suits *this*
+// project — the honest half included — what each reason looks like in
+// practice, what comes in the box, and whether any of it is real.
+//
+// Which sets the level everything here is written at. A reader choosing a
+// language for their next project wants to know what they gain and what they
+// give up, not how many rounds of PBKDF2 a password gets; every one of those
+// details is true, and every one of them is in the slides, which is where a
+// reader goes once the decision is made. Nothing on this page should need the
+// tour to be understood.
+//
+// The samples follow the rule ./slides is written to: each is a complete
+// program that compiles, and where a comment says what a line prints, that is
+// what it prints. Each is kept to about sixty-four columns, which is how wide
+// the figure beside the prose is — a sample that has to be scrolled sideways
+// is a sample nobody reads.
+//
+// A point names the slides that say the rest by their English titles rather
+// than by number, because a number moves every time a slide is added in front
+// of it, and a title does not. home.test.hive holds every one of them to being
+// a title the tour really has.
+import ./slides
+
+// A short statement and the sentence that backs it up: one of the six reasons
+// near the top of the page, or one line of the fit and the caveats under them.
+type Claim {
+	title:   Str
+	titlePt: Str
+	text:    Str
+	textPt:  Str
+}
+
+// One reason to pick the language, set out at length: a label, a heading, a
+// few paragraphs carrying the markup a slide's explanation does, the slides
+// to read next, and any samples to set beside it.
+type Point {
+	label:    Str
+	labelPt:  Str
+	title:    Str
+	titlePt:  Str
+	text:     Str
+	textPt:   Str
+	reads:    Str[dyn]
+	examples: slides.Example[dyn]
+}
+
+// A line of the toolchain, or of the standard library: a name set in the
+// monospace, and what it is for.
+type Entry {
+	name:    Str
+	about:   Str
+	aboutPt: Str
+}
+
+// A platform the same program reaches, and the one command that takes it
+// there. The command is not translated, because a command is not prose.
+type Target {
+	name:    Str
+	namePt:  Str
+	command: Str
+}
+
+func lede(lang: Str): Str {
+	if lang == "pt" {
+		return "Uma linguagem compilada sem exceções em tempo de execução, feita para sistemas distribuídos, que roda em qualquer lugar — e pequena o bastante para se aprender em um dia."
+	}
+	return "A compiled language with no runtime exceptions, built for distributed systems, that runs anywhere — and small enough to learn in a day."
+}
+
+func intro(lang: Str): Str {
+	if lang == "pt" {
+		return "O Hive pega na compilação os erros que outras linguagens deixam para a produção: não existe null, nada é lançado, e todo acesso a um vetor é verificado antes de o programa rodar. Ele já vem com o que um serviço precisa — HTTP, SQL, JSON, criptografia, uma UI e serviços que conversam entre máquinas — e o mesmo código roda no Windows, no Linux e no macOS, no navegador, em um contêiner e no Android."
+	}
+	return "Hive catches at compile time the mistakes other languages leave for production: there is no null, nothing is thrown, and every array access is checked before the program runs. It comes with what a service needs — HTTP, SQL, JSON, cryptography, a UI, and services that talk across machines — and the same code runs on Windows, Linux and macOS, in a browser, in a container, and on Android."
+}
+
+// The figure beside the masthead: one short program that is most of the
+// page at once — a web server, shared state, a failure handled as a value,
+// and no lock anywhere — so a reader who never scrolls has still seen the
+// language do something real.
+func hero(): slides.Example[dyn] {
+	return [
+		slides.Example(caption: "A complete web service with shared state", captionPt: "Um serviço web completo, com estado compartilhado", code: `type Tick \{
+	Hit
+	Seen \{ count: Int }
+}
+
+// One message at a time, so the count needs no lock.
+proc counter(count: mut Int, tick: Tick): Tick \{
+	count += 1
+	return Tick.Seen(count)
+}
+
+proc handle(req: hive.net.HttpRequest): hive.net.HttpResponse \{
+	plain := [["Content-Type", "text/plain"]]
+	service := at(#Hits)
+	// Asking a service answers a Result: it may be down.
+	if service(Tick.Hit()) is Result.Ok(Tick.Seen(n)) \{
+		return hive.net.HttpResponse(200, plain, "visitor \{n}\n")
+	}
+	return hive.net.HttpResponse(503, plain, "try again\n")
+}
+
+proc main(): void \{
+	if spawn(counter, 0, #Hits) is Result.Error(err) \{
+		panic err
+	}
+	hive.net.httpServe(8080, handle)
+}`, codePt: `type Tick \{
+	Hit
+	Seen \{ count: Int }
+}
+
+// Uma mensagem por vez, então a contagem não precisa de lock.
+proc counter(count: mut Int, tick: Tick): Tick \{
+	count += 1
+	return Tick.Seen(count)
+}
+
+proc handle(req: hive.net.HttpRequest): hive.net.HttpResponse \{
+	plain := [["Content-Type", "text/plain"]]
+	service := at(#Hits)
+	// Perguntar a um serviço dá um Result: ele pode estar fora.
+	if service(Tick.Hit()) is Result.Ok(Tick.Seen(n)) \{
+		return hive.net.HttpResponse(200, plain, "visita \{n}\n")
+	}
+	return hive.net.HttpResponse(503, plain, "tente de novo\n")
+}
+
+proc main(): void \{
+	if spawn(counter, 0, #Hits) is Result.Error(err) \{
+		panic err
+	}
+	hive.net.httpServe(8080, handle)
+}`),
+	]
+}
+
+func whyTitle(lang: Str): Str {
+	if lang == "pt" { return "Por que escolher o Hive" }
+	return "Why pick Hive"
+}
+
+// The six reasons, which are the whole page in six lines. Each is written as
+// what a project gets rather than as what the language has: "no crashes in
+// production" is the decision, and "no null" is how it is kept.
+func reasons(): Claim[6] {
+	return [
+		Claim(
+			title: "No crashes in production",
+			titlePt: "Sem falhas em produção",
+			text: "No null, no exceptions, no out-of-range index: what would crash elsewhere does not compile.",
+			textPt: "Sem null, sem exceções, sem índice fora do intervalo: o que falharia em outra linguagem não compila.",
+		),
+		Claim(
+			title: "Runs everywhere",
+			titlePt: "Roda em qualquer lugar",
+			text: "The same code on Windows, Linux, macOS, the browser, a container and Android.",
+			textPt: "O mesmo código no Windows, Linux, macOS, navegador, contêiner e Android.",
+		),
+		Claim(
+			title: "One process or many machines",
+			titlePt: "Um processo ou muitas máquinas",
+			text: "Calling a service across the network looks exactly like calling one locally.",
+			textPt: "Chamar um serviço pela rede é exatamente igual a chamar um local.",
+		),
+		Claim(
+			title: "Secure defaults",
+			titlePt: "Segura por padrão",
+			text: "Encrypted links between machines, injection-proof SQL, and secrets that never reach a log.",
+			textPt: "Conexões criptografadas entre máquinas, SQL à prova de injeção, e segredos que nunca chegam a um log.",
+		),
+		Claim(
+			title: "Batteries included",
+			titlePt: "Baterias inclusas",
+			text: "HTTP, SQL, JSON, cryptography and a UI library come with the language.",
+			textPt: "HTTP, SQL, JSON, criptografia e uma biblioteca de UI vêm com a linguagem.",
+		),
+		Claim(
+			title: "Productive in a day",
+			titlePt: "Produtiva em um dia",
+			text: "A small language. This tour covers all of it, one feature at a time.",
+			textPt: "Uma linguagem pequena. Este tour cobre toda ela, um recurso por vez.",
+		),
+	]
+}
+
+func fitTitle(lang: Str): Str {
+	if lang == "pt" { return "O Hive serve para o seu próximo projeto?" }
+	return "Is Hive right for your next project?"
+}
+
+func fitLabel(lang: Str): Str {
+	if lang == "pt" { return "Combina bem com" }
+	return "A good fit for"
+}
+
+func caveatLabel(lang: Str): Str {
+	if lang == "pt" { return "Pense duas vezes se" }
+	return "Think twice if"
+}
+
+// What Hive is good for. Kinds of project rather than features, because a
+// project is what the reader has in mind.
+func fits(): Claim[5] {
+	return [
+		Claim(
+			title: "Web APIs and backend services",
+			titlePt: "APIs web e serviços de backend",
+			text: "HTTP, SQL and JSON are in the standard library.",
+			textPt: "HTTP, SQL e JSON estão na biblioteca padrão.",
+		),
+		Claim(
+			title: "Systems spread across machines",
+			titlePt: "Sistemas espalhados por várias máquinas",
+			text: "Distribution is part of the language, not a framework bolted on.",
+			textPt: "A distribuição faz parte da linguagem, não é um framework acoplado.",
+		),
+		Claim(
+			title: "Software that has to run everywhere",
+			titlePt: "Software que precisa rodar em todo lugar",
+			text: "One codebase for the desktop, the server, the browser and the phone.",
+			textPt: "Um só código para o desktop, o servidor, o navegador e o celular.",
+		),
+		Claim(
+			title: "Command-line and internal tools",
+			titlePt: "Ferramentas de linha de comando e internas",
+			text: "One file to hand out, and no runtime to install.",
+			textPt: "Um arquivo para distribuir, e nenhum runtime para instalar.",
+		),
+		Claim(
+			title: "Teams that want no surprises in production",
+			titlePt: "Times que não querem surpresas em produção",
+			text: "What would have been a crash at 3 a.m. is a compile error instead.",
+			textPt: "O que seria uma falha às 3 da manhã vira um erro de compilação.",
+		),
+	]
+}
+
+// What Hive is not good for yet, said as plainly as the rest. A page that
+// only lists strengths is a page a careful reader discounts, and the reader
+// this one is written for is choosing a language a team will live with: the
+// day a pre-1.0 release is discovered should be today, here, rather than
+// three months into a project.
+func caveats(): Claim[3] {
+	return [
+		Claim(
+			title: "You need long-term stability today",
+			titlePt: "Você precisa de estabilidade de longo prazo hoje",
+			text: "Hive is young — not yet 1.0 — and still changes from one release to the next.",
+			textPt: "O Hive é jovem — ainda não chegou à 1.0 — e ainda muda de uma versão para outra.",
+		),
+		Claim(
+			title: "You rely on deep editor integration",
+			titlePt: "Você depende de integração profunda com o editor",
+			text: "There is no language server yet. Errors come as file:line, which any editor can jump to.",
+			textPt: "Ainda não há language server. Os erros vêm como arquivo:linha, que qualquer editor sabe abrir.",
+		),
+		Claim(
+			title: "You need manual control of memory",
+			titlePt: "Você precisa controlar a memória manualmente",
+			text: "Hive is garbage-collected, like the Go it compiles to.",
+			textPt: "O Hive tem coleta de lixo, como o Go para o qual ele compila.",
+		),
+	]
+}
+
+func readsLabel(lang: Str): Str {
+	if lang == "pt" { return "No tour" }
+	return "In the tour"
+}
+
+// The reasons at length, in the order the six above give them, minus the
+// one the closing line of the page makes on its own: that it can be learned
+// in a day. Reliability and scale carry a program. The other three are about
+// everything around a program, and main.hive sets a list beside each of them
+// instead — the platforms, what is in the box, and the commands.
+func points(): Point[5] {
+	return [
+		Point(
+			label: "Reliability",
+			labelPt: "Confiabilidade",
+			title: "What would crash does not compile",
+			titlePt: "O que falharia não compila",
+			text: "Null references, uncaught exceptions and out-of-range indexes are among the most common causes of crashes in production, and in Hive none of them can happen. Anything that can fail returns a `Result`, and the compiler makes you check it before you touch the value inside. An index it cannot prove safe is a compile error, and the error says how to fix it. Even a division by zero is a value, not a crash.\n\nThe mistakes that would have shown up in production show up while you are still writing the code.",
+			textPt: "Referências nulas, exceções não tratadas e índices fora do intervalo estão entre as causas mais comuns de falhas em produção, e no Hive nenhuma delas pode acontecer. Tudo que pode falhar devolve um `Result`, e o compilador obriga você a verificá-lo antes de tocar no valor dentro dele. Um índice que ele não consegue provar seguro é um erro de compilação, e o erro diz como corrigir. Até uma divisão por zero é um valor, não uma falha.\n\nOs erros que apareceriam em produção aparecem enquanto você ainda está escrevendo o código.",
+			reads: ["Result<T, E>", "Bounds, proved at compile time", "Arithmetic at the edges"],
+			examples: [
+				slides.Example(caption: "A lookup that can come back empty", captionPt: "Uma busca que pode voltar vazia", code: `type User \{
+	name:  Str
+	email: Str
+}
+
+func find(users: User[], name: Str): Result<User, Str> \{
+	for each user in users \{
+		if user.name == name \{
+			return Result.Ok(user)
+		}
+	}
+	return Result.Error("nobody called \{name}")
+}
+
+proc main(): void \{
+	users := [User("ada", "ada@example.com")]
+
+	if find(users, "ada") is Result.Ok(user) \{
+		echo user.email          // ada@example.com
+	}
+	if find(users, "alan") is Result.Error(why) \{
+		echo why                 // nobody called alan
+	}
+	// echo find(users, "ada").email  — refused: not a User
+}`, codePt: `type User \{
+	name:  Str
+	email: Str
+}
+
+func find(users: User[], name: Str): Result<User, Str> \{
+	for each user in users \{
+		if user.name == name \{
+			return Result.Ok(user)
+		}
+	}
+	return Result.Error("ninguém se chama \{name}")
+}
+
+proc main(): void \{
+	users := [User("ada", "ada@example.com")]
+
+	if find(users, "ada") is Result.Ok(user) \{
+		echo user.email          // ada@example.com
+	}
+	if find(users, "alan") is Result.Error(why) \{
+		echo why                 // ninguém se chama alan
+	}
+	// echo find(users, "ada").email  — recusado: não é um User
+}`),
+			],
+		),
+		Point(
+			label: "Runs everywhere",
+			labelPt: "Roda em qualquer lugar",
+			title: "One codebase, every platform",
+			titlePt: "Um código, todas as plataformas",
+			text: "The same Hive code runs on Windows, Linux and macOS, in the browser through WebAssembly, in a container, and on Android. Choosing a platform is a flag on the build, not a port of the program — no separate toolchain, and no C compiler to install. On the desktop and the server, a build is a single native executable with no runtime to ship beside it.\n\nInterfaces travel too. A `hive.ui` view is drawn as a desktop window, served as a web page, or packaged as an Android app — the same view, unchanged.",
+			textPt: "O mesmo código Hive roda no Windows, no Linux e no macOS, no navegador via WebAssembly, em um contêiner e no Android. Escolher a plataforma é uma flag na build, não uma reescrita do programa — nenhuma toolchain separada, e nenhum compilador C para instalar. No desktop e no servidor, uma build é um único executável nativo, sem runtime para entregar junto.\n\nAs interfaces vão junto. Uma view do `hive.ui` é desenhada como uma janela de desktop, servida como uma página web, ou empacotada como um app Android — a mesma view, sem mudar nada.",
+			reads: ["Building for another platform", "Containers", "Packaging an app"],
+			examples: [],
+		),
+		Point(
+			label: "Scale",
+			labelPt: "Escala",
+			title: "Start as one process, grow to many machines",
+			titlePt: "Comece como um processo, cresça para muitas máquinas",
+			text: "Concurrency in Hive is built around services: a piece of state that handles one message at a time, so there are no locks to get wrong. Calling a service on another machine is the same line of code as calling one in the same process, over connections that are encrypted and authenticated for you.\n\nA system can start as a single executable and be spread across machines later, without being rewritten around a message queue or an RPC framework.",
+			textPt: "A concorrência no Hive é construída em torno de serviços: um pedaço de estado que trata uma mensagem por vez, então não há locks para errar. Chamar um serviço em outra máquina é a mesma linha de código que chamar um no mesmo processo, sobre conexões que já vêm criptografadas e autenticadas.\n\nUm sistema pode começar como um único executável e ser espalhado por várias máquinas depois, sem ser reescrito em torno de uma fila de mensagens ou de um framework de RPC.",
+			reads: ["Services", "Services across nodes", "Concurrency: async"],
+			examples: [
+				slides.Example(caption: "The same service, here and on another machine", captionPt: "O mesmo serviço, aqui e em outra máquina", code: `type Note \{
+	Say   \{ text: Str }
+	Heard \{ count: Int }
+}
+
+// Handles one message at a time: no lock, wherever it runs.
+proc inbox(count: mut Int, note: Note): Note \{
+	count += 1
+	return Note.Heard(count)
+}
+
+proc main(): void \{
+	if hive.syslink.listen("10.0.0.1:9100") is Result.Error(e) \{
+		panic e
+	}
+	if spawn(inbox, 0, #Inbox) is Result.Error(e) \{
+		panic e
+	}
+
+	here := at(#Inbox)                     // on this machine
+	there := at("10.0.0.2:9100", #Inbox)   // on another one
+
+	// The same call either way. The second one crosses the
+	// network, encrypted and authenticated.
+	echo here(Note.Say("hi"))
+	echo there(Note.Say("hi"))
+}`, codePt: `type Note \{
+	Say   \{ text: Str }
+	Heard \{ count: Int }
+}
+
+// Trata uma mensagem por vez: sem lock, onde quer que rode.
+proc inbox(count: mut Int, note: Note): Note \{
+	count += 1
+	return Note.Heard(count)
+}
+
+proc main(): void \{
+	if hive.syslink.listen("10.0.0.1:9100") is Result.Error(e) \{
+		panic e
+	}
+	if spawn(inbox, 0, #Inbox) is Result.Error(e) \{
+		panic e
+	}
+
+	here := at(#Inbox)                     // nesta máquina
+	there := at("10.0.0.2:9100", #Inbox)   // em outra
+
+	// A mesma chamada nos dois casos. A segunda atravessa a
+	// rede, criptografada e autenticada.
+	echo here(Note.Say("oi"))
+	echo there(Note.Say("oi"))
+}`),
+			],
+		),
+		Point(
+			label: "Batteries included",
+			labelPt: "Baterias inclusas",
+			title: "Less to install, less to audit",
+			titlePt: "Menos para instalar, menos para auditar",
+			text: "The standard library covers what most services need, so a project starts with no dependencies and tends to stay with few. Its defaults are the safe ones: SQL values are always sent as parameters, secrets cannot end up in a log by accident, and machines only talk to each other over TLS.\n\nWhen you do need a package, it is imported straight from its git repository and pinned to a commit — there is no registry in between. And a Go file can be imported directly, bringing the whole Go ecosystem with it.",
+			textPt: "A biblioteca padrão cobre o que a maioria dos serviços precisa, então um projeto começa sem dependências e tende a continuar com poucas. Os padrões dela são os seguros: valores de SQL sempre vão como parâmetros, segredos não vão parar num log por acidente, e as máquinas só conversam entre si sobre TLS.\n\nQuando você precisa de um pacote, ele é importado direto do repositório git dele e fixado em um commit — não há nenhum registro no meio. E um arquivo Go pode ser importado diretamente, trazendo junto todo o ecossistema Go.",
+			reads: ["SQL", "Secrets", "Modules", "Importing a Go file"],
+			examples: [],
+		),
+		Point(
+			label: "Tooling",
+			labelPt: "Ferramentas",
+			title: "One tool, from the first line to production",
+			titlePt: "Uma ferramenta, da primeira linha à produção",
+			text: "The `hive` command checks, runs, tests and builds, and the only other thing it needs is Go. Tests are part of the language and every run reports coverage, so there is no test framework to choose.\n\n`hive analyze` points out code that will be expensive to run before it ever runs, and every error the compiler reports names the problem and says how to fix it.",
+			textPt: "O comando `hive` checa, roda, testa e constrói, e a única outra coisa de que ele precisa é o Go. Testes fazem parte da linguagem e toda execução reporta a cobertura, então não há framework de testes para escolher.\n\nO `hive analyze` aponta o código que vai sair caro antes mesmo de ele rodar, e todo erro que o compilador reporta diz qual é o problema e como corrigir.",
+			reads: ["Testing", "Every command", "What an error looks like"],
+			examples: [],
+		),
+	]
+}
+
+func platformsLabel(lang: Str): Str {
+	if lang == "pt" { return "O mesmo app.hive, em seis lugares" }
+	return "The same app.hive, in six places"
+}
+
+// Every place the one program goes, each a single command away. The point
+// of setting them out as a table rather than a sentence is the right-hand
+// column: it is the same file six times, and only the flag changes.
+func platforms(): Target[6] {
+	return [
+		Target(name: "Windows", namePt: "Windows", command: "hive build app.hive --target windows/amd64"),
+		Target(name: "Linux", namePt: "Linux", command: "hive build app.hive --target linux/arm64"),
+		Target(name: "macOS", namePt: "macOS", command: "hive build app.hive --target darwin/arm64"),
+		Target(name: "Browser", namePt: "Navegador", command: "hive build app.hive --target js/wasm"),
+		Target(name: "Container", namePt: "Contêiner", command: "hive container app.hive"),
+		Target(name: "Android", namePt: "Android", command: "hive export app.hive --target android/arm64"),
+	]
+}
+
+func modulesLabel(lang: Str): Str {
+	if lang == "pt" { return "Na biblioteca padrão" }
+	return "In the standard library"
+}
+
+// The standard library, or the part of it a project is chosen on: the
+// question this list answers is "will I have to go and find a library for
+// that?", and for each of these the answer is no.
+func modules(): Entry[12] {
+	return [
+		Entry(name: "hive.net", about: "HTTP, WebSockets and TCP", aboutPt: "HTTP, WebSockets e TCP"),
+		Entry(name: "hive.sql", about: "SQLite and PostgreSQL", aboutPt: "SQLite e PostgreSQL"),
+		Entry(name: "hive.json", about: "JSON, shaped by your types", aboutPt: "JSON, no formato dos seus tipos"),
+		Entry(name: "hive.crypto", about: "Hashing, encryption and JWTs", aboutPt: "Hashes, criptografia e JWTs"),
+		Entry(name: "hive.syslink", about: "Services across machines", aboutPt: "Serviços entre máquinas"),
+		Entry(name: "hive.ui", about: "Desktop, web and Android interfaces", aboutPt: "Interfaces de desktop, web e Android"),
+		Entry(name: "hive.ui.scene", about: "3D scenes and sound", aboutPt: "Cenas 3D e som"),
+		Entry(name: "hive.file", about: "Files and folders", aboutPt: "Arquivos e pastas"),
+		Entry(name: "hive.term", about: "The terminal and other programs", aboutPt: "O terminal e outros programas"),
+		Entry(name: "hive.time", about: "Dates, times and time zones", aboutPt: "Datas, horas e fusos horários"),
+		Entry(name: "hive.env", about: "Configuration from the environment", aboutPt: "Configuração pelo ambiente"),
+		Entry(name: "hive.map", about: "Dictionaries", aboutPt: "Dicionários"),
+	]
+}
+
+func commandsLabel(lang: Str): Str {
+	if lang == "pt" { return "O comando hive" }
+	return "The hive command"
+}
+
+// The commands a project uses day to day, in the order it meets them:
+// written, run, tested, built. The two that take a program somewhere else —
+// `container` and `export` — are in the table of platforms, where they are
+// the point.
+func commands(): Entry[5] {
+	return [
+		Entry(name: "hive check", about: "Find every error, build nothing", aboutPt: "Encontra todo erro, não constrói nada"),
+		Entry(name: "hive run", about: "Compile and run in one step", aboutPt: "Compila e roda em um passo"),
+		Entry(name: "hive test", about: "Run the tests, with coverage", aboutPt: "Roda os testes, com cobertura"),
+		Entry(name: "hive analyze", about: "Spot expensive code before it runs", aboutPt: "Aponta código caro antes de rodar"),
+		Entry(name: "hive build", about: "A native executable, or WebAssembly", aboutPt: "Um executável nativo, ou WebAssembly"),
+	]
+}
+
+// The last reason, and the one a reader can check without installing
+// anything: the page they are reading.
+func proof(): Point {
+	return Point(
+		label: "The proof",
+		labelPt: "A prova",
+		title: "This site is a Hive program",
+		titlePt: "Este site é um programa Hive",
+		text: "Every page here is served by an HTTP server written in Hive and laid out with Hive's own UI library — no web framework, and no JavaScript. The whole site is one executable, deployed in a container.",
+		textPt: "Toda página aqui é servida por um servidor HTTP escrito em Hive e montada com a própria biblioteca de UI do Hive — sem framework web, e sem JavaScript. O site inteiro é um único executável, publicado em um contêiner.",
+		reads: ["HTTP servers", "Views", "Containers"],
+		examples: [],
+	)
+}
+
+// The foot of the page, which is where the one claim the points above leave
+// out is made: that the whole language fits in an afternoon's reading.
+func closingTitle(lang: Str, n: Int): Str {
+	if lang == "pt" { return "{n} slides curtos, e você conhece a linguagem" }
+	return "{n} short slides, and you know the language"
+}
+
+func closingText(lang: Str): Str {
+	if lang == "pt" {
+		return "Cada exemplo é um programa completo, que você pode copiar e rodar. Comece do início, ou vá direto ao que precisa pelo sumário."
+	}
+	return "Every example is a complete program you can copy and run. Start at the beginning, or go straight to what you need from the contents."
+}

@@ -91,7 +91,7 @@ func styleTag(): Str {
 // Order matters exactly once in here: `responsive` comes last of the layout
 // rules so its media query outranks the frame `shell` sets up.
 func css(): Str {
-	return palette() + shell() + navigation() + prose() + code() + syntax() + responsive()
+	return palette() + shell() + navigation() + prose() + code() + syntax() + home() + responsive()
 }
 
 // ---------------------------------------------------------------------------
@@ -291,10 +291,10 @@ border-bottom:1px solid var(--line)}
 }
 
 // Side by side while there is room for both, and stacked the moment there is
-// not. There are only two things on this site that are ever side by side now
-// — the front page's two columns and the contents' three — and both are a
-// `ui.row`, which is a row inline, in every viewport. There is no attribute
-// that says "a row until it is narrow".
+// not. Outside the front page — which stacks its own, in `home` — the only
+// thing on this site that is ever side by side is the contents' three
+// columns, and they are a `ui.row`, which is a row inline, in every viewport.
+// There is no attribute that says "a row until it is narrow".
 //
 // That is what the `!important`s are for, and it is the whole of what they
 // are for. `ui.row` and `ui.gap(52)` are attributes of a box, and `hive.ui`
@@ -422,8 +422,10 @@ font:600 12px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
 // The claims on the front page used to be check marks, which is the bullet
 // every landing page has used for fifteen years. They are hexagons now: the
 // same `ui.icon` view, the same tick inside it, in a tile clipped to the
-// shape of the mark. Six of them down the right of the front page is the only
-// place the shape appears at all, now that the background is a plain one.
+// shape of the mark. The front page's lists of claims are the only place the
+// shape appears at all, now that the background is a plain one — in amber
+// against what Hive is for, and in the page's own quiet greys against what it
+// is not for yet, which is the same mark saying the opposite thing.
 //
 // The button is the rule this whole file was worth writing for. `hive.ui`
 // renders `ui.link([ui.background(Tone.Good())], ...)` as an anchor carrying
@@ -460,10 +462,11 @@ text-transform:uppercase}
    and taking this one rule out puts the plain check mark back. A CSS comment
    inside a raw string is one of the few places on this page that cannot spell
    a name in backticks, because a backtick is what ends the string. */
-.h-icon.h-tone-good\{display:inline-grid;place-items:center;
-width:20px;height:22px;flex:0 0 auto;margin-top:3px;font-size:11px;line-height:1;
+.h-icon.h-tone-good,.h-icon.h-tone-muted\{display:inline-grid;place-items:center;
+width:20px;height:22px;flex:0 0 auto;margin-top:1px;font-size:11px;line-height:1;
 background:var(--brand);color:var(--brand-ink);
 clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.h-icon.h-tone-muted\{background:var(--line);color:var(--fg)}
 .h-image\{filter:none}
 
 /* A slide's screenshot. It is a picture of a window, so it is given the edge
@@ -567,5 +570,108 @@ func syntax(): Str {
 .tour-code .i\{color:var(--sy-hole)}
 .tour-code .f\{color:var(--sy-name)}
 .tour-code .b\{color:var(--sy-name);font-weight:600}
+`
+}
+
+// The front page, which is the one page long enough to need a shape of its
+// own. main.hive renders it inside one wrapper, `.tour-home`, and every rule
+// here hangs from that, so nothing in this function can reach a slide.
+//
+// It is a book's front matter rather than a landing page. Each part of it is
+// separated from the next by a hairline and a good deal of paper, never by a
+// band of colour or a card; each opens on a heading in the monospace, the way
+// a slide does; and the numbered points carry their number as a running
+// label in small tracked capitals, so the page reads as chapters of one
+// argument rather than as a stack of unrelated panels.
+//
+// The lede is the one piece of large type set in the sans. It is a sentence
+// rather than a title — what the language is, said once and plainly — and a
+// sentence at that size in the monospace reads as a line of code somebody
+// forgot to put in a box.
+//
+// The three lists set beside the prose instead of a program — the platforms,
+// what is in the standard library, and the commands — are set as a book sets
+// a table: a rule above and below each line and nothing else, the name or the
+// command in the monospace in the accent, and the words that go with it in
+// the text face. A line of a table is a row with a text marked `Tone.Good` in
+// it, which is how main.hive marks one and the only place on the page where
+// that is true; whichever side it is on, the left column is one width, so the
+// right one lines up. On a phone the platforms stack, the platform over its
+// command, because a command broken across two lines is harder to read than
+// one that has the whole width to itself.
+//
+// The links into the tour under each point are small monospace with a
+// hairline under them, which is what a cross-reference looks like in print,
+// rather than the accent the prose links carry: there are a dozen of them,
+// and a dozen amber links down the left of the page would outshout the
+// headings they sit under.
+//
+// Narrow, every part stacks — the prose over its program, the fit over the
+// caveats, the claims one per line — and the space between parts shrinks
+// with the screen. The `!important`s are there for the reason the ones in
+// `responsive` are: a row's direction, gap and alignment are attributes,
+// rendered as a `style` no stylesheet rule outranks without them.
+//
+// It happens at two widths rather than one. The parts with a program beside
+// the prose go first, at 1020: below that, seven twelfths of the page is
+// narrower than the sixty-four columns the samples are written to, and a
+// sample scrolled sideways next to prose with room to spare is the wrong way
+// round. The reasons and the fit are only short lines of text, and keep their
+// columns down to the 880 the rest of the site stacks at.
+//
+// Stacked, the columns are stretched to the width of the page. Left at the
+// `align(Start)` the row gave them, a column holding a sample is as wide as
+// the sample's longest line — and that pushes the whole page sideways on a
+// phone, where it is the panel alone that should scroll.
+func home(): Str {
+	return `.tour-home>.h-column>*+*\{margin-top:76px;padding-top:68px;
+border-top:1px solid var(--line)}
+.tour-home .h-row>.h-column\{min-width:0}
+.tour-home .h-size-subtitle:not(h2)\{font:400 21px/1.5 var(--f-sans);
+letter-spacing:-.014em;color:var(--fg)}
+.tour-home h2.h-size-subtitle\{font:700 28px/1.2 var(--f-mono);
+letter-spacing:-.035em;margin:0;max-width:24ch}
+.tour-home h3\{font:700 14.5px/1.45 var(--f-mono);letter-spacing:-.01em;margin:0}
+.tour-home h3+.h-text\{font-size:15px;line-height:1.6}
+.tour-home .h-size-caption.h-tone-good\{color:var(--accent)}
+.tour-home .h-column>.h-link\{align-self:flex-start;color:var(--fg);
+font:600 12.5px/1.5 var(--f-mono);letter-spacing:-.005em;
+border-bottom:1px solid var(--line);transition:color .12s ease,border-color .12s ease}
+.tour-home .h-column>.h-link:hover\{color:var(--accent);
+border-bottom-color:var(--brand);text-decoration:none}
+.tour-home .h-column>.h-size-caption+.h-link\{margin-top:2px}
+.tour-home .h-row:has(>.h-text.h-tone-good)\{align-items:baseline !important;
+padding:10px 0;border-top:1px solid var(--line)}
+.tour-home .h-row:has(>.h-text.h-tone-good):last-child\{
+border-bottom:1px solid var(--line)}
+.tour-home .h-row:has(>.h-text.h-tone-good)>.h-text:first-child\{flex:0 0 9em}
+.tour-home .h-row>.h-text.h-tone-good\{font:600 13px/1.6 var(--f-mono);color:var(--accent)}
+.tour-home .h-row:has(>.h-text.h-tone-good)>.h-text:not(.h-tone-good)\{
+font-size:15px;line-height:1.55}
+.tour-home .h-row:has(>.h-text+.h-text.h-tone-good)>.h-text:first-child\{
+flex-basis:7em;font-weight:600}
+.tour-home .h-column>.h-size-caption:has(+.h-row>.h-text.h-tone-good)\{margin-bottom:10px}
+.tour-home .h-row:has(>.h-link)\{flex-wrap:wrap;row-gap:12px}
+.tour-home>.h-column>.h-column:last-child\{text-align:center}
+.tour-home>.h-column>.h-column:last-child>h2\{max-width:none;
+font-size:clamp(26px,3.4vw,34px)}
+.tour-home>.h-column>.h-column:last-child>.h-text\{margin-inline:auto}
+.tour-home>.h-column>.h-column:last-child .h-row\{justify-content:center}
+.tour-home>.h-column>.h-column:last-child\{padding-bottom:24px}
+@media (max-width:1020px)\{
+	.tour-home>.h-column>.h-row\{flex-direction:column !important;
+	align-items:stretch !important;gap:28px !important}
+}
+@media (max-width:880px)\{
+	.tour-home>.h-column>.h-column>.h-row\{flex-direction:column !important;
+	align-items:stretch !important;gap:24px !important}
+	.tour-home>.h-column>*+*\{margin-top:48px;padding-top:44px}
+	.tour-home h2.h-size-subtitle\{font-size:24px}
+	.tour-home .h-size-subtitle:not(h2)\{font-size:19px}
+	.tour-home .h-row:has(>.h-text.h-tone-good)>.h-text:first-child\{flex-basis:8em}
+	.tour-home .h-row:has(>.h-text+.h-text.h-tone-good)\{flex-direction:column !important;
+	gap:2px !important}
+	.tour-home .h-row:has(>.h-text+.h-text.h-tone-good)>.h-text:first-child\{flex-basis:auto}
+}
 `
 }

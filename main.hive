@@ -7,13 +7,16 @@
 // does, because code is not prose. `handle` reads the slide number and the
 // chosen language out of the URL, `hive.net.httpServe` does the rest.
 //
-// This file is the server, and only the server. Five others hold the things
+// This file is the server, and only the server. Six others hold the things
 // that are not it, each because a program is easier to read when the thing it
 // does and the material it does it to are not interleaved:
 //
 //   ./slides     the tour itself, seventy-three slides of it in two languages,
 //                and the two types that hold one. Four fifths of the whole
 //                program by weight, and none of it about HTTP.
+//   ./home       what the front page says: the case for the language, made to
+//                somebody deciding whether to use it, in the same two
+//                languages and with samples held to the same rule.
 //   ./logo       the mark, as the paths of an SVG. A drawing is not prose,
 //                and a page of path coordinates in the middle of some would
 //                read as neither.
@@ -49,6 +52,7 @@
 import hive.ui
 import ./logo
 import ./highlight
+import ./home
 import ./icon
 import ./shots
 import ./slides
@@ -195,6 +199,21 @@ func codeMarkerView(): ui.View {
 
 func codeMarkerTag(): Str {
 	return "<span class=\"h-text\">" + codeMarker() + "</span>"
+}
+
+// The same trick for a page with more than one hole in it, which is the front
+// page: a sample beside the masthead, and prose and samples down the length of
+// it. Each hole is named by what goes in it and a number, so the view that
+// leaves one and the line that fills it agree by construction rather than by
+// counting. The full tag is what is matched, closing `</span>` and all, so
+// hole 1 is never mistaken for the start of hole 10.
+func holeView(kind: Str, n: Int): ui.View {
+	return ui.text([], "HIVE_TOUR_{kind}_{n}")
+}
+
+func fill(page: Str, kind: Str, n: Int, html: Str): Str {
+	tag := "<span class=\"h-text\">HIVE_TOUR_{kind}_{n}</span>"
+	return join(split(page, tag), html)
 }
 
 // Every page this server sends, and the lines of it no view can carry.
@@ -609,67 +628,50 @@ func slideExplanation(slide: slides.Slide, lang: Str): Str {
 // The landing page, and the one page with **no rail down the left**. A
 // sidebar is for somebody who is already inside the tour and wants a
 // different part of it; on the way in it is seventy-odd links in front of
-// two paragraphs, which is a table of contents standing where the cover
-// should be. So the home page is one centred column, and the only way on
-// from it is the same way anybody would have gone anyway: start at the
-// beginning, or take the download.
+// the case for the language, which is a table of contents standing where the
+// cover should be.
 //
-// It is a `ui.column` at the root rather than a `ui.row` with one child
-// because the stylesheet tells the rail from the page by position — first
-// child and last child of the row — and a lone column would answer to both.
+// It used to be one screen and nothing more, on the reasoning that a page
+// about a language small enough to learn in a day should not open by saying
+// "scroll". That was right for a cover and wrong for who actually arrives
+// here, which is mostly somebody deciding whether Hive is worth their next
+// project — and that reader has questions one screen cannot answer. So the
+// page now runs on, in the order ./home sets out: what Hive is, why somebody
+// would pick it, whether it suits this project, each reason at length with
+// the program that shows it, and a way in at the foot as well as the head.
+//
+// Everything is a view except what never could be — the samples, and the
+// prose with names set in monospace — which are holes in the view, filled
+// once it has been rendered. And the whole of it is rendered apart from the
+// page and spliced into one wrapper, `.tour-home`, for the reason the prose
+// under a slide is: a page this long is a dozen rows and columns deep, and the
+// stylesheet needs one name to hang all of it from rather than a selector
+// counting its way down from the root.
 func homeResponse(lang: Str): hive.net.HttpResponse {
 	all := slides.all()
-	content := ui.column([ui.gap(30), ui.pad(40), ui.grow(1)], [
-		// Two columns, and the reason is a screen rather than a taste. Stacked
-		// in one 680px column, the mark, two paragraphs, six claims and four
-		// links came to something over a thousand pixels, which is a front
-		// page that does not fit on the screen it is being read on — so the
-		// first thing it says about a language small enough to learn in a day
-		// is "scroll". Side by side the same material is under seven hundred,
-		// and everything the page has to say arrives at once.
-		//
-		// They split the room evenly. The left is prose and wants a measure;
-		// the right is six claims and wants each of them to stay short. Half
-		// and half is what gives both, and `grow` is how a view says it: the
-		// numbers are a ratio rather than a width, so the two keep their
-		// proportion at whatever width the window turns out to be.
-		ui.row([ui.gap(52), ui.align(ui.Align.Start())], [
-			ui.column([ui.gap(22), ui.grow(1)], [
-				// The gap is small because the drawing brings its own: the
-				// artwork is a square with the bee inside it, so a fifth of
-				// the width beside the name is margin the mark already paid
-				// for.
-				ui.row([ui.gap(10), ui.align(ui.Align.Center())], [
-					ui.image([ui.width(104)], "/hive-logo.svg", logoAlt(lang)),
-					ui.column([ui.gap(4)], [
-						ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], homeKicker(lang)),
-						ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], "Hive"),
-					]),
-				]),
-				ui.text([], homeParagraphOne(lang)),
-				ui.text([], homeParagraphTwo(lang)),
-				// Two rows rather than one. Four things abreast wrapped every
-				// label onto two lines, which made the one that matters look
-				// like the three that do not: the way on is a button of its
-				// own, and the rest are what somebody reads after deciding not
-				// to take it.
-				ui.column([ui.gap(14)], [
-					ui.row([ui.gap(18), ui.align(ui.Align.Center())], [
-						ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourArrow(lang)),
-						ui.link([], href("/contents", lang), contentsLabel(lang)),
-					]),
-					ui.row([ui.gap(18), ui.align(ui.Align.Center())], [
-						ui.link([], releaseUrl(), downloadLabel(lang)),
-						ui.link([], repoUrl(), repoLinkLabel(lang)),
-					]),
-				]),
-			]),
-			ui.column([ui.gap(14), ui.grow(1)], [
-				ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], featuresCount(lang, len(all))),
-				highlightsView(lang),
-			]),
-		]),
+	points := home.points()
+	proofNumber := len(points) + 1
+	view := ui.column([], [
+		heroView(lang),
+		reasonsView(lang),
+		fitView(lang),
+		pointView(points[0], 1, [holeView("CODE", 1)], all, lang),
+		pointView(points[1], 2, [targetsView(lang)], all, lang),
+		pointView(points[2], 3, [holeView("CODE", 3)], all, lang),
+		pointView(points[3], 4, [entriesView(home.modulesLabel(lang), home.modules(), lang)], all, lang),
+		pointView(points[4], 5, [entriesView(home.commandsLabel(lang), home.commands(), lang)], all, lang),
+		proofView(home.proof(), proofNumber, all, lang),
+		closingView(lang, len(all)),
 	])
+
+	mut inner := fill(ui.html(view), "CODE", 0, examplesHtml(home.hero(), lang))
+	for i := 0; i < len(points); i++ {
+		inner = fill(inner, "TEXT", i + 1, proseHtml(inLang(lang, points[i].text, points[i].textPt)))
+		inner = fill(inner, "CODE", i + 1, examplesHtml(points[i].examples, lang))
+	}
+	proof := home.proof()
+	inner = fill(inner, "TEXT", proofNumber, proseHtml(inLang(lang, proof.text, proof.textPt)))
+
 	head := PageHead(
 		title: homePageTitle(lang),
 		description: homeDescription(lang),
@@ -679,8 +681,53 @@ func homeResponse(lang: Str): hive.net.HttpResponse {
 		prev: "",
 		next: "/1",
 	)
-	body := document(head, pageView(lang, "/", [content]))
+	frame := ui.column([ui.pad(40), ui.grow(1)], [codeMarkerView()])
+	page := document(head, pageView(lang, "/", [frame]))
+	body := join(split(page, codeMarkerTag()), "<div class=\"tour-home\">" + inner + "</div>")
 	return hive.net.HttpResponse(200, htmlHeaders(), body)
+}
+
+// The top of the front page: the mark and the name, what the language is in
+// one sentence and then in a paragraph, the ways in, and a program beside all
+// of it.
+//
+// The prose gets five parts of the width and the program seven, because the
+// program is the one that cannot wrap: its samples are written to about
+// sixty-four columns, and seven twelfths of the page is what holds that many.
+// `grow` says it as a ratio rather than a width, so the two keep their
+// proportion at whatever width the window turns out to be.
+func heroView(lang: Str): ui.View {
+	return ui.row([ui.gap(52), ui.align(ui.Align.Start())], [
+		ui.column([ui.gap(22), ui.grow(5)], [
+			// The gap is small because the drawing brings its own: the artwork
+			// is a square with the bee inside it, so a fifth of the width
+			// beside the name is margin the mark already paid for.
+			ui.row([ui.gap(10), ui.align(ui.Align.Center())], [
+				ui.image([ui.width(104)], "/hive-logo.svg", logoAlt(lang)),
+				ui.column([ui.gap(4)], [
+					ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], homeKicker(lang)),
+					ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], "Hive"),
+				]),
+			]),
+			ui.text([ui.size(ui.TextSize.Subtitle())], home.lede(lang)),
+			ui.text([], home.intro(lang)),
+			// Two rows rather than one. Four things abreast wrapped every label
+			// onto two lines, which made the one that matters look like the
+			// three that do not: the way on is a button of its own, and the
+			// rest are what somebody reads after deciding not to take it.
+			ui.column([ui.gap(14)], [
+				ui.row([ui.gap(18), ui.align(ui.Align.Center())], [
+					ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourArrow(lang)),
+					ui.link([], href("/contents", lang), contentsLabel(lang)),
+				]),
+				ui.row([ui.gap(18), ui.align(ui.Align.Center())], [
+					ui.link([], releaseUrl(), downloadLabel(lang)),
+					ui.link([], repoUrl(), repoLinkLabel(lang)),
+				]),
+			]),
+		]),
+		ui.column([ui.grow(7)], [holeView("CODE", 0)]),
+	])
 }
 
 // The two URLs this program ever links outside itself: GitHub's own
@@ -708,35 +755,188 @@ func repoLinkLabel(lang: Str): Str {
 	return "View the repository"
 }
 
-// The bullet sits against the first line of the claim rather than in the
-// middle of the block of it. A claim that runs to three lines with its mark
-// floating halfway down them reads as a mark belonging to the second line,
-// which is a line it has nothing to do with.
-func highlightRow(text: Str): ui.View {
-	return ui.row([ui.gap(10), ui.align(ui.Align.Start())], [
-		ui.icon([ui.tone(ui.Tone.Good())], ui.Icon.Check()),
-		ui.text([], text),
+// One claim: a mark, a few words, and the sentence that backs them up. The
+// mark sits against the first line rather than in the middle of the block. A
+// claim that runs to three lines with its mark floating halfway down them
+// reads as a mark belonging to the second line, which is a line it has
+// nothing to do with.
+//
+// The words are an `h3` because each one is a heading over its sentence, and
+// a screen reader listing the page's headings should be able to read the six
+// reasons off that list without the sentences in between.
+func claimView(claim: home.Claim, icon: ui.Icon, tone: ui.Tone, lang: Str): ui.View {
+	return ui.row([ui.gap(12), ui.align(ui.Align.Start()), ui.grow(1)], [
+		ui.icon([ui.tone(tone)], icon),
+		ui.column([ui.gap(4)], [
+			ui.text([ui.heading(3)], inLang(lang, claim.title, claim.titlePt)),
+			ui.text([ui.tone(ui.Tone.Muted())], inLang(lang, claim.text, claim.textPt)),
+		]),
 	])
 }
 
-func highlightsView(lang: Str): ui.View {
-	if lang == "pt" {
-		return ui.column([ui.gap(11)], [
-			highlightRow("Sem exceções em tempo de execução — não existe null, nada é lançado, e todo índice é provado antes de o programa rodar"),
-			highlightRow("Pequena o bastante para se aprender em um dia — este tour é a linguagem inteira, um recurso por vez"),
-			highlightRow("Feita para sistemas distribuídos desde o começo — um serviço é endereçado do mesmo jeito nesta máquina ou em outra"),
-			highlightRow("Segura por padrão — TLS entre nós, criptografia e JWT nativos, valores de SQL sempre vinculados como parâmetros, e nada que chegue a um shell"),
-			highlightRow("Testes e análise de custo são do compilador — cobertura sem framework, e um relatório do que um programa vai custar antes de rodar"),
-			highlightRow("Um único executável, e uma biblioteca padrão com HTTP, WebSockets, SQL, criptografia, uma UI e atores distribuídos"),
-		])
+// The six reasons, three abreast. Two rows of three rather than one list,
+// because a list of six down the page is something read one at a time, and
+// these are meant to be taken in at a glance before any of them is read.
+func reasonsView(lang: Str): ui.View {
+	reasons := home.reasons()
+	check := ui.Icon.Check()
+	good := ui.Tone.Good()
+	return ui.column([ui.gap(30)], [
+		ui.text([ui.size(ui.TextSize.Subtitle()), ui.heading(2)], home.whyTitle(lang)),
+		ui.row([ui.gap(40), ui.align(ui.Align.Start())], [
+			claimView(reasons[0], check, good, lang),
+			claimView(reasons[1], check, good, lang),
+			claimView(reasons[2], check, good, lang),
+		]),
+		ui.row([ui.gap(40), ui.align(ui.Align.Start())], [
+			claimView(reasons[3], check, good, lang),
+			claimView(reasons[4], check, good, lang),
+			claimView(reasons[5], check, good, lang),
+		]),
+	])
+}
+
+// What Hive suits and what it does not, side by side, so the two read as one
+// answer to one question. The caveats are marked in the page's quietest tone
+// rather than in a warning colour: they are not alarms, they are the half of
+// the answer a reader needs in order to trust the other half.
+func fitView(lang: Str): ui.View {
+	return ui.column([ui.gap(30)], [
+		ui.text([ui.size(ui.TextSize.Subtitle()), ui.heading(2)], home.fitTitle(lang)),
+		ui.row([ui.gap(52), ui.align(ui.Align.Start())], [
+			claimsColumn(home.fitLabel(lang), home.fits(), ui.Icon.Check(), ui.Tone.Good(), lang),
+			claimsColumn(home.caveatLabel(lang), home.caveats(), ui.Icon.Minus(), ui.Tone.Muted(), lang),
+		]),
+	])
+}
+
+func claimsColumn(label: Str, claims: home.Claim[], icon: ui.Icon, tone: ui.Tone, lang: Str): ui.View {
+	mut ui.View[dyn] rows = [ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], label)]
+	for each claim in claims {
+		append(rows, claimView(claim, icon, tone, lang))
 	}
-	return ui.column([ui.gap(11)], [
-		highlightRow("No runtime exceptions — no null, nothing thrown, and every index proved before the program runs"),
-		highlightRow("Small enough to learn in a day — this tour is the whole language, one feature at a time"),
-		highlightRow("Built for distributed systems from the start — a service is addressed the same way on this machine or another"),
-		highlightRow("Secure by default — TLS between nodes, native encryption and JWTs, SQL values always bound as parameters, and nothing that reaches a shell"),
-		highlightRow("Testing and cost analysis are the compiler's — coverage with no framework, and a report on what a program will cost before it runs"),
-		highlightRow("One executable, and a standard library with HTTP, WebSockets, SQL, crypto, a UI and distributed actors in it"),
+	return ui.column([ui.gap(20), ui.grow(1)], rows)
+}
+
+// One reason at length: its number and label, a heading, the prose, the
+// slides that say the rest, and a figure beside all of it. The figure is
+// whatever the caller hands in — a hole a sample goes in, or a list — so a
+// point that is about a program and a point that is about everything around
+// one are laid out as the same thing.
+func pointView(point: home.Point, n: Int, figure: ui.View[dyn], all: slides.Slide[], lang: Str): ui.View {
+	return ui.row([ui.gap(52), ui.align(ui.Align.Start())], [
+		ui.column([ui.gap(18), ui.grow(5)], [
+			pointLabelView(point, n, lang),
+			ui.text([ui.size(ui.TextSize.Subtitle()), ui.heading(2)], inLang(lang, point.title, point.titlePt)),
+			holeView("TEXT", n),
+			readsView(point.reads, all, lang),
+		]),
+		ui.column([ui.grow(7)], figure),
+	])
+}
+
+// The last point has no figure, so it is set the other way: the heading
+// where the prose would be, and the prose where the figure would be. The
+// columns line up with every point above it, and nothing on the page is an
+// empty half.
+func proofView(point: home.Point, n: Int, all: slides.Slide[], lang: Str): ui.View {
+	return ui.row([ui.gap(52), ui.align(ui.Align.Start())], [
+		ui.column([ui.gap(18), ui.grow(5)], [
+			pointLabelView(point, n, lang),
+			ui.text([ui.size(ui.TextSize.Subtitle()), ui.heading(2)], inLang(lang, point.title, point.titlePt)),
+		]),
+		ui.column([ui.gap(18), ui.grow(7)], [
+			holeView("TEXT", n),
+			readsView(point.reads, all, lang),
+		]),
+	])
+}
+
+// "01 — Reliability", padded to two digits for the reason the contents are:
+// the numbers down the page line up into a column of their own.
+func pointLabelView(point: home.Point, n: Int, lang: Str): ui.View {
+	mut number := "{n}"
+	if n < 10 {
+		number = "0{n}"
+	}
+	label := number + " — " + inLang(lang, point.label, point.labelPt)
+	return ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Good())], label)
+}
+
+// Where in the tour a point is said in full: a link to each slide it names,
+// numbered and titled as the contents number and title it. A title the tour
+// does not have is left out rather than linked to a 404, and home.test.hive
+// is what keeps that from ever happening quietly.
+func readsView(titles: Str[], all: slides.Slide[], lang: Str): ui.View {
+	mut ui.View[dyn] links = [ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], home.readsLabel(lang))]
+	for each title in titles {
+		if slideIndex(all, title) is Result.Ok(idx) {
+			if all bounds idx {
+				slide := all[idx]
+				append(links, ui.link([], href("/{idx + 1}", lang), "{idx + 1}. {slideTitle(slide, lang)} →"))
+			}
+		}
+	}
+	return ui.column([ui.gap(6)], links)
+}
+
+// Where a slide is in the tour, found by its English title.
+func slideIndex(all: slides.Slide[], title: Str): Result<Int, Str> {
+	for i := 0; i < len(all); i++ {
+		if all[i].title == title {
+			return Result.Ok(i)
+		}
+	}
+	return Result.Error("the tour has no slide called \"{title}\"")
+}
+
+// A figure that is a list rather than a program: a caption, then one line per
+// entry, the name in the monospace and what it is for beside it. The name is
+// marked with `Tone.Good` for the reason the button is — it is the tone
+// ./theme paints in the brand's colour.
+func entriesView(label: Str, entries: home.Entry[], lang: Str): ui.View {
+	mut ui.View[dyn] rows = [ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], label)]
+	for each entry in entries {
+		append(rows, ui.row([ui.gap(18), ui.align(ui.Align.Start())], [
+			ui.text([ui.tone(ui.Tone.Good())], entry.name),
+			ui.text([], inLang(lang, entry.about, entry.aboutPt)),
+		]))
+	}
+	return ui.column([], rows)
+}
+
+// The same kind of table the other way round: the platform first, in the text
+// face, and the command that reaches it after, in the monospace. ./theme
+// draws both as one kind of table — a line of either is a row with a name
+// marked `Tone.Good` in it — and sets the left column to one width, so the six
+// commands line up into the column that makes the point: one file, six
+// places, and only the flag changes.
+func targetsView(lang: Str): ui.View {
+	mut ui.View[dyn] rows = [ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], home.platformsLabel(lang))]
+	for each target in home.platforms() {
+		append(rows, ui.row([ui.gap(18), ui.align(ui.Align.Start())], [
+			ui.text([], inLang(lang, target.name, target.namePt)),
+			ui.text([ui.tone(ui.Tone.Good())], target.command),
+		]))
+	}
+	return ui.column([], rows)
+}
+
+// The foot of the page, which says the one thing the points above leave to
+// it — that the whole language fits in an afternoon — and then offers the
+// same ways in the head did, so a reader who has scrolled to the bottom does
+// not have to scroll back to the top to act on it.
+func closingView(lang: Str, total: Int): ui.View {
+	return ui.column([ui.gap(20), ui.align(ui.Align.Center())], [
+		ui.text([ui.size(ui.TextSize.Subtitle()), ui.heading(2)], home.closingTitle(lang, total)),
+		ui.text([ui.tone(ui.Tone.Muted())], home.closingText(lang)),
+		ui.column([], [
+			ui.row([ui.gap(18), ui.align(ui.Align.Center())], [
+				ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourArrow(lang)),
+				ui.link([], href("/contents", lang), contentsLabel(lang)),
+				ui.link([], releaseUrl(), downloadLabel(lang)),
+			]),
+		]),
 	])
 }
 
@@ -1247,9 +1447,9 @@ func homePageTitle(lang: Str): Str {
 // the tour unfurls into everywhere it is pasted.
 func homeDescription(lang: Str): Str {
 	if lang == "pt" {
-		return "Um tour interativo pelo Hive: uma linguagem compilada sem exceções em tempo de execução, feita para sistemas distribuídos e pequena o bastante para se aprender em um dia. Um único executável."
+		return "Um tour interativo pelo Hive: uma linguagem compilada sem exceções em tempo de execução, que roda no desktop, no servidor, no navegador e no Android, e é pequena o bastante para se aprender em um dia."
 	}
-	return "An interactive tour of Hive: a compiled language with no runtime exceptions, built for distributed systems and small enough to learn in a day. One executable."
+	return "An interactive tour of Hive: a compiled language with no runtime exceptions that runs on desktop, server, browser and Android, small enough to learn in a day."
 }
 
 func notFoundPageTitle(lang: Str): Str {
@@ -1317,18 +1517,12 @@ func homeKicker(lang: Str): Str {
 	return "A tour of the language"
 }
 
-func homeParagraphOne(lang: Str): Str {
-	if lang == "pt" {
-		return "Hive é uma linguagem compilada, de memória gerenciada, e sem exceções em tempo de execução. Não existe null, nada é lançado, e todo índice de vetor é provado dentro dos limites antes de o programa rodar — o que outras linguagens deixam para o tempo de execução, aqui se resolve na compilação. Uma falha é um valor que você abre, não algo que passa voando por você."
-	}
-	return "Hive is a compiled, memory-managed language with no runtime exceptions. There is no null, nothing is thrown, and every vector index is proved in bounds before the program runs — what other languages leave to run time is settled at compile time instead. A failure is a value you open, not something that sails past you."
-}
-
-func homeParagraphTwo(lang: Str): Str {
-	if lang == "pt" {
-		return "Esta própria página é a prova: ela é servida por um servidor HTTP escrito em Hive, e sua interface abaixo dos exemplos de código é construída inteiramente com views do hive.ui. Não há framework por trás de nenhum dos dois — ambos são a biblioteca padrão, e nenhum é uma dependência que este programa precisou pedir."
-	}
-	return "This very page is the proof: it is served by an HTTP server written in Hive, and its interface below the code samples is built entirely out of hive.ui views. There is no framework underneath either of them — both are the standard library, and neither is a dependency this program had to ask for."
+// Whichever of a pair of texts is in the language being read. ./home keeps
+// its prose as fields side by side, the way ./slides does, and this is the
+// one place that chooses between them.
+func inLang(lang: Str, en: Str, pt: Str): Str {
+	if lang == "pt" { return pt }
+	return en
 }
 
 // What the picture is, for whoever is not being shown it, and what it says

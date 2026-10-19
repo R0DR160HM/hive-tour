@@ -1,0 +1,32 @@
+// The front page, rendered: every slide it points at is in the tour, and
+// every hole it leaves for a sample or a paragraph is filled.
+import ./main as tour
+import ./home
+import ./slides
+
+test "every slide the front page points at is in the tour" {
+	all := slides.all()
+	mut Str[dyn] titles = []
+	for each point in home.points() {
+		titles = titles + point.reads
+	}
+	titles = titles + home.proof().reads
+	for each title in titles {
+		found := tour.slideIndex(all, title)
+		if found is Result.Error(why) {
+			echo why
+		}
+		assert found is Result.Ok(_)
+	}
+}
+
+test "the front page fills every hole it leaves, in both languages" {
+	english := tour.homeResponse("en").body
+	portuguese := tour.homeResponse("pt").body
+	assert indexOf(english, "HIVE_TOUR_") is Result.Error(_)
+	assert indexOf(portuguese, "HIVE_TOUR_") is Result.Error(_)
+}
+
+test "a title the tour does not have is an error, not a slide" {
+	assert tour.slideIndex(slides.all(), "No such slide") is Result.Error(_)
+}
