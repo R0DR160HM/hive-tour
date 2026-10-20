@@ -1,0 +1,27 @@
+// The chart: every slide in the tour has a symbol, and no symbol is kept for
+// a slide the tour does not have.
+import ./chart
+import ./slides
+
+test "every slide has a symbol" {
+	for each slide in slides.all() {
+		if chart.symbol(slide.title) == "" {
+			echo "no symbol for \"{slide.title}\""
+		}
+		assert chart.symbol(slide.title) != ""
+	}
+}
+
+test "every symbol belongs to a slide" {
+	mut Str[dyn] titles = []
+	for each slide in slides.all() {
+		append(titles, slide.title)
+	}
+	for each entry in chart.symbols() {
+		found := indexOf(titles, entry.title)
+		if found is Result.Error(_) {
+			echo "a symbol for a slide the tour does not have: \"{entry.title}\""
+		}
+		assert found is Result.Ok(_)
+	}
+}

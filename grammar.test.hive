@@ -1,0 +1,98 @@
+// The grammar the site draws: every slide it names is in the tour, every rule
+// can be drawn, and every drawing says exactly what the EBNF printed under it
+// says.
+import ./main as tour
+import ./grammar
+import ./rail
+import ./slides
+
+test "every slide a rule is drawn on is in the tour" {
+	all := slides.all()
+	for each entry in grammar.slideRules() {
+		found := tour.slideIndex(all, entry.title)
+		if found is Result.Error(why) {
+			echo why
+		}
+		assert found is Result.Ok(_)
+	}
+}
+
+test "every rule is drawn on a canvas with something on it" {
+	mut Str[dyn] drawn = []
+	for each entry in grammar.slideRules() {
+		for each r in entry.rules {
+			append(drawn, ui.html(rail.view(r.rows)))
+		}
+	}
+	for each html in drawn {
+		assert indexOf(html, "<svg") is Result.Ok(_)
+		assert indexOf(html, "<polyline") is Result.Ok(_)
+	}
+}
+
+// A diagram read back as EBNF: a capsule is its sign in quotes, a box is its
+// name, a choice is its branches between bars — in parentheses unless it is
+// the whole rule, or already the whole of a `[ ]` or a `{ }`, which group it
+// themselves — a way round is `[ ]` and a way back is `{ }`. If the drawing
+// and the text ever disagree, this is where it shows.
+func written(r: rail.Rail, whole: Bool): Str {
+	if r is rail.Rail.Term(text) {
+		return "\"" + text + "\""
+	} else if r is rail.Rail.Name(text) {
+		return text
+	} else if r is rail.Rail.Seq(items) {
+		mut Str[dyn] parts = []
+		for each item in items {
+			append(parts, written(item, false))
+		}
+		return join(parts, " ")
+	} else if r is rail.Rail.Choice(items) {
+		mut Str[dyn] parts = []
+		for each item in items {
+			append(parts, written(item, false))
+		}
+		if whole {
+			return join(parts, " | ")
+		}
+		return "( " + join(parts, " | ") + " )"
+	} else if r is rail.Rail.Opt(item) {
+		return "[ " + written(item, true) + " ]"
+	} else if r is rail.Rail.Many(item) {
+		return "\{ " + written(item, true) + " }"
+	}
+}
+
+func readBack(r: grammar.Rule): Str {
+	mut Str[dyn] parts = []
+	whole := len(r.rows) == 1
+	for each row in r.rows {
+		append(parts, written(row, whole))
+	}
+	return r.name + " = " + join(parts, " ") + " ;"
+}
+
+test "every diagram says what the EBNF under it says" {
+	for each entry in grammar.slideRules() {
+		for each r in entry.rules {
+			back := readBack(r)
+			if back != r.ebnf {
+				echo "{r.name} is drawn as\n  {back}\nbut printed as\n  {r.ebnf}"
+			}
+			assert back == r.ebnf
+		}
+	}
+}
+
+test "a slide with no rule draws none" {
+	assert len(grammar.forSlide("Strings")) == 0
+	assert len(grammar.forSlide("Loops")) == 2
+	assert len(grammar.forSlide("Variables")) == 4
+}
+
+test "the chapters add up to the tour" {
+	mut total := 0
+	for each chapter in slides.chapters() {
+		total += chapter.length
+	}
+	assert total == len(slides.all())
+}

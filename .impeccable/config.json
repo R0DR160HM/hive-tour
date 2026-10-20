@@ -1,0 +1,51 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-20T12:06:04.232Z",
+        "reason": "model decided: decision-round skeleton sketch, rendered as bars on the decision page, never shipped"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/pick.html"
+        ],
+        "createdAt": "2026-10-20T12:06:04.479Z",
+        "reason": "model decided: decision-round skeleton sketch, rendered as bars on the decision page, never shipped"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-10-20T12:06:04.680Z",
+        "reason": "model decided: decision-round skeleton sketch, rendered as bars on the decision page, never shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-20T13:49:07.283Z",
+        "reason": "model decided: decision-round skeleton sketch drawn before DESIGN.md existed, never shipped"
+      }
+    ]
+  },
+  "hook": {
+    "enabled": true,
+    "limits": {
+      "maxFindings": 5,
+      "maxChars": 8000
+    }
+  }
+}

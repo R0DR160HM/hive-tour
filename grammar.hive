@@ -1,0 +1,627 @@
+// Hive's grammar, or the part of it this site draws: the rules of chapter 2 of
+// the specification, each held twice — once in EBNF, and once as track, for
+// ./rail to draw.
+//
+// The two are kept side by side on purpose. The EBNF is printed under every
+// diagram, so a reader can check the picture against the text, and
+// grammar.test.hive reads every diagram back into EBNF and holds it to the
+// line printed under it, so the two can never quietly disagree.
+//
+// Most rules are copied from spec/02-grammar.md character for character. A
+// few are not, because the specification's chapter 2 has fallen behind the
+// compiler, and a diagram of a grammar the compiler does not accept would be
+// worse than no diagram at all. Those are drawn as src/parser.hive reads them
+// — checked against it, and against programs it compiles — and marked
+// `revised`, which puts a line under the figure saying so:
+//
+//   file          imports and declarations may come in any order
+//   type-body     fields and variants may be interleaved, with optional commas
+//   variant       the same optional commas between its fields
+//   annotations   at least one clause after the `--`
+//   annotation    `URL as` and `Flag as` as well as `JSON as` and `Default as`
+//   var-decl,     `async` takes a call, and a `mut` binding cannot be one
+//   typed-decl
+//   params, fn-params, args, vector-lit, await-all
+//                 a trailing comma before the closing bracket
+//   ctor-pattern  a part may be a literal or a pattern of its own, not only a
+//                 name — `Result.Ok(1)`, which the tour teaches
+//   element       the same, inside a vector pattern
+//   vector-pattern  `[...rest]` on its own, and a trailing comma
+//   sql-item      an `if`'s body is a whole query body, bound values included
+//
+// Which rules are here is decided by the tour rather than by the grammar: a
+// rule is drawn on every slide that teaches the construct it describes. A
+// slide names its rules by its English title, for the reason ./home names
+// slides that way — a number moves when a slide is added in front of it, and
+// a title does not. grammar.test.hive holds every title here to being one the
+// tour really has.
+import ./rail
+
+type Rule {
+	name:    Str
+	ebnf:    Str
+	section: Str
+	revised: Bool
+	rows:    rail.Rail[dyn]
+}
+
+// Where the rules come from, linked from under every diagram.
+func specUrl(): Str {
+	return "https://github.com/R0DR160HM/hive-lang/blob/master/spec/02-grammar.md"
+}
+
+// The five shapes, short, because a rule written with them should read as
+// close to its EBNF as Hive allows: `"if"` is `sign("if")`, `expression` is
+// `rule("expression")`, `[ x ]` is `opt(x)` and `{ x }` is `many(x)`.
+func sign(text: Str): rail.Rail {
+	return rail.Rail.Term(text)
+}
+
+func rule(text: Str): rail.Rail {
+	return rail.Rail.Name(text)
+}
+
+func seq(items: rail.Rail[dyn]): rail.Rail {
+	return rail.Rail.Seq(items)
+}
+
+func either(items: rail.Rail[dyn]): rail.Rail {
+	return rail.Rail.Choice(items)
+}
+
+func opt(item: rail.Rail): rail.Rail {
+	return rail.Rail.Opt(item)
+}
+
+func many(item: rail.Rail): rail.Rail {
+	return rail.Rail.Many(item)
+}
+
+// A rule as the specification writes it, and one as the compiler reads it.
+func spec(name: Str, section: Str, ebnf: Str, rows: rail.Rail[dyn]): Rule {
+	return Rule(name: name, ebnf: ebnf, section: section, revised: false, rows: rows)
+}
+
+func parsed(name: Str, section: Str, ebnf: Str, rows: rail.Rail[dyn]): Rule {
+	return Rule(name: name, ebnf: ebnf, section: section, revised: true, rows: rows)
+}
+
+// ---------------------------------------------------------------------------
+// 2.1 A file, 2.2 Imports
+
+func file(): Rule {
+	return parsed("file", "2.1",
+		"file = \{ import | declaration } EOF ;",
+		[seq([many(either([rule("import"), rule("declaration")])), rule("EOF")])])
+}
+
+func importRule(): Rule {
+	return spec("import", "2.2",
+		"import = \"import\" PATH [ \"as\" IDENT ] ;",
+		[seq([sign("import"), rule("PATH"), opt(seq([sign("as"), rule("IDENT")]))])])
+}
+
+// ---------------------------------------------------------------------------
+// 2.3 Declarations
+
+func typeDecl(): Rule {
+	return spec("type-decl", "2.3",
+		"type-decl = \"type\" IDENT \"\{\" type-body \"}\" ;",
+		[seq([sign("type"), rule("IDENT"), sign("\{"), rule("type-body"), sign("}")])])
+}
+
+func typeBody(): Rule {
+	return parsed("type-body", "2.3",
+		"type-body = \{ ( field | variant ) [ \",\" ] } ;",
+		[many(seq([either([rule("field"), rule("variant")]), opt(sign(","))]))])
+}
+
+func variant(): Rule {
+	return parsed("variant", "2.3",
+		"variant = IDENT [ \"\{\" \{ field [ \",\" ] } \"}\" ] ;",
+		[seq([
+			rule("IDENT"),
+			opt(seq([sign("\{"), many(seq([rule("field"), opt(sign(","))])), sign("}")])),
+		])])
+}
+
+func field(): Rule {
+	return spec("field", "2.3",
+		"field = IDENT \":\" type [ annotations ] ;",
+		[seq([rule("IDENT"), sign(":"), rule("type"), opt(rule("annotations"))])])
+}
+
+func annotations(): Rule {
+	return parsed("annotations", "2.3",
+		"annotations = \"--\" annotation \{ annotation } ;",
+		[seq([sign("--"), rule("annotation"), many(rule("annotation"))])])
+}
+
+func annotation(): Rule {
+	return parsed("annotation", "2.3",
+		"annotation = ( \"JSON\" | \"URL\" | \"Flag\" ) \"as\" ( key | STRING ) \";\" | \"Default\" \"as\" literal \";\" ;",
+		[either([
+			seq([
+				either([sign("JSON"), sign("URL"), sign("Flag")]),
+				sign("as"),
+				either([rule("key"), rule("STRING")]),
+				sign(";"),
+			]),
+			seq([sign("Default"), sign("as"), rule("literal"), sign(";")]),
+		])])
+}
+
+func funcDecl(): Rule {
+	return spec("func-decl", "2.3",
+		"func-decl = \"func\" IDENT \"(\" [ params ] \")\" \":\" type block ;",
+		[
+			seq([sign("func"), rule("IDENT"), sign("("), opt(rule("params")), sign(")")]),
+			seq([sign(":"), rule("type"), rule("block")]),
+		])
+}
+
+func procDecl(): Rule {
+	return spec("proc-decl", "2.3",
+		"proc-decl = \"proc\" IDENT \"(\" [ params ] \")\" \":\" type block ;",
+		[
+			seq([sign("proc"), rule("IDENT"), sign("("), opt(rule("params")), sign(")")]),
+			seq([sign(":"), rule("type"), rule("block")]),
+		])
+}
+
+func queryDecl(): Rule {
+	return spec("query-decl", "2.3",
+		"query-decl = \"query\" IDENT \"(\" [ params ] \")\" \":\" type SQL ;",
+		[
+			seq([sign("query"), rule("IDENT"), sign("("), opt(rule("params")), sign(")")]),
+			seq([sign(":"), rule("type"), rule("SQL")]),
+		])
+}
+
+func testDecl(): Rule {
+	return spec("test-decl", "2.3",
+		"test-decl = \"test\" STRING block ;",
+		[seq([sign("test"), rule("STRING"), rule("block")])])
+}
+
+func params(): Rule {
+	return parsed("params", "2.3",
+		"params = param \{ \",\" param } [ \",\" ] ;",
+		[seq([rule("param"), many(seq([sign(","), rule("param")])), opt(sign(","))])])
+}
+
+func param(): Rule {
+	return spec("param", "2.3",
+		"param = IDENT \":\" [ \"mut\" ] type ;",
+		[seq([rule("IDENT"), sign(":"), opt(sign("mut")), rule("type")])])
+}
+
+// ---------------------------------------------------------------------------
+// 2.4 Types
+
+func fnType(): Rule {
+	return spec("fn-type", "2.4",
+		"fn-type = ( \"func\" | \"proc\" ) \"(\" [ fn-params ] \")\" \":\" type ;",
+		[seq([
+			either([sign("func"), sign("proc")]),
+			sign("("), opt(rule("fn-params")), sign(")"), sign(":"), rule("type"),
+		])])
+}
+
+func fnParams(): Rule {
+	return parsed("fn-params", "2.4",
+		"fn-params = fn-param \{ \",\" fn-param } [ \",\" ] ;",
+		[seq([rule("fn-param"), many(seq([sign(","), rule("fn-param")])), opt(sign(","))])])
+}
+
+func fnParam(): Rule {
+	return spec("fn-param", "2.4",
+		"fn-param = [ \"mut\" ] type ;",
+		[seq([opt(sign("mut")), rule("type")])])
+}
+
+func namedType(): Rule {
+	return spec("named-type", "2.4",
+		"named-type = qualifier IDENT [ type-args ] \{ dim } ;",
+		[seq([rule("qualifier"), rule("IDENT"), opt(rule("type-args")), many(rule("dim"))])])
+}
+
+func typeArgs(): Rule {
+	return spec("type-args", "2.4",
+		"type-args = \"<\" type \{ \",\" type } \">\" ;",
+		[seq([sign("<"), rule("type"), many(seq([sign(","), rule("type")])), sign(">")])])
+}
+
+func dim(): Rule {
+	return spec("dim", "2.4",
+		"dim = \"[\" \"]\" | \"[\" \"dyn\" \"]\" | \"[\" INT \"]\" ;",
+		[either([
+			seq([sign("["), sign("]")]),
+			seq([sign("["), sign("dyn"), sign("]")]),
+			seq([sign("["), rule("INT"), sign("]")]),
+		])])
+}
+
+// ---------------------------------------------------------------------------
+// 2.5 Statements
+
+func block(): Rule {
+	return spec("block", "2.5",
+		"block = \"\{\" \{ statement } \"}\" ;",
+		[seq([sign("\{"), many(rule("statement")), sign("}")])])
+}
+
+func varDecl(): Rule {
+	return parsed("var-decl", "2.5",
+		"var-decl = [ \"mut\" ] IDENT \":=\" expression | IDENT \":=\" \"async\" call ;",
+		[either([
+			seq([opt(sign("mut")), rule("IDENT"), sign(":="), rule("expression")]),
+			seq([rule("IDENT"), sign(":="), sign("async"), rule("call")]),
+		])])
+}
+
+func typedDecl(): Rule {
+	return parsed("typed-decl", "2.5",
+		"typed-decl = [ \"mut\" ] type IDENT \"=\" expression | type IDENT \"=\" \"async\" call ;",
+		[either([
+			seq([opt(sign("mut")), rule("type"), rule("IDENT"), sign("="), rule("expression")]),
+			seq([rule("type"), rule("IDENT"), sign("="), sign("async"), rule("call")]),
+		])])
+}
+
+func assign(): Rule {
+	return spec("assign", "2.5",
+		"assign = lvalue \"=\" expression ;",
+		[seq([rule("lvalue"), sign("="), rule("expression")])])
+}
+
+func lvalue(): Rule {
+	return spec("lvalue", "2.5",
+		"lvalue = IDENT \{ \".\" IDENT | \"[\" expression \"]\" } ;",
+		[seq([
+			rule("IDENT"),
+			many(either([
+				seq([sign("."), rule("IDENT")]),
+				seq([sign("["), rule("expression"), sign("]")]),
+			])),
+		])])
+}
+
+func step(): Rule {
+	return spec("step", "2.5",
+		"step = lvalue ( \"++\" | \"--\" ) ;",
+		[seq([rule("lvalue"), either([sign("++"), sign("--")])])])
+}
+
+func ifStmt(): Rule {
+	return spec("if-stmt", "2.5",
+		"if-stmt = \"if\" expression block \{ \"else\" \"if\" expression block } [ \"else\" block ] ;",
+		[
+			seq([sign("if"), rule("expression"), rule("block")]),
+			seq([
+				many(seq([sign("else"), sign("if"), rule("expression"), rule("block")])),
+				opt(seq([sign("else"), rule("block")])),
+			]),
+		])
+}
+
+func forStmt(): Rule {
+	return spec("for-stmt", "2.5",
+		"for-stmt = \"for\" [ statement ] \";\" [ expression ] \";\" [ statement ] block | \"for\" \"each\" IDENT [ \":\" type ] \"in\" expression block ;",
+		[either([
+			seq([
+				sign("for"), opt(rule("statement")), sign(";"), opt(rule("expression")),
+				sign(";"), opt(rule("statement")), rule("block"),
+			]),
+			seq([
+				sign("for"), sign("each"), rule("IDENT"), opt(seq([sign(":"), rule("type")])),
+				sign("in"), rule("expression"), rule("block"),
+			]),
+		])])
+}
+
+func returnStmt(): Rule {
+	return spec("return-stmt", "2.5",
+		"return-stmt = \"return\" [ expression ] ;",
+		[seq([sign("return"), opt(rule("expression"))])])
+}
+
+func echoStmt(): Rule {
+	return spec("echo-stmt", "2.5",
+		"echo-stmt = \"echo\" expression ;",
+		[seq([sign("echo"), rule("expression")])])
+}
+
+func assertStmt(): Rule {
+	return spec("assert-stmt", "2.5",
+		"assert-stmt = \"assert\" expression ;",
+		[seq([sign("assert"), rule("expression")])])
+}
+
+func panicStmt(): Rule {
+	return spec("panic-stmt", "2.5",
+		"panic-stmt = \"panic\" expression ;",
+		[seq([sign("panic"), rule("expression")])])
+}
+
+func asyncStmt(): Rule {
+	return spec("async-stmt", "2.5",
+		"async-stmt = \"async\" call ;",
+		[seq([sign("async"), rule("call")])])
+}
+
+// ---------------------------------------------------------------------------
+// 2.6 Expressions, loosest to tightest
+
+func orExpr(): Rule {
+	return spec("or-expr", "2.6",
+		"or-expr = and-expr \{ \"||\" and-expr } ;",
+		[seq([rule("and-expr"), many(seq([sign("||"), rule("and-expr")]))])])
+}
+
+func andExpr(): Rule {
+	return spec("and-expr", "2.6",
+		"and-expr = is-expr \{ \"&&\" is-expr } ;",
+		[seq([rule("is-expr"), many(seq([sign("&&"), rule("is-expr")]))])])
+}
+
+func isExpr(): Rule {
+	return spec("is-expr", "2.6",
+		"is-expr = cmp-expr [ \"is\" pattern ] | cmp-expr \"bounds\" add-expr ;",
+		[either([
+			seq([rule("cmp-expr"), opt(seq([sign("is"), rule("pattern")]))]),
+			seq([rule("cmp-expr"), sign("bounds"), rule("add-expr")]),
+		])])
+}
+
+func cmpExpr(): Rule {
+	return spec("cmp-expr", "2.6",
+		"cmp-expr = add-expr [ ( \">\" | \"<\" | \">=\" | \"<=\" | \"==\" | \"!=\" ) add-expr ] ;",
+		[seq([
+			rule("add-expr"),
+			opt(seq([
+				either([sign(">"), sign("<"), sign(">="), sign("<="), sign("=="), sign("!=")]),
+				rule("add-expr"),
+			])),
+		])])
+}
+
+func addExpr(): Rule {
+	return spec("add-expr", "2.6",
+		"add-expr = mul-expr \{ ( \"+\" | \"-\" ) mul-expr } ;",
+		[seq([rule("mul-expr"), many(seq([either([sign("+"), sign("-")]), rule("mul-expr")]))])])
+}
+
+func mulExpr(): Rule {
+	return spec("mul-expr", "2.6",
+		"mul-expr = pipe-expr \{ ( \"*\" | \"/\" | \"%\" ) pipe-expr } ;",
+		[seq([rule("pipe-expr"), many(seq([either([sign("*"), sign("/"), sign("%")]), rule("pipe-expr")]))])])
+}
+
+func pipeExpr(): Rule {
+	return spec("pipe-expr", "2.6",
+		"pipe-expr = unary-expr \{ \"|\" unary-expr } ;",
+		[seq([rule("unary-expr"), many(seq([sign("|"), rule("unary-expr")]))])])
+}
+
+func unaryExpr(): Rule {
+	return spec("unary-expr", "2.6",
+		"unary-expr = \"-\" unary-expr | \"!\" unary-expr | pow-expr ;",
+		[either([
+			seq([sign("-"), rule("unary-expr")]),
+			seq([sign("!"), rule("unary-expr")]),
+			rule("pow-expr"),
+		])])
+}
+
+func powExpr(): Rule {
+	return spec("pow-expr", "2.6",
+		"pow-expr = with-expr [ \"**\" unary-expr ] ;",
+		[seq([rule("with-expr"), opt(seq([sign("**"), rule("unary-expr")]))])])
+}
+
+func withExpr(): Rule {
+	return spec("with-expr", "2.6",
+		"with-expr = postfix-expr [ \"with\" \"timeout\" add-expr ] ;",
+		[seq([rule("postfix-expr"), opt(seq([sign("with"), sign("timeout"), rule("add-expr")]))])])
+}
+
+func callSuffix(): Rule {
+	return spec("call-suffix", "2.6",
+		"call-suffix = \"(\" [ args ] \")\" ;",
+		[seq([sign("("), opt(rule("args")), sign(")")])])
+}
+
+func indexSuffix(): Rule {
+	return spec("index-suffix", "2.6",
+		"index-suffix = \"[\" expression \"]\" | \"[\" [ expression ] \":\" [ expression ] \"]\" ;",
+		[either([
+			seq([sign("["), rule("expression"), sign("]")]),
+			seq([sign("["), opt(rule("expression")), sign(":"), opt(rule("expression")), sign("]")]),
+		])])
+}
+
+func args(): Rule {
+	return parsed("args", "2.6",
+		"args = arg \{ \",\" arg } [ \",\" ] ;",
+		[seq([rule("arg"), many(seq([sign(","), rule("arg")])), opt(sign(","))])])
+}
+
+func arg(): Rule {
+	return spec("arg", "2.6",
+		"arg = [ IDENT \":\" ] expression ;",
+		[seq([opt(seq([rule("IDENT"), sign(":")])), rule("expression")])])
+}
+
+func vectorLit(): Rule {
+	return parsed("vector-lit", "2.6",
+		"vector-lit = \"[\" [ expression \{ \",\" expression } [ \",\" ] ] \"]\" ;",
+		[seq([
+			sign("["),
+			opt(seq([rule("expression"), many(seq([sign(","), rule("expression")])), opt(sign(","))])),
+			sign("]"),
+		])])
+}
+
+func awaitAll(): Rule {
+	return parsed("await-all", "2.6",
+		"await-all = \"await\" \"[\" call \{ \",\" call } [ \",\" ] \"]\" ;",
+		[seq([
+			sign("await"), sign("["), rule("call"),
+			many(seq([sign(","), rule("call")])), opt(sign(",")), sign("]"),
+		])])
+}
+
+// ---------------------------------------------------------------------------
+// 2.7 Patterns
+
+func pattern(): Rule {
+	return spec("pattern", "2.7",
+		"pattern = ctor-pattern | vector-pattern | string-pattern ;",
+		[either([rule("ctor-pattern"), rule("vector-pattern"), rule("string-pattern")])])
+}
+
+func ctorPattern(): Rule {
+	return parsed("ctor-pattern", "2.7",
+		"ctor-pattern = path [ \"(\" [ part \{ \",\" part } [ \",\" ] ] \")\" ] ;",
+		[seq([
+			rule("path"),
+			opt(seq([
+				sign("("),
+				opt(seq([rule("part"), many(seq([sign(","), rule("part")])), opt(sign(","))])),
+				sign(")"),
+			])),
+		])])
+}
+
+func part(): Rule {
+	return parsed("part", "2.7",
+		"part = binding | literal | pattern ;",
+		[either([rule("binding"), rule("literal"), rule("pattern")])])
+}
+
+func vectorPattern(): Rule {
+	return parsed("vector-pattern", "2.7",
+		"vector-pattern = \"[\" \{ element \",\" } [ element | \"...\" IDENT ] \"]\" ;",
+		[seq([
+			sign("["),
+			many(seq([rule("element"), sign(",")])),
+			opt(either([rule("element"), seq([sign("..."), rule("IDENT")])])),
+			sign("]"),
+		])])
+}
+
+func element(): Rule {
+	return parsed("element", "2.7",
+		"element = binding | literal | pattern ;",
+		[either([rule("binding"), rule("literal"), rule("pattern")])])
+}
+
+func stringPattern(): Rule {
+	return spec("string-pattern", "2.7",
+		"string-pattern = STRING | INTERP ;",
+		[either([rule("STRING"), rule("INTERP")])])
+}
+
+// ---------------------------------------------------------------------------
+// 2.8 Query bodies
+
+func sqlBody(): Rule {
+	return spec("sql-body", "2.8",
+		"sql-body = \{ sql-literal | sql-param | where-block } ;",
+		[many(either([rule("sql-literal"), rule("sql-param"), rule("where-block")]))])
+}
+
+func sqlParam(): Rule {
+	return spec("sql-param", "2.8",
+		"sql-param = \"\{\" expression \"}\" ;",
+		[seq([sign("\{"), rule("expression"), sign("}")])])
+}
+
+func whereBlock(): Rule {
+	return spec("where-block", "2.8",
+		"where-block = \"WHERE\" \"\{\" \{ sql-item } \"}\" ;",
+		[seq([sign("WHERE"), sign("\{"), many(rule("sql-item")), sign("}")])])
+}
+
+func sqlItem(): Rule {
+	return parsed("sql-item", "2.8",
+		"sql-item = \"if\" expression \"\{\" sql-body \"}\" | ( \"or\" | \"and\" ) \"\{\" \{ sql-item } \"}\" ;",
+		[either([
+			seq([sign("if"), rule("expression"), sign("\{"), rule("sql-body"), sign("}")]),
+			seq([either([sign("or"), sign("and")]), sign("\{"), many(rule("sql-item")), sign("}")]),
+		])])
+}
+
+// ---------------------------------------------------------------------------
+// Where each is drawn.
+
+// The rules a slide opens with, by the slide's English title. Most slides
+// have none — a slide about strings or time is about a library, not a rule —
+// and they answer with an empty vector rather than a missing one.
+func forSlide(title: Str): Rule[dyn] {
+	for each entry in slideRules() {
+		if entry.title == title {
+			return entry.rules
+		}
+	}
+	return []
+}
+
+type SlideRules {
+	title: Str
+	rules: Rule[dyn]
+}
+
+func slideRules(): SlideRules[dyn] {
+	return [
+		SlideRules(title: "Hello, World", rules: [file(), echoStmt()]),
+		SlideRules(title: "Variables", rules: [varDecl(), typedDecl(), assign(), lvalue()]),
+		SlideRules(title: "Operators", rules: [
+			orExpr(), andExpr(), isExpr(), cmpExpr(), addExpr(), mulExpr(), pipeExpr(), unaryExpr(), powExpr(),
+		]),
+		SlideRules(title: "if and else", rules: [ifStmt(), block()]),
+		SlideRules(title: "Loops", rules: [forStmt(), step()]),
+		SlideRules(title: "Functions", rules: [funcDecl(), params(), param(), returnStmt()]),
+		SlideRules(title: "assert and panic", rules: [assertStmt(), panicStmt()]),
+		SlideRules(title: "Vectors", rules: [vectorLit(), dim(), indexSuffix()]),
+		SlideRules(title: "Bounds, proved at compile time", rules: [isExpr(), indexSuffix()]),
+		SlideRules(title: "The characters of a Str", rules: [indexSuffix()]),
+		SlideRules(title: "Pipes", rules: [pipeExpr()]),
+		SlideRules(title: "Declared types", rules: [typeDecl(), typeBody(), variant(), field()]),
+		SlideRules(title: "How echo shows a value", rules: [echoStmt()]),
+		SlideRules(title: "A length is a promise", rules: [typedDecl(), dim()]),
+		SlideRules(title: "Matching with is", rules: [isExpr(), pattern(), ctorPattern(), part()]),
+		SlideRules(title: "Matching vectors and strings", rules: [vectorPattern(), element(), stringPattern()]),
+		SlideRules(title: "Chains that cover a type", rules: [ifStmt()]),
+		SlideRules(title: "Named arguments", rules: [callSuffix(), args(), arg()]),
+		SlideRules(title: "First-class functions", rules: [fnType(), fnParams(), fnParam()]),
+		SlideRules(title: "Mutability and value semantics", rules: [param(), assign()]),
+		SlideRules(title: "func and proc", rules: [funcDecl(), procDecl()]),
+		SlideRules(title: "Generics", rules: [namedType(), typeArgs()]),
+		SlideRules(title: "Concurrency: async", rules: [asyncStmt(), varDecl()]),
+		SlideRules(title: "Concurrency: await", rules: [awaitAll()]),
+		SlideRules(title: "Concurrency: with timeout", rules: [withExpr()]),
+		SlideRules(title: "Modules", rules: [importRule(), file()]),
+		SlideRules(title: "Importing a Go file", rules: [importRule()]),
+		SlideRules(title: "Testing", rules: [testDecl()]),
+		SlideRules(title: "Field annotations", rules: [field(), annotations(), annotation()]),
+		SlideRules(title: "SQL", rules: [queryDecl(), sqlBody(), sqlParam()]),
+		SlideRules(title: "Optional filters: WHERE \{ }", rules: [whereBlock(), sqlItem()]),
+	]
+}
+
+// Where on the spec's page a section starts: the anchor GitHub gives each
+// heading of chapter 2, which is its number with the dot dropped and its
+// title in lower case.
+func anchor(section: Str): Str {
+	if section == "2.1" { return "#21-a-file" }
+	if section == "2.2" { return "#22-imports" }
+	if section == "2.3" { return "#23-declarations" }
+	if section == "2.4" { return "#24-types" }
+	if section == "2.5" { return "#25-statements" }
+	if section == "2.6" { return "#26-expressions" }
+	if section == "2.7" { return "#27-patterns" }
+	if section == "2.8" { return "#28-query-bodies" }
+	return ""
+}

@@ -1,0 +1,108 @@
+// The tour as a chart: every slide an element, in the colour of the chapter it
+// belongs to, with its number and the one piece of Hive it is about.
+//
+// It is the picture a periodic table makes of chemistry — the whole subject at
+// once, in families — made of a language small enough for the picture to be
+// complete. The contents page is this chart, and so is the foot of the front
+// page, where the claim that the language can be learned in a day is easier to
+// believe for having all of it in view.
+//
+// The symbol on each tile is a real piece of the language wherever there is
+// one — the keyword, the operator, the type or the module the slide teaches —
+// so a reader who has finished the tour can read the chart as a summary of
+// it. A slide is found by its English title, for the reason ./home and
+// ./grammar find them that way, and chart.test.hive holds every slide in the
+// tour to having a symbol here.
+
+type Symbol {
+	title:  Str
+	symbol: Str
+}
+
+func symbol(title: Str): Str {
+	for each entry in symbols() {
+		if entry.title == title {
+			return entry.symbol
+		}
+	}
+	return ""
+}
+
+func symbols(): Symbol[dyn] {
+	return [
+		Symbol(title: "Hello, World", symbol: "main"),
+		Symbol(title: "Running these examples", symbol: "run"),
+		Symbol(title: "Every command", symbol: "hive"),
+		Symbol(title: "Comments", symbol: "//"),
+		Symbol(title: "Names have shapes", symbol: "Name"),
+		Symbol(title: "Variables", symbol: ":="),
+		Symbol(title: "Scalar types", symbol: "Int"),
+		Symbol(title: "Operators", symbol: "+"),
+		Symbol(title: "Arithmetic at the edges", symbol: "/ 0"),
+		Symbol(title: "Strings", symbol: "\"\{x}\""),
+		Symbol(title: "if and else", symbol: "if"),
+		Symbol(title: "Loops", symbol: "for"),
+		Symbol(title: "Functions", symbol: "func"),
+		Symbol(title: "Result<T, E>", symbol: "Result"),
+		Symbol(title: "assert and panic", symbol: "assert"),
+		Symbol(title: "Vectors", symbol: "[]"),
+		Symbol(title: "Builtins", symbol: "len"),
+		Symbol(title: "Bounds, proved at compile time", symbol: "bounds"),
+		Symbol(title: "The characters of a Str", symbol: "s[i]"),
+		Symbol(title: "Walking and sorting", symbol: "sort"),
+		Symbol(title: "Pipes", symbol: "|"),
+		Symbol(title: "Tables and CSV", symbol: "Table"),
+		Symbol(title: "Declared types", symbol: "type"),
+		Symbol(title: "How echo shows a value", symbol: "echo"),
+		Symbol(title: "Secrets", symbol: "Secret"),
+		Symbol(title: "A length is a promise", symbol: "[3]"),
+		Symbol(title: "Matching with is", symbol: "is"),
+		Symbol(title: "Matching vectors and strings", symbol: "..."),
+		Symbol(title: "Chains that cover a type", symbol: "else if"),
+		Symbol(title: "Named arguments", symbol: "x:"),
+		Symbol(title: "First-class functions", symbol: "_"),
+		Symbol(title: "Mutability and value semantics", symbol: "mut"),
+		Symbol(title: "func and proc", symbol: "proc"),
+		Symbol(title: "Generics", symbol: "T[]"),
+		Symbol(title: "Concurrency: async", symbol: "async"),
+		Symbol(title: "Concurrency: await", symbol: "await"),
+		Symbol(title: "Concurrency: with timeout", symbol: "with"),
+		Symbol(title: "Services", symbol: "spawn"),
+		Symbol(title: "Modules", symbol: "import"),
+		Symbol(title: "Importing a Go file", symbol: ".go"),
+		Symbol(title: "Testing", symbol: "test"),
+		Symbol(title: "Maps", symbol: "Map"),
+		Symbol(title: "Conversions", symbol: "conv"),
+		Symbol(title: "Math", symbol: "math"),
+		Symbol(title: "JSON", symbol: "json"),
+		Symbol(title: "Field annotations", symbol: "--"),
+		Symbol(title: "A document with no declared shape", symbol: "Json"),
+		Symbol(title: "Files", symbol: "file"),
+		Symbol(title: "Spreadsheets", symbol: "xlsx"),
+		Symbol(title: "The terminal", symbol: "term"),
+		Symbol(title: "Running other programs", symbol: "exec"),
+		Symbol(title: "Command-line flags", symbol: "Flag"),
+		Symbol(title: "Time", symbol: "time"),
+		Symbol(title: "Environment variables", symbol: "env"),
+		Symbol(title: "HTTP servers", symbol: "serve"),
+		Symbol(title: "HTTP requests and query strings", symbol: "request"),
+		Symbol(title: "WebSockets", symbol: "ws"),
+		Symbol(title: "TCP and names", symbol: "tcp"),
+		Symbol(title: "Services across nodes", symbol: "syslink"),
+		Symbol(title: "Cryptography", symbol: "crypto"),
+		Symbol(title: "SQL", symbol: "query"),
+		Symbol(title: "Optional filters: WHERE \{ }", symbol: "WHERE"),
+		Symbol(title: "The in-memory trap", symbol: ":memory:"),
+		Symbol(title: "Views", symbol: "View"),
+		Symbol(title: "A window is a service", symbol: "window"),
+		Symbol(title: "Drawing on a canvas", symbol: "canvas"),
+		Symbol(title: "Three dimensions", symbol: "scene"),
+		Symbol(title: "Scenes: the camera, input and insets", symbol: "inset"),
+		Symbol(title: "A sound is a shape", symbol: "sound"),
+		Symbol(title: "What an error looks like", symbol: "error"),
+		Symbol(title: "Building for another platform", symbol: "target"),
+		Symbol(title: "Packaging an app", symbol: "export"),
+		Symbol(title: "Containers", symbol: "container"),
+		Symbol(title: "Where to go next", symbol: "next"),
+	]
+}

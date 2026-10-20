@@ -7,7 +7,7 @@
 // does, because code is not prose. `handle` reads the slide number and the
 // chosen language out of the URL, `hive.net.httpServe` does the rest.
 //
-// This file is the server, and only the server. Six others hold the things
+// This file is the server, and only the server. Ten others hold the things
 // that are not it, each because a program is easier to read when the thing it
 // does and the material it does it to are not interleaved:
 //
@@ -27,18 +27,28 @@
 //                other two files are perfectly happy with.
 //   ./theme      how it all looks: the one stylesheet this program writes,
 //                layered over the one `ui.page` writes for itself.
+//   ./fonts      the three typefaces it is set in, carried in the binary so
+//                nothing on a page is fetched from anywhere but here.
+//   ./rail       railroad diagrams — a grammar rule drawn as track — drawn
+//                with `hive.ui`'s own canvas, and the line of the tour
+//                drawn in the same notation across the top of a slide.
+//   ./chart      the symbol on each slide's tile, for the chart the contents
+//                page is and the front page ends on.
+//   ./grammar    the rules of Hive's grammar it draws, copied from the spec,
+//                and which slide teaches which.
 //   ./highlight  a Hive lexer, for painting the samples in ./slides. It is
 //                here rather than in a script tag because the home page
 //                claims there is no framework underneath this site, and that
 //                claim is worth more than the eight lines it saves.
 //
-// The interface is built with `hive.ui`: the sidebar, the heading, the
-// explanation and the prev/next links are all `View`s, rendered by
-// `ui.page`. Three kinds of thing the widget set has no answer for are
+// The interface is built with `hive.ui`: the running head, the track, the
+// headings, the columns, the links and the diagrams are all `View`s, rendered
+// by `ui.page`. The kinds of thing the widget set has no answer for are
 // spliced into the finished document as literal HTML: a monospaced, boxed
-// code sample, which goes in place of a marker view; a wrapper around the
-// prose under it, so the pager at its foot is something a stylesheet can
-// name; and everything that belongs in the head — the stylesheet, the tab
+// code sample and the prose around it, which go in place of marker views; a
+// figure round a drawn rule; the `<main>` and `<nav>` landmarks a page is
+// framed in, whose class names are what the stylesheet hangs from; and
+// everything that belongs in the head — the stylesheet, the type, the tab
 // icons, and the whole of what a page says about itself to a search engine
 // or a link unfurler. The head is the half of a page nobody looks at, so
 // nothing in it is on show, and a thing that is not on show is not a view.
@@ -51,9 +61,13 @@
 // is no second list anywhere to forget to update.
 import hive.ui
 import ./logo
+import ./chart
+import ./fonts
+import ./grammar
 import ./highlight
 import ./home
 import ./icon
+import ./rail
 import ./shots
 import ./slides
 import ./theme
@@ -92,12 +106,33 @@ proc main(): void {
 	hive.net.httpServe(8080, handle)
 }
 
+// Every request, answered: routed to the page or file it asks for, and then,
+// if the reader has picked a colour scheme of their own, marked with it.
 proc handle(request: hive.net.HttpRequest): hive.net.HttpResponse {
-	path := requestPath(request.url)
-	lang := requestLang(request.url)
+	response := route(request.url)
+	theme := requestTheme(request.headers)
+	if theme == "" {
+		return response
+	}
+	return withTheme(response, theme)
+}
+
+proc route(url: Str): hive.net.HttpResponse {
+	path := requestPath(url)
+	lang := requestLang(url)
 
 	if path == "/" {
 		return homeResponse(lang)
+	}
+
+	// The switch between the light scheme and the dark one, which is a link
+	// rather than a script: it lands here, says which scheme in a cookie, and
+	// sends the reader straight back to the page they were on.
+	if indexOf(path, "/theme/dark") is Result.Ok(0) {
+		return themeResponse("dark", replaceFirst(path, "/theme/dark", ""), lang)
+	}
+	if indexOf(path, "/theme/light") is Result.Ok(0) {
+		return themeResponse("light", replaceFirst(path, "/theme/light", ""), lang)
 	}
 
 	// Every framing of the mark, at the paths that ask for one: the home
@@ -119,6 +154,17 @@ proc handle(request: hive.net.HttpRequest): hive.net.HttpResponse {
 	}
 	if path == markPath() {
 		return rasterResponse(icon.mark(), icon.pngType())
+	}
+
+	// The three typefaces, out of the executable like everything else.
+	if path == fonts.serifPath() {
+		return fontResponse(fonts.serif())
+	}
+	if path == fonts.italicPath() {
+		return fontResponse(fonts.italic())
+	}
+	if path == fonts.monoPath() {
+		return fontResponse(fonts.mono())
 	}
 
 	// A picture of what a slide's code draws, for the one kind of code on this
@@ -153,6 +199,64 @@ proc handle(request: hive.net.HttpRequest): hive.net.HttpResponse {
 		}
 	}
 	return notFoundResponse(lang, path)
+}
+
+// ---------------------------------------------------------------------------
+// The colour scheme
+//
+// A page follows the reader's system — light or dark, whichever their machine
+// is set to — until they say otherwise, and saying otherwise is a link in the
+// running head. There is no script on this site to remember a choice with, so
+// the choice is remembered the way the web did it before scripts: in a cookie,
+// set by the server, sent back with every request after. It holds one word,
+// `dark` or `light`, and nothing about who is asking.
+//
+// The link goes to `/theme/dark` or `/theme/light` followed by the page it was
+// on. This answers it with the cookie and a redirect back there; every page
+// after that comes out of `handle` with the scheme written on its `<html>`,
+// which is all ./theme needs to tell the system's choice from the reader's.
+
+// The scheme a request asked for, or nothing when it has never asked.
+func requestTheme(headers: Str[dyn][dyn]): Str {
+	for each row in headers {
+		if row bounds 0 && row bounds 1 {
+			if row[0] == "Cookie" || row[0] == "cookie" {
+				for each part in split(row[1], ";") {
+					cookie := replaceAll(part, " ", "")
+					if cookie == "theme=dark" { return "dark" }
+					if cookie == "theme=light" { return "light" }
+				}
+			}
+		}
+	}
+	return ""
+}
+
+// A page, marked with the scheme its reader picked. Only a document has an
+// `<html>` to mark; every other answer comes back untouched.
+func withTheme(response: hive.net.HttpResponse, theme: Str): hive.net.HttpResponse {
+	if indexOf(response.body, "<html lang=") is Result.Ok(_) {
+		marked := replaceFirst(response.body, "<html lang=", "<html data-theme=\"" + theme + "\" lang=")
+		return hive.net.HttpResponse(response.status, response.headers, marked)
+	}
+	return response
+}
+
+// The answer to the switch: the cookie, for a year, and a 303 back to the page
+// the link was on. That page is only ever a path on this site — anything that
+// does not start with a single slash sends the reader to the front page — so
+// the switch can never be made into a way of sending somebody somewhere else.
+func themeResponse(theme: Str, back: Str, lang: Str): hive.net.HttpResponse {
+	mut target := "/"
+	if indexOf(back, "/") is Result.Ok(0) && indexOf(back, "//") is Result.Error(_) {
+		target = back
+	}
+	headers := [
+		["Location", href(target, lang)],
+		["Set-Cookie", "theme=" + theme + "; Path=/; Max-Age=31536000; SameSite=Lax; HttpOnly"],
+		["Cache-Control", "no-store"],
+	]
+	return hive.net.HttpResponse(303, headers, "")
 }
 
 // The path and the query string travel together in `request.url` — a GET
@@ -259,6 +363,8 @@ func headTags(head: PageHead): Str {
 	portuguese := absoluteUrl(head.path, "pt")
 	mut Str[dyn] tags = [
 		theme.styleTag(),
+		fontPreloadTag(fonts.serifPath()),
+		fontPreloadTag(fonts.monoPath()),
 		iconLinkTag(),
 		metaTag("description", head.description),
 		metaTag("robots", robotsValue(head.indexable)),
@@ -319,6 +425,18 @@ func iconLinkTag(): Str {
 		+ "<link rel=\"icon\" type=\"image/png\" sizes=\"192x192\" href=\"/favicon.png\">"
 		+ "<link rel=\"icon\" type=\"image/x-icon\" sizes=\"32x32 16x16\" href=\"/favicon.ico\">"
 		+ "<link rel=\"apple-touch-icon\" sizes=\"256x256\" href=\"" + markPath() + "\">"
+}
+
+// The two faces nearly every page sets text in, asked for before the
+// stylesheet has been read rather than after, so the first paint is in the
+// right type rather than a fallback that jumps when the font arrives. The
+// italic is left to be found the ordinary way: it is only ever in a diagram.
+// `crossorigin` is not optional, even for a font from the page's own origin —
+// fonts are always fetched in that mode, and a preload made without it is a
+// second download rather than a head start.
+func fontPreloadTag(path: Str): Str {
+	return "<link rel=\"preload\" href=\"" + path + "\" as=\"font\" type=\""
+		+ fonts.woff2Type() + "\" crossorigin>"
 }
 
 // The one raster that is not a favicon, and the one path named in more than
@@ -446,7 +564,7 @@ func jsonText(s: Str): Str {
 // arrives at either finds the other. `robots.txt` names it, which is the
 // one line in that file worth having.
 func robotsResponse(): hive.net.HttpResponse {
-	body := "User-agent: *\nAllow: /\n\nSitemap: " + siteUrl() + "/sitemap.xml\n"
+	body := "User-agent: *\nAllow: /\nDisallow: /theme/\n\nSitemap: " + siteUrl() + "/sitemap.xml\n"
 	headers := [
 		["Content-Type", "text/plain; charset=utf-8"],
 		["Cache-Control", "public, max-age=86400"],
@@ -561,6 +679,40 @@ func rasterResponse(decoded: Result<Str, hive.crypto.CryptoError>, contentType: 
 	return svgResponse(logo.icon())
 }
 
+// A typeface, decoded. A day of caching for the reason the mark has one: it
+// is part of the executable, and cannot change before a new binary ships. A
+// font that fails to decode was built broken, and there is nothing to send
+// for it but a 404, which the stylesheet's own fallbacks are there for.
+func fontResponse(decoded: Result<Str, hive.crypto.CryptoError>): hive.net.HttpResponse {
+	if decoded is Result.Ok(bytes) {
+		headers := [
+			["Content-Type", fonts.woff2Type()],
+			["Cache-Control", "public, max-age=86400"],
+		]
+		return hive.net.HttpResponse(200, headers, bytes)
+	}
+	return hive.net.HttpResponse(404, [["Content-Type", "text/plain; charset=utf-8"]], "")
+}
+
+// One slide: the line of the tour with this slide's station on it, the
+// slide's own tile in its chapter's colour beside its title, the grammar
+// rules it teaches drawn as railroad diagrams and folded away under a line
+// that names them, and then the explanation and the programs side by side — the text in one column and its
+// figures in the other, the way a report sets a figure beside the paragraph
+// about it.
+//
+// It used to be one column, code first and the explanation under it, which
+// asked a reader to scroll past a program to find out what it was for. Two
+// columns let both be read at once. A slide whose programs are wider than
+// their column is set the old way round instead — the text, then the programs
+// at the full width of the page — because a program scrolled sideways next to
+// a column of text with room to spare is the wrong way round. Which slides
+// those are is measured here, from the programs themselves.
+//
+// The explanation, the programs and the rules are holes in the view, filled
+// once it has been rendered, because each is markup no widget writes. The
+// tile is wrapped once, in its chapter's class, for the reason the chart's
+// tiles are: a colour that changes with the scheme cannot be an inline one.
 func renderSlide(slide: slides.Slide, idx: Int, all: slides.Slide[], lang: Str): hive.net.HttpResponse {
 	total := len(all)
 	path := "/{idx + 1}"
@@ -582,32 +734,119 @@ func renderSlide(slide: slides.Slide, idx: Int, all: slides.Slide[], lang: Str):
 		prev: previous,
 		next: following,
 	)
-	top := pageView(lang, path, [progressView(idx, total), headerColumn(slide, idx, total, lang)])
-	page := document(head, top)
+	part := chapterOf(idx)
+	title := ui.row([], [
+		tileView(idx, slide.title, chapterTitle(part, lang)),
+		ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], slideTitle(slide, lang)),
+	])
+	body := ui.row([], [
+		ui.column([], [holeView("TEXT", 1)] + downloadViews(slide, lang)),
+		ui.column([], shotView(slide, lang) + [holeView("CODE", 1)]),
+	])
+	mut text := fill(ui.html(body), "TEXT", 1, proseHtml(slideExplanation(slide, lang)))
+	text = fill(text, "CODE", 1, examplesHtml(slide.examples, lang))
 
-	// The examples, and then everything that follows them, in the one place
-	// the marker view left for both. The second half is wrapped in a div of
-	// its own for the same reason the code block carries a class: the pager at
-	// the foot of it wants a rule above it, and a `ui.row` deep inside a
-	// column of prose is not a thing a stylesheet can name. One marked
-	// wrapper, and it is `.tour-prose > .h-column > .h-row:last-child`.
-	spliced := examplesHtml(slide.examples, lang)
-		+ "<div class=\"tour-prose\">"
-		+ proseHtml(slideExplanation(slide, lang))
-		+ ui.html(bottomView(slide, idx, total, lang, path))
-		+ "</div>"
-	body := join(split(page, codeMarkerTag()), spliced)
-	return hive.net.HttpResponse(200, htmlHeaders(), body)
+	inner := ui.html(trackView(idx, total, lang))
+		+ "<div class=\"tour-head f{part}\">" + ui.html(title) + "</div>"
+		+ rulesHtml(grammar.forSlide(slide.title), lang)
+		+ text
+		+ ui.html(pagerView(idx, all, lang))
+	mut name := "tour-slide"
+	if widest(slide.examples, lang) > 84 {
+		name = "tour-slide tour-wide"
+	}
+	return framed(head, lang, path, name, inner, 200)
+}
+
+// The widest line among a slide's programs, in columns, with a tab counted as
+// the four ./theme sets it at.
+func widest(examples: slides.Example[], lang: Str): Int {
+	mut most := 0
+	for each ex in examples {
+		mut code := ex.code
+		if lang == "pt" {
+			code = ex.codePt
+		}
+		for each line in split(code, "\n") {
+			wide := len(line) + 3 * (len(split(line, "\t")) - 1)
+			if wide > most {
+				most = wide
+			}
+		}
+	}
+	return most
+}
+
+// Which chapter a slide is in, counted from one, which is the number its
+// colour class carries.
+func chapterOf(idx: Int): Int {
+	mut start := 0
+	mut part := 0
+	for each chapter in slides.chapters() {
+		part += 1
+		if idx >= start && idx < start + chapter.length {
+			return part
+		}
+		start += chapter.length
+	}
+	return part
+}
+
+func chapterTitle(part: Int, lang: Str): Str {
+	mut n := 0
+	for each chapter in slides.chapters() {
+		n += 1
+		if n == part {
+			return inLang(lang, chapter.title, chapter.titlePt)
+		}
+	}
+	return ""
+}
+
+// A slide's tile, the way the chart draws it: its number, the piece of the
+// language it is about, and the chapter it belongs to. On a slide it stands
+// beside the title, large; on the chart it is one of seventy-four.
+func tileView(idx: Int, title: Str, chapter: Str): ui.View {
+	return ui.column([], [
+		ui.text([], "{idx + 1}"),
+		symbolView(chart.symbol(title)),
+		ui.text([], chapter),
+	])
+}
+
+// A tile's symbol, set a size smaller when it is long enough not to fit the
+// tile at the size the short ones are.
+func symbolView(symbol: Str): ui.View {
+	if len(symbol) > 6 {
+		return ui.text([ui.size(ui.TextSize.Caption())], symbol)
+	}
+	return ui.text([], symbol)
+}
+
+// Every page, finished: the running head as a view, and the page's own
+// content spliced in after it inside one `<main>`, named for the kind of page
+// it is. The landmark is the one piece of the frame `hive.ui` has no widget
+// for — a screen reader jumps straight to it — and its class is the one name
+// ./theme hangs each page's rules from, so no rule for a slide can reach the
+// front page or the other way round.
+func framed(head: PageHead, lang: Str, path: Str, name: Str, inner: Str, status: Int): hive.net.HttpResponse {
+	page := document(head, pageView(lang, path, [codeMarkerView()]))
+	body := join(split(page, codeMarkerTag()), "<main class=\"" + name + "\">" + inner + "</main>")
+	return hive.net.HttpResponse(status, htmlHeaders(), body)
 }
 
 // What every HTML page here answers with. Five minutes of caching, because
 // a slide changes when a new binary ships and not before — long enough to
 // spare the machine a second render of a page somebody is reading through,
-// short enough that a deploy is live by the time anybody notices it.
+// short enough that a deploy is live by the time anybody notices it. The
+// page varies with the cookie because the colour scheme a reader picked is
+// written into it, and a page cached in one scheme must not be handed back in
+// the other.
 func htmlHeaders(): Str[dyn][dyn] {
 	return [
 		["Content-Type", "text/html; charset=utf-8"],
 		["Cache-Control", "public, max-age=300"],
+		["Vary", "Cookie"],
 	]
 }
 
@@ -625,28 +864,18 @@ func slideExplanation(slide: slides.Slide, lang: Str): Str {
 	return slide.explanation
 }
 
-// The landing page, and the one page with **no rail down the left**. A
-// sidebar is for somebody who is already inside the tour and wants a
-// different part of it; on the way in it is seventy-odd links in front of
-// the case for the language, which is a table of contents standing where the
-// cover should be.
+// The landing page, and the one page with no track across the top. A track
+// says where in the tour a reader is, and somebody on the front page is not in
+// it yet: they are deciding whether to get on.
 //
-// It used to be one screen and nothing more, on the reasoning that a page
-// about a language small enough to learn in a day should not open by saying
-// "scroll". That was right for a cover and wrong for who actually arrives
-// here, which is mostly somebody deciding whether Hive is worth their next
-// project — and that reader has questions one screen cannot answer. So the
-// page now runs on, in the order ./home sets out: what Hive is, why somebody
-// would pick it, whether it suits this project, each reason at length with
-// the program that shows it, and a way in at the foot as well as the head.
+// It runs in the order that decision is made, which ./home sets out: what
+// Hive is and the ways in, why somebody would pick it, whether it suits this
+// project, each reason at length with the program that shows it, and at the
+// foot the whole tour on one chart, with the ways in again under it.
 //
-// Everything is a view except what never could be — the samples, and the
-// prose with names set in monospace — which are holes in the view, filled
-// once it has been rendered. And the whole of it is rendered apart from the
-// page and spliced into one wrapper, `.tour-home`, for the reason the prose
-// under a slide is: a page this long is a dozen rows and columns deep, and the
-// stylesheet needs one name to hang all of it from rather than a selector
-// counting its way down from the root.
+// Everything is a view except what never could be — the samples, the prose
+// with names set in monospace, and the chart — which are holes in the view,
+// filled once it has been rendered.
 func homeResponse(lang: Str): hive.net.HttpResponse {
 	all := slides.all()
 	points := home.points()
@@ -661,16 +890,21 @@ func homeResponse(lang: Str): hive.net.HttpResponse {
 		pointView(points[3], 4, [entriesView(home.modulesLabel(lang), home.modules(), lang)], all, lang),
 		pointView(points[4], 5, [entriesView(home.commandsLabel(lang), home.commands(), lang)], all, lang),
 		proofView(home.proof(), proofNumber, all, lang),
-		closingView(lang, len(all)),
+		closingView(lang, len(all), proofNumber + 1),
 	])
 
 	mut inner := fill(ui.html(view), "CODE", 0, examplesHtml(home.hero(), lang))
+	inner = fill(inner, "CHART", 1, chartHtml(all, lang, 3))
 	for i := 0; i < len(points); i++ {
 		inner = fill(inner, "TEXT", i + 1, proseHtml(inLang(lang, points[i].text, points[i].textPt)))
 		inner = fill(inner, "CODE", i + 1, examplesHtml(points[i].examples, lang))
+		inner = fill(inner, "READS", i + 1, readsHtml(points[i].reads, all, lang))
+		inner = fill(inner, "ANCHOR", i + 1, anchorHtml(pointAnchor(i + 1)))
 	}
 	proof := home.proof()
 	inner = fill(inner, "TEXT", proofNumber, proseHtml(inLang(lang, proof.text, proof.textPt)))
+	inner = fill(inner, "READS", proofNumber, readsHtml(proof.reads, all, lang))
+	inner = fill(inner, "ANCHOR", proofNumber + 1, anchorHtml(pointAnchor(proofNumber + 1)))
 
 	head := PageHead(
 		title: homePageTitle(lang),
@@ -681,52 +915,48 @@ func homeResponse(lang: Str): hive.net.HttpResponse {
 		prev: "",
 		next: "/1",
 	)
-	frame := ui.column([ui.pad(40), ui.grow(1)], [codeMarkerView()])
-	page := document(head, pageView(lang, "/", [frame]))
-	body := join(split(page, codeMarkerTag()), "<div class=\"tour-home\">" + inner + "</div>")
-	return hive.net.HttpResponse(200, htmlHeaders(), body)
+	return framed(head, lang, "/", "tour-home", inner, 200)
 }
 
 // The top of the front page: the mark and the name, what the language is in
-// one sentence and then in a paragraph, the ways in, and a program beside all
-// of it.
+// one sentence and then in a paragraph, the ways in, and a whole program
+// beside all of it — so a reader who never scrolls has still seen the
+// language do something real.
 //
 // The prose gets five parts of the width and the program seven, because the
-// program is the one that cannot wrap: its samples are written to about
-// sixty-four columns, and seven twelfths of the page is what holds that many.
-// `grow` says it as a ratio rather than a width, so the two keep their
-// proportion at whatever width the window turns out to be.
+// program is the one that cannot wrap.
 func heroView(lang: Str): ui.View {
-	return ui.row([ui.gap(52), ui.align(ui.Align.Start())], [
-		ui.column([ui.gap(22), ui.grow(5)], [
-			// The gap is small because the drawing brings its own: the artwork
-			// is a square with the bee inside it, so a fifth of the width
-			// beside the name is margin the mark already paid for.
-			ui.row([ui.gap(10), ui.align(ui.Align.Center())], [
-				ui.image([ui.width(104)], "/hive-logo.svg", logoAlt(lang)),
-				ui.column([ui.gap(4)], [
-					ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], homeKicker(lang)),
-					ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], "Hive"),
-				]),
+	return ui.row([], [
+		ui.column([], [
+			ui.row([], [
+				ui.image([], "/hive-logo.svg", logoAlt(lang)),
+				ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], "Hive"),
 			]),
 			ui.text([ui.size(ui.TextSize.Subtitle())], home.lede(lang)),
 			ui.text([], home.intro(lang)),
-			// Two rows rather than one. Four things abreast wrapped every label
-			// onto two lines, which made the one that matters look like the
-			// three that do not: the way on is a button of its own, and the
-			// rest are what somebody reads after deciding not to take it.
-			ui.column([ui.gap(14)], [
-				ui.row([ui.gap(18), ui.align(ui.Align.Center())], [
-					ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourArrow(lang)),
-					ui.link([], href("/contents", lang), contentsLabel(lang)),
-				]),
-				ui.row([ui.gap(18), ui.align(ui.Align.Center())], [
-					ui.link([], releaseUrl(), downloadLabel(lang)),
-					ui.link([], repoUrl(), repoLinkLabel(lang)),
-				]),
-			]),
+			actionsView(lang),
 		]),
-		ui.column([ui.grow(7)], [holeView("CODE", 0)]),
+		ui.column([], [holeView("CODE", 0)]),
+	])
+}
+
+// The ways in, in two lines. The first is the way on — one button, in the
+// brand's amber — and the map beside it; the second, quieter, is where the
+// language itself lives: its repository and its compiler. A reader should
+// never have to work out which of four equal buttons is the one that matters,
+// and four things abreast never fitted the column without one of them falling
+// onto a line of its own anyway. Used at the head of the page, at its foot,
+// and on a page that is not there.
+func actionsView(lang: Str): ui.View {
+	return ui.column([], [
+		ui.row([], [
+			ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourLabel(lang)),
+			ui.link([], href("/contents", lang), contentsLabel(lang)),
+		]),
+		ui.row([], [
+			ui.link([], repoUrl(), repoLinkLabel(lang)),
+			ui.link([], releaseUrl(), downloadLabel(lang)),
+		]),
 	])
 }
 
@@ -742,8 +972,10 @@ func repoUrl(): Str {
 	return "https://github.com/R0DR160HM/hive-lang"
 }
 
+// On a slide the way to the compiler is a plain link like the one beside it:
+// amber on a slide means the station the reader is at, and nothing else.
 func downloadLinkView(lang: Str): ui.View {
-	return ui.link([ui.background(ui.Tone.Good())], releaseUrl(), downloadLabelArrow(lang))
+	return ui.link([], releaseUrl(), downloadLabel(lang))
 }
 
 func repoLinkView(lang: Str): ui.View {
@@ -756,44 +988,68 @@ func repoLinkLabel(lang: Str): Str {
 }
 
 // One claim: a mark, a few words, and the sentence that backs them up. The
-// mark sits against the first line rather than in the middle of the block. A
-// claim that runs to three lines with its mark floating halfway down them
-// reads as a mark belonging to the second line, which is a line it has
-// nothing to do with.
+// mark sits against the first line rather than in the middle of the block, so
+// a claim that runs to three lines is not read as belonging to its second.
 //
 // The words are an `h3` because each one is a heading over its sentence, and
-// a screen reader listing the page's headings should be able to read the six
+// a screen reader listing the page's headings should be able to read the
 // reasons off that list without the sentences in between.
 func claimView(claim: home.Claim, icon: ui.Icon, tone: ui.Tone, lang: Str): ui.View {
-	return ui.row([ui.gap(12), ui.align(ui.Align.Start()), ui.grow(1)], [
+	return ui.row([], [
 		ui.icon([ui.tone(tone)], icon),
-		ui.column([ui.gap(4)], [
+		ui.column([], [
 			ui.text([ui.heading(3)], inLang(lang, claim.title, claim.titlePt)),
 			ui.text([ui.tone(ui.Tone.Muted())], inLang(lang, claim.text, claim.textPt)),
 		]),
 	])
 }
 
-// The six reasons, three abreast. Two rows of three rather than one list,
-// because a list of six down the page is something read one at a time, and
-// these are meant to be taken in at a glance before any of them is read.
+// The six reasons, as a list of them rather than a grid of six equal cells:
+// each one's few words, and the sentence that backs them up, on one line of
+// the list. The words link down the page to the section that argues the
+// reason at length, so the list is the page's own table of contents as well
+// as its summary.
 func reasonsView(lang: Str): ui.View {
 	reasons := home.reasons()
-	check := ui.Icon.Check()
-	good := ui.Tone.Good()
-	return ui.column([ui.gap(30)], [
+	mut ui.View[dyn] rows = []
+	for i := 0; i < len(reasons); i++ {
+		claim := reasons[i]
+		append(rows, ui.row([], [
+			ui.link([], "#" + reasonAnchor(i), inLang(lang, claim.title, claim.titlePt)),
+			ui.text([ui.tone(ui.Tone.Muted())], inLang(lang, claim.text, claim.textPt)),
+		]))
+	}
+	return ui.column([], [
 		ui.text([ui.size(ui.TextSize.Subtitle()), ui.heading(2)], home.whyTitle(lang)),
-		ui.row([ui.gap(40), ui.align(ui.Align.Start())], [
-			claimView(reasons[0], check, good, lang),
-			claimView(reasons[1], check, good, lang),
-			claimView(reasons[2], check, good, lang),
-		]),
-		ui.row([ui.gap(40), ui.align(ui.Align.Start())], [
-			claimView(reasons[3], check, good, lang),
-			claimView(reasons[4], check, good, lang),
-			claimView(reasons[5], check, good, lang),
-		]),
+		ui.column([], rows),
 	])
+}
+
+// Where each reason is argued: the section of the page it links to, by the
+// order ./home gives the reasons in. Secure defaults and batteries included
+// are one section, because the standard library is where the defaults are.
+func reasonAnchor(i: Int): Str {
+	if i == 0 { return "reliability" }
+	if i == 1 { return "everywhere" }
+	if i == 2 { return "scale" }
+	if i == 3 || i == 4 { return "batteries" }
+	return "learn"
+}
+
+// The name each section of the page answers to, by its place among them.
+func pointAnchor(n: Int): Str {
+	if n == 1 { return "reliability" }
+	if n == 2 { return "everywhere" }
+	if n == 3 { return "scale" }
+	if n == 4 { return "batteries" }
+	if n == 5 { return "tooling" }
+	return "learn"
+}
+
+// A place a link can land: written by hand because no widget carries an `id`,
+// and absolutely positioned so it takes no room in the column it marks.
+func anchorHtml(name: Str): Str {
+	return "<span class=\"anchor\" id=\"" + name + "\"></span>"
 }
 
 // What Hive suits and what it does not, side by side, so the two read as one
@@ -801,9 +1057,9 @@ func reasonsView(lang: Str): ui.View {
 // rather than in a warning colour: they are not alarms, they are the half of
 // the answer a reader needs in order to trust the other half.
 func fitView(lang: Str): ui.View {
-	return ui.column([ui.gap(30)], [
+	return ui.column([], [
 		ui.text([ui.size(ui.TextSize.Subtitle()), ui.heading(2)], home.fitTitle(lang)),
-		ui.row([ui.gap(52), ui.align(ui.Align.Start())], [
+		ui.row([], [
 			claimsColumn(home.fitLabel(lang), home.fits(), ui.Icon.Check(), ui.Tone.Good(), lang),
 			claimsColumn(home.caveatLabel(lang), home.caveats(), ui.Icon.Minus(), ui.Tone.Muted(), lang),
 		]),
@@ -811,73 +1067,72 @@ func fitView(lang: Str): ui.View {
 }
 
 func claimsColumn(label: Str, claims: home.Claim[], icon: ui.Icon, tone: ui.Tone, lang: Str): ui.View {
-	mut ui.View[dyn] rows = [ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], label)]
+	mut ui.View[dyn] rows = [ui.text([ui.heading(3), ui.tone(ui.Tone.Muted())], label)]
 	for each claim in claims {
 		append(rows, claimView(claim, icon, tone, lang))
 	}
-	return ui.column([ui.gap(20), ui.grow(1)], rows)
+	return ui.column([], rows)
 }
 
-// One reason at length: its number and label, a heading, the prose, the
-// slides that say the rest, and a figure beside all of it. The figure is
-// whatever the caller hands in — a hole a sample goes in, or a list — so a
-// point that is about a program and a point that is about everything around
-// one are laid out as the same thing.
+// One reason at length: a heading, the prose, the slides that say the rest,
+// and a figure beside all of it. The figure is whatever the caller hands in —
+// a hole a sample goes in, or a list — so a point that is about a program and
+// a point that is about everything around one are laid out as the same thing.
 func pointView(point: home.Point, n: Int, figure: ui.View[dyn], all: slides.Slide[], lang: Str): ui.View {
-	return ui.row([ui.gap(52), ui.align(ui.Align.Start())], [
-		ui.column([ui.gap(18), ui.grow(5)], [
-			pointLabelView(point, n, lang),
+	return ui.row([], [
+		ui.column([], [
+			holeView("ANCHOR", n),
 			ui.text([ui.size(ui.TextSize.Subtitle()), ui.heading(2)], inLang(lang, point.title, point.titlePt)),
 			holeView("TEXT", n),
-			readsView(point.reads, all, lang),
+			readsView(n, lang),
 		]),
-		ui.column([ui.grow(7)], figure),
+		ui.column([], figure),
 	])
 }
 
 // The last point has no figure, so it is set the other way: the heading
 // where the prose would be, and the prose where the figure would be. The
-// columns line up with every point above it, and nothing on the page is an
-// empty half.
+// columns line up with every point above it, and nothing is an empty half.
 func proofView(point: home.Point, n: Int, all: slides.Slide[], lang: Str): ui.View {
-	return ui.row([ui.gap(52), ui.align(ui.Align.Start())], [
-		ui.column([ui.gap(18), ui.grow(5)], [
-			pointLabelView(point, n, lang),
+	return ui.row([], [
+		ui.column([], [
 			ui.text([ui.size(ui.TextSize.Subtitle()), ui.heading(2)], inLang(lang, point.title, point.titlePt)),
 		]),
-		ui.column([ui.gap(18), ui.grow(7)], [
+		ui.column([], [
 			holeView("TEXT", n),
-			readsView(point.reads, all, lang),
+			readsView(n, lang),
 		]),
 	])
 }
 
-// "01 — Reliability", padded to two digits for the reason the contents are:
-// the numbers down the page line up into a column of their own.
-func pointLabelView(point: home.Point, n: Int, lang: Str): ui.View {
-	mut number := "{n}"
-	if n < 10 {
-		number = "0{n}"
-	}
-	label := number + " — " + inLang(lang, point.label, point.labelPt)
-	return ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Good())], label)
+// Where in the tour a point is said in full: its label, and a hole the slides
+// it names go in.
+func readsView(n: Int, lang: Str): ui.View {
+	return ui.column([], [
+		ui.text([ui.tone(ui.Tone.Muted())], home.readsLabel(lang)),
+		holeView("READS", n),
+	])
 }
 
-// Where in the tour a point is said in full: a link to each slide it names,
-// numbered and titled as the contents number and title it. A title the tour
-// does not have is left out rather than linked to a 404, and home.test.hive
-// is what keeps that from ever happening quietly.
-func readsView(titles: Str[], all: slides.Slide[], lang: Str): ui.View {
-	mut ui.View[dyn] links = [ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], home.readsLabel(lang))]
+// The slides themselves, each a small tile in its chapter's colour with its
+// number and title — the chart at the foot of the page, a few tiles at a time,
+// so every argument above it is already tied to the part of the language it
+// is about. The colour is the chapter's class, written by hand because a
+// colour that changes with the scheme cannot be an inline one. A title the
+// tour does not have is left out rather than linked to a 404, and
+// home.test.hive is what keeps that from ever happening quietly.
+func readsHtml(titles: Str[], all: slides.Slide[], lang: Str): Str {
+	mut Str[dyn] items = []
 	for each title in titles {
 		if slideIndex(all, title) is Result.Ok(idx) {
 			if all bounds idx {
 				slide := all[idx]
-				append(links, ui.link([], href("/{idx + 1}", lang), "{idx + 1}. {slideTitle(slide, lang)} →"))
+				link := ui.link([], href("/{idx + 1}", lang), "{idx + 1}. {slideTitle(slide, lang)}")
+				append(items, "<li class=\"f{chapterOf(idx)}\">" + ui.html(link) + "</li>")
 			}
 		}
 	}
-	return ui.column([ui.gap(6)], links)
+	return "<ul class=\"reads\">" + join(items, "") + "</ul>"
 }
 
 // Where a slide is in the tour, found by its English title.
@@ -892,12 +1147,11 @@ func slideIndex(all: slides.Slide[], title: Str): Result<Int, Str> {
 
 // A figure that is a list rather than a program: a caption, then one line per
 // entry, the name in the monospace and what it is for beside it. The name is
-// marked with `Tone.Good` for the reason the button is — it is the tone
-// ./theme paints in the brand's colour.
+// marked with `Tone.Good`, which is how ./theme finds the lines of a table.
 func entriesView(label: Str, entries: home.Entry[], lang: Str): ui.View {
-	mut ui.View[dyn] rows = [ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], label)]
+	mut ui.View[dyn] rows = [ui.text([ui.tone(ui.Tone.Muted())], label)]
 	for each entry in entries {
-		append(rows, ui.row([ui.gap(18), ui.align(ui.Align.Start())], [
+		append(rows, ui.row([], [
 			ui.text([ui.tone(ui.Tone.Good())], entry.name),
 			ui.text([], inLang(lang, entry.about, entry.aboutPt)),
 		]))
@@ -905,16 +1159,14 @@ func entriesView(label: Str, entries: home.Entry[], lang: Str): ui.View {
 	return ui.column([], rows)
 }
 
-// The same kind of table the other way round: the platform first, in the text
-// face, and the command that reaches it after, in the monospace. ./theme
-// draws both as one kind of table — a line of either is a row with a name
-// marked `Tone.Good` in it — and sets the left column to one width, so the six
-// commands line up into the column that makes the point: one file, six
-// places, and only the flag changes.
+// The same kind of table the other way round: the platform first, in the
+// text face, and the command that reaches it after, in the monospace. The
+// left column is one width, so the six commands line up into the column that
+// makes the point: one file, six places, and only the flag changes.
 func targetsView(lang: Str): ui.View {
-	mut ui.View[dyn] rows = [ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], home.platformsLabel(lang))]
+	mut ui.View[dyn] rows = [ui.text([ui.tone(ui.Tone.Muted())], home.platformsLabel(lang))]
 	for each target in home.platforms() {
-		append(rows, ui.row([ui.gap(18), ui.align(ui.Align.Start())], [
+		append(rows, ui.row([], [
 			ui.text([], inLang(lang, target.name, target.namePt)),
 			ui.text([ui.tone(ui.Tone.Good())], target.command),
 		]))
@@ -923,28 +1175,26 @@ func targetsView(lang: Str): ui.View {
 }
 
 // The foot of the page, which says the one thing the points above leave to
-// it — that the whole language fits in an afternoon — and then offers the
-// same ways in the head did, so a reader who has scrolled to the bottom does
-// not have to scroll back to the top to act on it.
-func closingView(lang: Str, total: Int): ui.View {
-	return ui.column([ui.gap(20), ui.align(ui.Align.Center())], [
+// it — that the whole language fits in an afternoon — and then shows it: the
+// whole tour on one chart, every tile a slide. The ways in follow, so a
+// reader who has scrolled to the bottom does not have to scroll back up.
+func closingView(lang: Str, total: Int, n: Int): ui.View {
+	return ui.column([], [
+		holeView("ANCHOR", n),
 		ui.text([ui.size(ui.TextSize.Subtitle()), ui.heading(2)], home.closingTitle(lang, total)),
 		ui.text([ui.tone(ui.Tone.Muted())], home.closingText(lang)),
-		ui.column([], [
-			ui.row([ui.gap(18), ui.align(ui.Align.Center())], [
-				ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourArrow(lang)),
-				ui.link([], href("/contents", lang), contentsLabel(lang)),
-				ui.link([], releaseUrl(), downloadLabel(lang)),
-			]),
-		]),
+		holeView("CHART", 1),
+		actionsView(lang),
 	])
 }
 
+// A page that is not there: the number, what happened, and the same ways in
+// the front page offers.
 func notFoundResponse(lang: Str, path: Str): hive.net.HttpResponse {
-	content := ui.column([ui.pad(60), ui.align(ui.Align.Center()), ui.gap(14), ui.grow(1)], [
+	content := ui.column([], [
 		ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], "404"),
 		ui.text([ui.tone(ui.Tone.Muted())], notFoundText(lang)),
-		ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourPlain(lang)),
+		actionsView(lang),
 	])
 	head := PageHead(
 		title: notFoundPageTitle(lang),
@@ -955,8 +1205,7 @@ func notFoundResponse(lang: Str, path: Str): hive.net.HttpResponse {
 		prev: "",
 		next: "",
 	)
-	body := document(head, pageView(lang, path, [content]))
-	return hive.net.HttpResponse(404, htmlHeaders(), body)
+	return framed(head, lang, path, "tour-lost", ui.html(content), 404)
 }
 
 // Every internal link goes through here: unchanged in English, and
@@ -969,61 +1218,46 @@ func href(path: Str, lang: Str): Str {
 	return path
 }
 
-// The line of small type across the top of every page, and the bar of
-// progress under it. Between them they are the whole of this tour's
-// navigation, and what they replace is a rail down the left carrying every
-// slide at once.
-//
-// The rail went because of what it was, not because of how it looked. A list
-// of every page, pinned open beside every page, collapsing into a lid on a
-// narrow one, is the shape of a documentation site — and a tour is not one.
-// Documentation is arrived at sideways, from a search, in the middle, and it
-// owes a reader a map because no reader of it started at the start. A tour is
-// the opposite: it has a first slide, a last one, and an order that is the
-// argument. Pinning the map open beside it spends a fifth of the window, and
-// every pixel of that fifth, on a question the reader of a tour is not
-// asking. Worse, it answers it badly — seventy-odd entries is well past the
-// length anybody reads as a list, so the rail was mostly a texture with one
-// line picked out of it.
-//
-// What a book does instead is what this does now. A running head says what
-// you are reading. A contents page — one click, its own address, and set out
-// properly when you get there — is where the map lives. Prev and next at the
-// foot of the slide are how you actually move, because moving one slide at a
-// time is what a tour is for. Nothing is pinned open, nothing collapses into
-// a lid, and the reading gets the whole window.
+// The line across the top of every page: the mark and the tour's name, the
+// contents, and the language. It is the whole of the site's navigation that
+// is always there, and what it replaced was a rail down the left carrying
+// every slide at once — the shape of a documentation site, which a tour is
+// not. Documentation is arrived at sideways, from a search, in the middle; a
+// tour has a first slide, a last one, and an order that is the argument. So
+// the map is a page of its own, the contents, one click away, and the way
+// through is the next slide.
 //
 // It is `ui.spacer` that splits the head in two, which is the widget for
-// exactly this and the reason no attribute here pushes anything to an edge:
-// what is before it sits left, what is after it sits right, and the row needs
-// to know nothing else.
+// exactly this: what is before it sits left, what is after it sits right.
 func runningHeadView(lang: Str, path: Str): ui.View {
-	return ui.row([ui.gap(22), ui.align(ui.Align.Center())], [
-		ui.link([ui.size(ui.TextSize.Caption())], href("/", lang), tourTitle(lang)),
-		ui.link([ui.size(ui.TextSize.Caption())], href("/contents", lang), contentsLabel(lang)),
+	return ui.row([], [
+		ui.image([], "/favicon.svg", logoAlt(lang)),
+		ui.link([], href("/", lang), tourTitle(lang)),
+		ui.link([], href("/contents", lang), contentsLabel(lang)),
 		ui.spacer(),
+		ui.link([ui.hint(themeHint(lang, "dark"))], "/theme/dark" + href(path, lang), themeLabel(lang, "dark")),
+		ui.link([ui.hint(themeHint(lang, "light"))], "/theme/light" + href(path, lang), themeLabel(lang, "light")),
 		languageSwitcherView(lang, path),
 	])
 }
 
-// How far through the tour this slide is, as a bar two pixels tall under the
-// running head.
-//
-// It is the one thing the rail was genuinely good at — a glance that says
-// there is a lot of this left, or nearly none — kept, and given two pixels
-// instead of two hundred and sixty. And it is a view like everything else:
-// two boxes in a row, one carrying `grow(read)` and one `grow(left)`, which
-// is how `hive.ui` says "these two split the room in that ratio". No width is
-// computed here and no percentage is written down. The ratio is the slide
-// number, and the layout is what turns a ratio into a length.
-//
-// `grow(0)` is what the last slide leaves the second box, and a share of
-// nought of the leftover room is no room at all — so the bar arrives full on
-// the last slide without that being a case anybody had to write.
-func progressView(idx: Int, total: Int): ui.View {
-	return ui.row([ui.height(3)], [
-		ui.column([ui.grow(idx + 1), ui.background(ui.Tone.Good())], []),
-		ui.column([ui.grow(total - idx - 1)], []),
+// Where this slide is: the whole tour drawn as one line of track by ./rail,
+// with this slide's station in amber, and under it the chapter it belongs to
+// and its number. It is what the rail down the left was genuinely good at — a
+// glance that says there is a lot of this left, or nearly none — kept, and
+// given one line instead of a column.
+func trackView(idx: Int, total: Int, lang: Str): ui.View {
+	mut Int[dyn] lengths = []
+	for each part in slides.chapters() {
+		append(lengths, part.length)
+	}
+	return ui.column([], [
+		rail.journey(lengths, idx),
+		ui.row([], [
+			ui.text([ui.size(ui.TextSize.Caption())], chapterTitle(chapterOf(idx), lang)),
+			ui.spacer(),
+			ui.text([ui.size(ui.TextSize.Caption())], slideProgress(idx, total, lang)),
+		]),
 	])
 }
 
@@ -1035,44 +1269,20 @@ func pageView(lang: Str, path: Str, body: ui.View[dyn]): ui.View {
 	return ui.column([], [runningHeadView(lang, path)] + body)
 }
 
-// The contents, which is the rail again with both things wrong with it put
-// right: it is somewhere you go rather than something you carry, and when you
-// get there it has the whole window to be a list in.
+// The contents: the whole tour on one chart.
 //
-// Three columns rather than one, because seventy-three entries down a single
-// column is a list you have to scroll to read, and a list you scroll is a
-// list you cannot see. Three columns of twenty-five is one screen. They are real
-// `ui.column`s inside a `ui.row` rather than a CSS column count, so the
-// reading order is the order of the markup: one to twenty-five, then twenty-six to
-// fifty, then the rest. A stylesheet that flows one list into three
-// columns draws the same picture and hands a screen reader one long list,
-// which is fine; this hands it three, each a run of consecutive slides, which
-// is better.
+// A slide you have already read comes up in the deeper shade of its chapter's
+// colour. That is the browser's own `:visited`, which knows what this page
+// has never been told: nothing is stored anywhere and no script runs, and a
+// reader who clears their history gets the tour back new.
 func contentsResponse(lang: Str): hive.net.HttpResponse {
 	all := slides.all()
 	total := len(all)
-	perColumn := (total + 2) / 3
-
-	mut ui.View[dyn] columns = []
-	mut ui.View[dyn] current = []
-	for i := 0; i < len(all); i++ {
-		append(current, contentsEntryView(all[i], i, lang))
-		if len(current) == perColumn {
-			append(columns, ui.column([ui.gap(2), ui.grow(1)], current))
-			current = []
-		}
-	}
-	if len(current) > 0 {
-		append(columns, ui.column([ui.gap(2), ui.grow(1)], current))
-	}
-
-	body := ui.column([ui.gap(30), ui.pad(40), ui.grow(1)], [
-		ui.column([ui.gap(6)], [
-			ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], featuresCount(lang, total)),
-			ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], contentsLabel(lang)),
-		]),
-		ui.row([ui.gap(36), ui.align(ui.Align.Start())], columns),
+	intro := ui.column([], [
+		ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], contentsLabel(lang)),
+		ui.text([ui.tone(ui.Tone.Muted())], featuresCount(lang, total) + ". " + visitedHint(lang)),
 	])
+	inner := ui.html(intro) + chartHtml(all, lang, 2)
 	head := PageHead(
 		title: contentsLabel(lang) + pageTitleSuffix(lang),
 		description: contentsDescription(lang),
@@ -1082,22 +1292,71 @@ func contentsResponse(lang: Str): hive.net.HttpResponse {
 		prev: "",
 		next: "/1",
 	)
-	return hive.net.HttpResponse(200, htmlHeaders(), document(head, pageView(lang, "/contents", [body])))
+	return framed(head, lang, "/contents", "tour-contents", inner, 200)
 }
 
-// One line of the contents. The number is padded to two digits, and the
-// padding is not cosmetic: ./theme sets this list in a monospace and hangs
-// every entry off a four-character indent, so a title long enough to wrap
-// comes back underneath the title rather than underneath the number. That
-// only holds while every label really is four characters before the text
-// starts, which "9. " is not and "09. " is. The two files have to agree about
-// the four, and this is the half of the agreement that produces it.
-func contentsEntryView(slide: slides.Slide, i: Int, lang: Str): ui.View {
-	mut number := "{i + 1}"
-	if i + 1 < 10 {
-		number = "0{i + 1}"
+// The chart itself, as it stands on the contents page and at the foot of the
+// front page.
+//
+// It is laid out the way a periodic table is. Each chapter is a family, a
+// block of tiles one or two wide, in reading order down the block; the blocks
+// stand side by side in tour order, on one baseline, so their heights make a
+// skyline of the language. A chapter too long for the skyline is set apart
+// below it as rows of its own — the standard library, which is what the
+// lanthanides are to the elements — and a tile in the skyline marks where it
+// belongs. On a phone the blocks simply follow one another, each under its
+// name.
+//
+// Every tile is a link to its slide whose label is the slide's title, so a
+// screen reader reads the chart as seventy-four named links in order. The
+// number and the symbol are laid over the link by ./theme, and the colour is
+// the family's class, written here, because a colour that has to change with
+// the scheme cannot be an inline one. How many rows a family takes is worked
+// out from its length and written beside it, so a slide added to a chapter
+// changes the shape of the chart and nothing else has to.
+func chartHtml(all: slides.Slide[], lang: Str, level: Int): Str {
+	mut Str[dyn] families = []
+	mut Str[dyn] key = []
+	mut index := 0
+	mut part := 0
+	for each chapter in slides.chapters() {
+		part += 1
+		name := inLang(lang, chapter.title, chapter.titlePt)
+		long := chapter.length > 12
+		mut wide := 1
+		if chapter.length > 5 { wide = 2 }
+		if long { wide = 11 }
+		rows := (chapter.length + wide - 1) / wide
+
+		mut Str[dyn] tiles = []
+		first := index + 1
+		for j := 0; j < chapter.length; j++ {
+			if all bounds index {
+				slide := all[index]
+				tiles = tiles + [ui.html(chartTileView(index, slide, lang))]
+			}
+			index += 1
+		}
+		if long {
+			append(families, "<div class=\"fam-gap f{part}\" aria-hidden=\"true\"><span>{first}–{index}</span></div>")
+		}
+		mut kind := "fam"
+		if long { kind = "fam fam-long" }
+		append(families, "<section class=\"" + kind + " f{part}\" style=\"--rows:{rows};--wide:{wide}\">"
+			+ ui.html(ui.text([ui.heading(level)], name))
+			+ "<div class=\"fam-tiles\">" + join(tiles, "") + "</div></section>")
+		append(key, "<li class=\"f{part}\">" + escapeHtml(name) + "</li>")
 	}
-	return ui.link([], href("/{i + 1}", lang), "{number}. {slideTitle(slide, lang)}")
+	return "<div class=\"chart\"><div class=\"chart-sky\" style=\"--fams:{part}\">" + join(families, "") + "</div>"
+		+ "<ul class=\"chart-key\">" + join(key, "") + "</ul></div>"
+}
+
+func chartTileView(idx: Int, slide: slides.Slide, lang: Str): ui.View {
+	return ui.column([], [
+		ui.link([], href("/{idx + 1}", lang), slideTitle(slide, lang)),
+		ui.text([], "{idx + 1}"),
+		symbolView(chart.symbol(slide.title)),
+	])
 }
 
 func languageSwitcherView(lang: Str, path: Str): ui.View {
@@ -1108,26 +1367,10 @@ func languageSwitcherView(lang: Str, path: Str): ui.View {
 	} else {
 		enTone = ui.Tone.Muted()
 	}
-	return ui.row([ui.gap(6)], [
+	return ui.row([], [
 		ui.link([ui.background(enTone)], href(path, "en"), "EN"),
 		ui.link([ui.background(ptTone)], href(path, "pt"), "PT"),
 	])
-}
-
-// The slide's own column: where it sits in the tour, its title, the picture
-// if it has one, and then the marker the code examples land on once the page
-// has been rendered.
-func headerColumn(slide: slides.Slide, idx: Int, total: Int, lang: Str): ui.View {
-	titleGroup := ui.column([ui.gap(6)], [
-		ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], slideProgress(idx, total, lang)),
-		ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], slideTitle(slide, lang)),
-	])
-	mut ui.View[dyn] blocks = [titleGroup]
-	for each block in shotView(slide, lang) {
-		append(blocks, block)
-	}
-	append(blocks, codeMarkerView())
-	return ui.column([ui.gap(24), ui.pad(40), ui.grow(1)], blocks)
 }
 
 // The picture, above the code that draws it, on the slides that have one —
@@ -1136,45 +1379,94 @@ func headerColumn(slide: slides.Slide, idx: Int, total: Int, lang: Str): ui.View
 // It answers with a vector rather than a View because there is no view that
 // means "no view here": `ui.none` would still be a child, and a column with
 // an empty child in it still spends a gap on it. An empty vector spends
-// nothing, and the caller appends whatever came back.
+// nothing, and the caller adds whatever came back.
 //
-// This is a view like everything else on the page, which is the point. The
-// picture is of a scene, and a scene is the one thing hive.ui cannot put in a
-// document — but a *photograph* of one is an image, and an image is a widget
-// the set has always had. So nothing here is spliced HTML: it is `ui.image`
-// and a caption, and the reason it is a picture rather than the thing itself
-// is written down in ./shots rather than acted out here.
+// The picture is of a scene, and a scene is the one thing hive.ui cannot put
+// in a document — but a *photograph* of one is an image, and an image is a
+// widget the set has always had. ./shots says why it is a picture rather
+// than the thing itself.
 func shotView(slide: slides.Slide, lang: Str): ui.View[dyn] {
 	if slide.shot == "" {
 		return []
 	}
-	return [ui.column([ui.gap(6)], [
+	return [ui.column([], [
 		ui.image([], slide.shot, shotAlt(lang)),
 		ui.text([ui.size(ui.TextSize.Caption()), ui.tone(ui.Tone.Muted())], shotCaption(lang)),
 	])]
 }
 
-// What follows the explanation: a download link on the slides that ask for
-// one, and the prev/next pager. Rendered separately with `ui.html` and spliced in
-// right after the prose, so it still ends up inside the same column the
-// header opened.
-func bottomView(slide: slides.Slide, idx: Int, total: Int, lang: Str, path: Str): ui.View {
-	mut ui.View[dyn] blocks = []
+// The way to the compiler, under the explanation, on the slides that ask for
+// one, and nothing on the rest.
+func downloadViews(slide: slides.Slide, lang: Str): ui.View[dyn] {
 	if slide.download {
-		append(blocks, ui.row([ui.gap(12)], [downloadLinkView(lang), repoLinkView(lang)]))
+		return [ui.row([], [downloadLinkView(lang), repoLinkView(lang)])]
 	}
+	return []
+}
 
-	mut prevNode := ui.text([ui.tone(ui.Tone.Muted())], prevLabel(lang))
-	if idx > 0 {
-		prevNode = ui.link([], href("/{idx}", lang), prevLabel(lang))
+// The foot of a slide: the slide before and the slide after, either side of
+// a stretch of the same line the track at the top is drawn with, this slide's
+// station on it in amber. Neither end is a dead end: before the first slide
+// is the front page and after the last is the contents.
+func pagerView(idx: Int, all: slides.Slide[], lang: Str): ui.View {
+	before := idx - 1
+	after := idx + 1
+	mut back := ui.link([], href("/", lang), tourTitle(lang))
+	if all bounds before {
+		back = ui.link([], href("/{idx}", lang), "{idx}. {slideTitle(all[before], lang)}")
 	}
-	mut nextNode := ui.text([ui.tone(ui.Tone.Muted())], nextLabel(lang))
-	if idx + 1 < total {
-		nextNode = ui.link([], href("/{idx + 2}", lang), nextLabel(lang))
+	mut on := ui.link([], href("/contents", lang), contentsLabel(lang))
+	if all bounds after {
+		on = ui.link([], href("/{idx + 2}", lang), "{idx + 2}. {slideTitle(all[after], lang)}")
 	}
-	pager := ui.row([ui.justify(ui.Justify.Between())], [prevNode, nextNode])
-	append(blocks, pager)
-	return ui.column([ui.gap(16)], blocks)
+	return ui.row([], [back, ui.spacer(), on])
+}
+
+// The rules a slide teaches, each drawn as track by ./rail over the line of
+// EBNF it was drawn from and a link to where the spec says it.
+//
+// They are folded away under the title, closed, behind one line that names
+// them: the slide opens on its explanation and its programs, which are what
+// a reader came for, and the grammar is one click away for whoever wants it.
+// A slide teaching four rules used to open on four diagrams before a word of
+// prose, and the Operators slide on nine. The fold is HTML's own `<details>`,
+// which opens and closes without a script, and it and the figures inside it
+// are written by hand because `hive.ui` has a widget for neither; what is
+// inside each figure is views.
+func rulesHtml(rules: grammar.Rule[], lang: Str): Str {
+	if len(rules) == 0 {
+		return ""
+	}
+	mut Str[dyn] figures = []
+	mut Str[dyn] names = []
+	for each r in rules {
+		append(figures, "<figure class=\"rr\">" + ui.html(ruleView(r, lang)) + "</figure>")
+		append(names, r.name)
+	}
+	return "<details class=\"tour-grammar\"><summary>" + escapeHtml(grammarLabel(lang))
+		+ " <span>" + escapeHtml(join(names, ", ")) + "</span></summary>"
+		+ "<div class=\"tour-rules\">" + join(figures, "") + "</div></details>"
+}
+
+func ruleView(r: grammar.Rule, lang: Str): ui.View {
+	return ui.column([], [
+		ui.row([], [
+			ui.text([], r.name),
+			ui.spacer(),
+			ui.link([], grammar.specUrl() + grammar.anchor(r.section), specLabel(lang, r.section)),
+		]),
+		ui.row([], [rail.view(r.rows)]),
+		ui.text([], r.ebnf),
+	] + revisedViews(r, lang))
+}
+
+// Under a rule drawn from the compiler rather than copied from the
+// specification, a line saying so — see ./grammar for which, and why.
+func revisedViews(r: grammar.Rule, lang: Str): ui.View[dyn] {
+	if r.revised {
+		return [ui.text([ui.tone(ui.Tone.Muted())], revisedNote(lang, r.section))]
+	}
+	return []
 }
 
 // Every example a slide carries, one small labelled block per example. A
@@ -1477,22 +1769,7 @@ func contentsDescription(lang: Str): Str {
 	return "Every feature in the Hive language tour, in order, one to a page."
 }
 
-func prevLabel(lang: Str): Str {
-	if lang == "pt" { return "← Anterior" }
-	return "← Prev"
-}
-
-func nextLabel(lang: Str): Str {
-	if lang == "pt" { return "Próximo →" }
-	return "Next →"
-}
-
-func startTourArrow(lang: Str): Str {
-	if lang == "pt" { return "Começar o tour →" }
-	return "Start the tour →"
-}
-
-func startTourPlain(lang: Str): Str {
+func startTourLabel(lang: Str): Str {
 	if lang == "pt" { return "Começar o tour" }
 	return "Start the tour"
 }
@@ -1502,19 +1779,57 @@ func downloadLabel(lang: Str): Str {
 	return "Download the compiler"
 }
 
-func downloadLabelArrow(lang: Str): Str {
-	if lang == "pt" { return "Baixar o compilador →" }
-	return "Download the compiler →"
-}
-
 func featuresCount(lang: Str, n: Int): Str {
 	if lang == "pt" { return "{n} recursos, um por vez" }
 	return "{n} features, one at a time"
 }
 
-func homeKicker(lang: Str): Str {
-	if lang == "pt" { return "Um tour pela linguagem" }
-	return "A tour of the language"
+// What the contents says about the tiles it shows in a deeper shade. It is
+// said once, here, rather than left for a reader to work out from the picture.
+func visitedHint(lang: Str): Str {
+	if lang == "pt" { return "Os que você já leu aparecem em um tom mais forte." }
+	return "The ones you have read are shown in a deeper shade."
+}
+
+// The switch to each scheme, as it reads in the running head, and the line
+// that says what it does when the pointer rests on it. Only one of the two is
+// ever shown — the one that is not the scheme on screen — and ./theme decides
+// which.
+func themeLabel(lang: Str, theme: Str): Str {
+	if theme == "dark" {
+		if lang == "pt" { return "Escuro" }
+		return "Dark"
+	}
+	if lang == "pt" { return "Claro" }
+	return "Light"
+}
+
+func themeHint(lang: Str, theme: Str): Str {
+	if theme == "dark" {
+		if lang == "pt" { return "Mudar para o tema escuro" }
+		return "Switch to the dark theme"
+	}
+	if lang == "pt" { return "Mudar para o tema claro" }
+	return "Switch to the light theme"
+}
+
+// What the line under a revised rule says: that it is drawn from the
+// compiler, and that the specification's own version of it is behind.
+func revisedNote(lang: Str, section: Str): Str {
+	if lang == "pt" { return "Como o compilador lê; o §{section} da especificação está desatualizado aqui." }
+	return "As the compiler reads it; §{section} of the specification is out of date here."
+}
+
+// What the fold the drawn rules sit behind is called, before their names.
+func grammarLabel(lang: Str): Str {
+	if lang == "pt" { return "Gramática:" }
+	return "Grammar:"
+}
+
+// Under a drawn rule, where in the specification it comes from.
+func specLabel(lang: Str, section: Str): Str {
+	if lang == "pt" { return "Especificação §{section}" }
+	return "Specification §{section}"
 }
 
 // Whichever of a pair of texts is in the language being read. ./home keeps

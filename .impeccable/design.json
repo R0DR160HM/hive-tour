@@ -1,0 +1,802 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-20T14:01:14+00:00",
+  "title": "Design System: The Hive Tour",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Cool Paper",
+        "canonical": "#f6f7f8",
+        "dark": "#121315",
+        "tonalRamp": [
+          "#21262b",
+          "#3b434c",
+          "#54616d",
+          "#6e7e8d",
+          "#8e9ba7",
+          "#afb8c1",
+          "#d0d5da",
+          "#f1f2f4"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#15171a",
+        "dark": "#e9e7e1",
+        "tonalRamp": [
+          "#22252a",
+          "#3c424b",
+          "#565e6b",
+          "#707b8b",
+          "#9099a5",
+          "#b0b6c0",
+          "#d1d4da",
+          "#f1f2f4"
+        ]
+      },
+      "soft-ink": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "#3d4249",
+        "dark": "#c6c3bc",
+        "tonalRamp": [
+          "#23262a",
+          "#3d4249",
+          "#585f69",
+          "#727c89",
+          "#9299a4",
+          "#b2b7be",
+          "#d1d4d9",
+          "#f1f2f3"
+        ]
+      },
+      "muted-ink": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "#5b6068",
+        "dark": "#a19e97",
+        "tonalRamp": [
+          "#242629",
+          "#3f4248",
+          "#5a5f67",
+          "#757c86",
+          "#9499a2",
+          "#b3b7bd",
+          "#d2d4d8",
+          "#f1f2f3"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#d5d8dd",
+        "dark": "#2d2f33",
+        "tonalRamp": [
+          "#22252a",
+          "#3c424a",
+          "#565e6b",
+          "#707a8b",
+          "#9098a5",
+          "#b0b6bf",
+          "#d1d4da",
+          "#f1f2f4"
+        ]
+      },
+      "wash": {
+        "role": "neutral",
+        "displayName": "Wash",
+        "canonical": "#e9ebee",
+        "dark": "#1d1f22",
+        "tonalRamp": [
+          "#21252b",
+          "#3b424c",
+          "#545e6d",
+          "#6e7a8e",
+          "#8e98a8",
+          "#afb6c1",
+          "#d0d4da",
+          "#f1f2f4"
+        ]
+      },
+      "code-panel": {
+        "role": "neutral",
+        "displayName": "Code Panel",
+        "canonical": "#eceef1",
+        "dark": "#1a1c1f",
+        "tonalRamp": [
+          "#20252c",
+          "#39414e",
+          "#525e6f",
+          "#6b7a91",
+          "#8c98aa",
+          "#adb6c3",
+          "#cfd4db",
+          "#f0f2f4"
+        ]
+      },
+      "amber": {
+        "role": "primary",
+        "displayName": "Hive Amber",
+        "canonical": "#e29b19",
+        "dark": "#e5a53a",
+        "tonalRamp": [
+          "#452f08",
+          "#79530d",
+          "#ae7713",
+          "#e29b19",
+          "#ebb24b",
+          "#f1c97f",
+          "#f7dfb4",
+          "#fcf5e8"
+        ]
+      },
+      "amber-ink": {
+        "role": "primary",
+        "displayName": "Amber Ink",
+        "canonical": "#16120a",
+        "dark": "#17120a",
+        "tonalRamp": [
+          "#352b18",
+          "#5d4c2a",
+          "#856d3c",
+          "#ad8d4f",
+          "#c0a775",
+          "#d3c19d",
+          "#e5dac5",
+          "#f7f4ed"
+        ]
+      },
+      "amber-text": {
+        "role": "primary",
+        "displayName": "Deep Amber",
+        "canonical": "#8a5300",
+        "dark": "#f0b85a",
+        "tonalRamp": [
+          "#4c2e00",
+          "#875100",
+          "#c17400",
+          "#fb9700",
+          "#ffaf37",
+          "#ffc671",
+          "#ffdeab",
+          "#fff5e6"
+        ]
+      },
+      "syntax-string": {
+        "role": "tertiary",
+        "displayName": "String Green",
+        "canonical": "#2f6a2a",
+        "dark": "#9ccc8a",
+        "tonalRamp": [
+          "#183716",
+          "#2b6126",
+          "#3d8a37",
+          "#50b447",
+          "#76c670",
+          "#9ed799",
+          "#c6e7c3",
+          "#eef8ed"
+        ]
+      },
+      "syntax-literal": {
+        "role": "tertiary",
+        "displayName": "Literal Plum",
+        "canonical": "#8b2f6b",
+        "dark": "#e2a2d0",
+        "tonalRamp": [
+          "#39132c",
+          "#65224e",
+          "#90316f",
+          "#bc4091",
+          "#cc69aa",
+          "#db95c3",
+          "#eac0db",
+          "#f9ecf4"
+        ]
+      },
+      "syntax-comment": {
+        "role": "tertiary",
+        "displayName": "Comment Grey",
+        "canonical": "#5a5f66",
+        "dark": "#9da2a9",
+        "tonalRamp": [
+          "#242629",
+          "#3f4348",
+          "#5b6067",
+          "#767c86",
+          "#959aa1",
+          "#b4b7bc",
+          "#d2d5d8",
+          "#f1f2f3"
+        ]
+      },
+      "chapter-1": {
+        "role": "secondary",
+        "displayName": "Chapter 1 Ochre",
+        "canonical": "#f3dfb5",
+        "dark": "#3d3220",
+        "tonalRamp": [
+          "#42300b",
+          "#745513",
+          "#a6791b",
+          "#d89e23",
+          "#e3b453",
+          "#ebca85",
+          "#f3e0b7",
+          "#fbf6e9"
+        ]
+      },
+      "chapter-1-read": {
+        "role": "secondary",
+        "displayName": "Chapter 1 Ochre, read",
+        "canonical": "#e3be72",
+        "dark": "#5e4b28",
+        "tonalRamp": [
+          "#402f0d",
+          "#705316",
+          "#a17720",
+          "#d29b2a",
+          "#deb258",
+          "#e7c888",
+          "#f1dfb9",
+          "#fbf5ea"
+        ]
+      },
+      "chapter-2": {
+        "role": "secondary",
+        "displayName": "Chapter 2 Apricot",
+        "canonical": "#f5cdbd",
+        "dark": "#43291f",
+        "tonalRamp": [
+          "#421a0a",
+          "#752e12",
+          "#a84219",
+          "#da5621",
+          "#e57b51",
+          "#eca284",
+          "#f4c8b6",
+          "#fceee9"
+        ]
+      },
+      "chapter-2-read": {
+        "role": "secondary",
+        "displayName": "Chapter 2 Apricot, read",
+        "canonical": "#e9a184",
+        "dark": "#66392a",
+        "tonalRamp": [
+          "#411b0c",
+          "#722f14",
+          "#a4441d",
+          "#d55826",
+          "#e17d55",
+          "#e9a386",
+          "#f2c9b8",
+          "#fbeee9"
+        ]
+      },
+      "chapter-3": {
+        "role": "secondary",
+        "displayName": "Chapter 3 Rose",
+        "canonical": "#f1c9d6",
+        "dark": "#42252f",
+        "tonalRamp": [
+          "#3d101e",
+          "#6b1c36",
+          "#99284d",
+          "#c83464",
+          "#d66086",
+          "#e28ea9",
+          "#eebccc",
+          "#faebf0"
+        ]
+      },
+      "chapter-3-read": {
+        "role": "secondary",
+        "displayName": "Chapter 3 Rose, read",
+        "canonical": "#de95ad",
+        "dark": "#643547",
+        "tonalRamp": [
+          "#3a121f",
+          "#672037",
+          "#932e4f",
+          "#c03c67",
+          "#cf6689",
+          "#dd93ab",
+          "#ebbfce",
+          "#f9ecf0"
+        ]
+      },
+      "chapter-4": {
+        "role": "secondary",
+        "displayName": "Chapter 4 Lilac",
+        "canonical": "#ddd0f2",
+        "dark": "#322a45",
+        "tonalRamp": [
+          "#21113c",
+          "#3a1d6a",
+          "#542a97",
+          "#6d36c5",
+          "#8d62d4",
+          "#ae90e0",
+          "#d0bded",
+          "#f1ebf9"
+        ]
+      },
+      "chapter-4-read": {
+        "role": "secondary",
+        "displayName": "Chapter 4 Lilac, read",
+        "canonical": "#b9a2e3",
+        "dark": "#4a3d6b",
+        "tonalRamp": [
+          "#20123b",
+          "#391f68",
+          "#512d94",
+          "#6a3ac1",
+          "#8b65d1",
+          "#ad92de",
+          "#cfbfec",
+          "#f0ebf9"
+        ]
+      },
+      "chapter-5": {
+        "role": "secondary",
+        "displayName": "Chapter 5 Periwinkle",
+        "canonical": "#c9d5f3",
+        "dark": "#252f47",
+        "tonalRamp": [
+          "#0e1c3f",
+          "#19316e",
+          "#23469e",
+          "#2e5bce",
+          "#5b80db",
+          "#8ba5e5",
+          "#bacaf0",
+          "#eaeffa"
+        ]
+      },
+      "chapter-5-read": {
+        "role": "secondary",
+        "displayName": "Chapter 5 Periwinkle, read",
+        "canonical": "#93a9e6",
+        "dark": "#36466e",
+        "tonalRamp": [
+          "#0e1b3e",
+          "#19306d",
+          "#24449d",
+          "#2f59cc",
+          "#5c7dd9",
+          "#8ca3e4",
+          "#bbc9ef",
+          "#eaeffa"
+        ]
+      },
+      "chapter-6": {
+        "role": "secondary",
+        "displayName": "Chapter 6 Sky",
+        "canonical": "#c4e2ef",
+        "dark": "#1f3540",
+        "tonalRamp": [
+          "#102f3c",
+          "#1d536a",
+          "#297698",
+          "#369ac6",
+          "#61b2d4",
+          "#8fc8e1",
+          "#bddfed",
+          "#ebf5fa"
+        ]
+      },
+      "chapter-6-read": {
+        "role": "secondary",
+        "displayName": "Chapter 6 Sky, read",
+        "canonical": "#84c2dc",
+        "dark": "#2c5163",
+        "tonalRamp": [
+          "#112f3c",
+          "#1e5369",
+          "#2b7796",
+          "#389ac4",
+          "#63b2d3",
+          "#90c8e0",
+          "#bedfec",
+          "#ebf5f9"
+        ]
+      },
+      "chapter-7": {
+        "role": "secondary",
+        "displayName": "Chapter 7 Mint",
+        "canonical": "#c6e7d8",
+        "dark": "#1f3a2f",
+        "tonalRamp": [
+          "#173628",
+          "#285f46",
+          "#398864",
+          "#4ab182",
+          "#72c49f",
+          "#9bd5bb",
+          "#c4e6d7",
+          "#edf7f3"
+        ]
+      },
+      "chapter-7-read": {
+        "role": "secondary",
+        "displayName": "Chapter 7 Mint, read",
+        "canonical": "#86cbab",
+        "dark": "#2c5946",
+        "tonalRamp": [
+          "#173627",
+          "#295e45",
+          "#3a8763",
+          "#4cb081",
+          "#73c39e",
+          "#9cd4ba",
+          "#c4e6d6",
+          "#edf7f3"
+        ]
+      },
+      "chapter-8": {
+        "role": "secondary",
+        "displayName": "Chapter 8 Sage",
+        "canonical": "#dbe8bd",
+        "dark": "#2f3a1f",
+        "tonalRamp": [
+          "#2e3914",
+          "#506423",
+          "#738f32",
+          "#96ba41",
+          "#aecb6a",
+          "#c6da96",
+          "#dde9c1",
+          "#f5f8ec"
+        ]
+      },
+      "chapter-8-read": {
+        "role": "secondary",
+        "displayName": "Chapter 8 Sage, read",
+        "canonical": "#b4cf78",
+        "dark": "#48582c",
+        "tonalRamp": [
+          "#2d3814",
+          "#506323",
+          "#728e33",
+          "#94b942",
+          "#adca6b",
+          "#c5da96",
+          "#dde9c1",
+          "#f5f8ec"
+        ]
+      },
+      "chapter-9": {
+        "role": "secondary",
+        "displayName": "Chapter 9 Stone",
+        "canonical": "#dedbd3",
+        "dark": "#33312c",
+        "tonalRamp": [
+          "#2c2921",
+          "#4d483a",
+          "#6e6753",
+          "#90866c",
+          "#a9a18d",
+          "#c2bdae",
+          "#dbd8cf",
+          "#f4f3f0"
+        ]
+      },
+      "chapter-9-read": {
+        "role": "secondary",
+        "displayName": "Chapter 9 Stone, read",
+        "canonical": "#bdb7aa",
+        "dark": "#4c4942",
+        "tonalRamp": [
+          "#2b2821",
+          "#4c473b",
+          "#6d6554",
+          "#8d846e",
+          "#a79f8e",
+          "#c1bbaf",
+          "#dad7d0",
+          "#f4f3f1"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The language name beside the mark; the 404 numeral at clamp(88px,14vw,160px)."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Slide and page titles."
+      },
+      "title": {
+        "displayName": "Section Title",
+        "purpose": "Front-page section headings."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "The one sentence saying what Hive is; 23px on phones."
+      },
+      "subhead": {
+        "displayName": "Subhead",
+        "purpose": "Reason and list headings; italic 600 18px for rule names and column labels."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Prose at a 66ch measure; 17px on phones."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Serif italic captions over code, tables and reads tiles."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Running-head language and scheme switch."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "Programs (13.5px on slides) and inline code at 0.84em on wash."
+      },
+      "tile-symbol": {
+        "displayName": "Tile Symbol",
+        "purpose": "Symbol on a chart tile; 32px on the slide tile."
+      }
+    },
+    "shadows": [
+      {
+        "name": "tile-ring",
+        "value": "inset 0 0 0 2px var(--ink)",
+        "purpose": "Hover and focus on chart and reads tiles; a stroke, not elevation."
+      },
+      {
+        "name": "station-ring",
+        "value": "0 0 0 2px var(--ink)",
+        "purpose": "Ink ring round the amber station on the pager line."
+      },
+      {
+        "name": "key-swatch",
+        "value": "inset 0 0 0 1px color-mix(in srgb, var(--ink) 35%, transparent)",
+        "purpose": "Edge of a chart key swatch."
+      },
+      {
+        "name": "scroll-shade",
+        "value": "linear-gradient(to right, color-mix(in srgb, var(--ink) 16%, transparent), transparent) left / 12px 100% no-repeat scroll, under 32px panel-coloured covers attached local",
+        "purpose": "Edge shade on code panels (16%) and diagram scrollers (18%), visible only when content overflows."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-colour",
+        "value": "cubic-bezier(.16,1,.3,1)",
+        "purpose": "Colour change on the button, pills and tiles."
+      },
+      {
+        "name": "duration-colour",
+        "value": "160ms",
+        "purpose": "The only transition; colour and ring only, never position. No entrance animation."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "transition: none !important",
+        "purpose": "Under prefers-reduced-motion: reduce; smooth anchor scrolling only under no-preference."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "chart-skyline",
+        "value": "1180px",
+        "purpose": "Below: the chart skyline becomes per-chapter blocks under visible names; key and placeholder hidden."
+      },
+      {
+        "name": "stack",
+        "value": "980px",
+        "purpose": "Below: two-column rows stack (row direction overridden with !important)."
+      },
+      {
+        "name": "phone",
+        "value": "640px",
+        "purpose": "Below: 20px gutter, 17px body, 96px slide tile, pager and table rows stack."
+      }
+    ],
+    "stroke": {
+      "name": "--rr",
+      "value": "2px",
+      "purpose": "The single stroke weight: outlines, lines, chevrons, track, focus ring, dashed placeholder."
+    },
+    "focus": {
+      "value": "outline: 2px solid var(--ink); outline-offset: 3px",
+      "purpose": "Ink, never amber (amber on paper is under 3:1)."
+    },
+    "railroad": {
+      "textSize": "15px",
+      "monoAdvance": "9px",
+      "halfHeight": "16px",
+      "terminalPad": "14px",
+      "namePad": "12px",
+      "gap": "18px",
+      "bendRadius": "10px",
+      "rise": "12px",
+      "margin": "8px",
+      "lead": "18px",
+      "stroke": "2px",
+      "unit": "1 unit = 1px, never scaled; the figure scrolls sideways",
+      "terminal": "capsule, mono, ink",
+      "name": "square box, serif italic, ink"
+    },
+    "track": {
+      "canvas": "1000 x 28 units, stretched to 100% width",
+      "stationRadius": 3.4,
+      "openStationPunch": 1.7,
+      "currentStationRing": 7.5,
+      "currentStationAmber": 5.5,
+      "chapterGap": 18,
+      "chapterTick": "12 units tall",
+      "endStop": "14 units tall",
+      "stroke": "2px"
+    },
+    "chart": {
+      "tile": "82px",
+      "tall": "108px",
+      "gap": "5px",
+      "chapterGap": "9px",
+      "phoneTile": "78px",
+      "readState": ":visited -> --d1..--d9"
+    },
+    "darkScheme": "Same tokens re-declared under prefers-color-scheme: dark on :root:not([data-theme=light]) and under :root[data-theme=dark]; set by the no-JS /theme/dark|light/<page> cookie route."
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one button on the site: Start the tour. Amber pill that inks in on hover.",
+      "html": "<a class=\"ds-btn-primary\" href=\"#\">Start the tour</a>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;min-height:50px;padding:0 28px;border-radius:999px;background:#e29b19;color:#16120a;font:600 17px/1.2 'Source Serif 4',Charter,Georgia,serif;text-decoration:none;transition:background-color .16s cubic-bezier(.16,1,.3,1),color .16s cubic-bezier(.16,1,.3,1)} .ds-btn-primary:hover,.ds-btn-primary:focus-visible{background:#15171a;color:#e29b19} .ds-btn-primary:focus-visible{outline:2px solid #15171a;outline-offset:3px}"
+    },
+    {
+      "name": "Outline Pill",
+      "kind": "button",
+      "refersTo": "pill-outline",
+      "description": "Ink-outline pill for a slide's download link and for previous/next, with a drawn chevron.",
+      "html": "<a class=\"ds-pill\" href=\"#\">13. Functions</a>",
+      "css": ".ds-pill{display:inline-flex;align-items:center;gap:12px;min-height:46px;padding:6px 20px;border:2px solid #15171a;border-radius:999px;background:#f6f7f8;color:#15171a;font:600 16px/1.25 'Source Serif 4',Charter,Georgia,serif;text-decoration:none;transition:background-color .16s cubic-bezier(.16,1,.3,1),color .16s cubic-bezier(.16,1,.3,1)} .ds-pill::after{content:'';width:8px;height:8px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate(45deg);margin-right:4px} .ds-pill:hover,.ds-pill:focus-visible{background:#15171a;color:#f6f7f8} .ds-pill:focus-visible{outline:2px solid #15171a;outline-offset:3px}"
+    },
+    {
+      "name": "Plain Link",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Underlined serif link beside the button; the hairline underline turns amber on hover.",
+      "html": "<a class=\"ds-link\" href=\"#\">Contents</a>",
+      "css": ".ds-link{font:600 16.5px/1.3 'Source Serif 4',Charter,Georgia,serif;color:#15171a;text-decoration:underline;text-decoration-color:#d5d8dd;text-decoration-thickness:2px;text-underline-offset:.2em} .ds-link:hover{text-decoration-color:#e29b19} .ds-link:focus-visible{outline:2px solid #15171a;outline-offset:3px}"
+    },
+    {
+      "name": "Running Head",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Mark, tour name and Contents; a drawn half-circle scheme switch and EN/PT with the current language underlined in amber.",
+      "html": "<nav class=\"ds-head\"><span class=\"ds-mark\"></span><a href=\"#\" class=\"ds-ht\">The Hive Tour</a><a href=\"#\" class=\"ds-ht\">Contents</a><span class=\"ds-sp\"></span><a href=\"#\" class=\"ds-scheme\">Dark</a><a href=\"#\" class=\"ds-lang ds-on\">EN</a><a href=\"#\" class=\"ds-lang\">PT</a></nav>",
+      "css": ".ds-head{display:flex;align-items:center;gap:20px;padding:16px 0;background:#f6f7f8} .ds-mark{width:30px;height:30px;border-radius:50%;background:#e29b19} .ds-sp{flex:1} .ds-ht{font:600 16.5px/1.3 'Source Serif 4',Charter,Georgia,serif;color:#15171a;text-decoration:none} .ds-ht:hover{text-decoration:underline;text-decoration-color:#e29b19;text-decoration-thickness:2px} .ds-scheme,.ds-lang{font:600 14.5px/1.2 'Source Serif 4',Charter,Georgia,serif;color:#5b6068;text-decoration:none;padding:2px 0} .ds-lang{letter-spacing:.04em;border-bottom:2px solid transparent} .ds-scheme{display:inline-flex;align-items:center;gap:8px} .ds-scheme::before{content:'';width:13px;height:13px;box-sizing:border-box;border:2px solid currentColor;border-radius:50%;background:linear-gradient(90deg,currentColor 50%,transparent 50%)} .ds-scheme:hover,.ds-lang:hover{color:#15171a} .ds-lang.ds-on{color:#15171a;border-bottom-color:#e29b19}"
+    },
+    {
+      "name": "Chart Tile",
+      "kind": "card",
+      "refersTo": "chart-tile",
+      "description": "A slide on the Wall Chart: number, symbol and title on its chapter fill; a visited tile turns the read shade.",
+      "html": "<a class=\"ds-tile\" href=\"#\"><span class=\"ds-tn\">12</span><span class=\"ds-ts\">for</span>Loops</a><a class=\"ds-tile ds-read\" href=\"#\"><span class=\"ds-tn\">11</span><span class=\"ds-ts\">if</span>if and else</a>",
+      "css": ".ds-tile{position:relative;display:inline-block;vertical-align:top;width:82px;height:108px;margin-right:5px;padding:48px 4px 0 6px;box-sizing:border-box;background:#f5cdbd;color:#15171a;font:500 11px/1.2 'Source Serif 4',Charter,Georgia,serif;text-decoration:none;transition:box-shadow .16s cubic-bezier(.16,1,.3,1)} .ds-tile.ds-read{background:#e9a184} .ds-tn{position:absolute;top:6px;left:7px;font:500 11px/1 'Source Code Pro',ui-monospace,monospace} .ds-ts{position:absolute;top:24px;left:7px;font:600 17px/1 'Source Code Pro',ui-monospace,monospace;letter-spacing:-.02em} .ds-tile:hover,.ds-tile:focus-visible{box-shadow:inset 0 0 0 2px #15171a;outline:none}"
+    },
+    {
+      "name": "Slide Tile",
+      "kind": "custom",
+      "refersTo": "slide-tile",
+      "description": "The chart's tile at 136px beside a slide's title; the one chapter colour on a slide.",
+      "html": "<div class=\"ds-stile\"><span class=\"ds-sn\">12</span><span class=\"ds-ss\">for</span><span class=\"ds-sc\">Control flow and functions</span></div>",
+      "css": ".ds-stile{display:flex;flex-direction:column;justify-content:space-between;width:136px;height:136px;padding:12px 14px;box-sizing:border-box;background:#f5cdbd;color:#15171a} .ds-sn{font:500 14px/1 'Source Code Pro',ui-monospace,monospace} .ds-ss{font:600 32px/1 'Source Code Pro',ui-monospace,monospace;letter-spacing:-.02em} .ds-sc{font:500 13px/1.25 'Source Serif 4',Charter,Georgia,serif;color:#3d4249}"
+    },
+    {
+      "name": "Reads Tiles",
+      "kind": "chip",
+      "refersTo": "reads-tile",
+      "description": "Chapter-filled slide links under a front-page reason, captioned 'In the tour'.",
+      "html": "<div class=\"ds-reads\"><span class=\"ds-cap\">In the tour</span><span><a class=\"ds-chip\" href=\"#\">38. Services</a><a class=\"ds-chip ds-read\" href=\"#\">39. Services across nodes</a></span></div>",
+      "css": ".ds-reads{display:flex;flex-direction:column;gap:10px;align-items:flex-start} .ds-cap{font:italic 400 16px/1.4 'Source Serif 4',Charter,Georgia,serif;color:#5b6068} .ds-chip{display:inline-block;margin-right:8px;padding:7px 12px;background:#c9d5f3;color:#15171a;font:500 15px/1.3 'Source Serif 4',Charter,Georgia,serif;text-decoration:none;transition:box-shadow .16s cubic-bezier(.16,1,.3,1)} .ds-chip.ds-read{background:#93a9e6} .ds-chip:hover,.ds-chip:focus-visible{box-shadow:inset 0 0 0 2px #15171a;outline:none}"
+    },
+    {
+      "name": "Code Panel",
+      "kind": "card",
+      "refersTo": "code-panel",
+      "description": "A program in a flush panel a shade off the paper, captioned in serif italic; bold keywords, serif-italic comments.",
+      "html": "<figure class=\"ds-ex\"><figcaption>The counting loop</figcaption><pre class=\"ds-code\"><code><b>proc</b> main(): <b>void</b> {\n    <b>for</b> i := <span class=\"n\">0</span>; i &lt; <span class=\"n\">3</span>; i++ {\n        <b>echo</b> <span class=\"s\">\"frame {i}\"</span>  <i>// the counter is the loop's own</i>\n    }\n}</code></pre></figure>",
+      "css": ".ds-ex{margin:0} .ds-ex figcaption{margin:0 0 10px;font:italic 400 16px/1.4 'Source Serif 4',Charter,Georgia,serif;color:#3d4249} .ds-code{margin:0;padding:20px 24px;overflow-x:auto;background:#eceef1;color:#15171a;font:400 14px/1.62 'Source Code Pro',ui-monospace,monospace;font-variant-ligatures:none} .ds-code b{font-weight:700} .ds-code .s{color:#2f6a2a} .ds-code .n{color:#8b2f6b} .ds-code i{font-family:'Source Serif 4',Charter,Georgia,serif;font-style:italic;font-size:1.08em;color:#5a5f66}"
+    },
+    {
+      "name": "Grammar Fold",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "A slide's railroad figures folded behind one closed native <details> line naming the rules; the chevron turns when open.",
+      "html": "<details class=\"ds-fold\"><summary>Grammar: <span>for-stmt, step</span></summary><p class=\"ds-fold-in\">(railroad figures)</p></details>",
+      "css": ".ds-fold>summary{display:inline-flex;align-items:baseline;gap:10px;padding:6px 0;cursor:pointer;list-style:none;font:600 16px/1.4 'Source Serif 4',Charter,Georgia,serif;color:#3d4249} .ds-fold>summary::-webkit-details-marker{display:none} .ds-fold>summary::before{content:'';align-self:center;width:7px;height:7px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate(45deg);transition:transform .16s cubic-bezier(.16,1,.3,1)} .ds-fold[open]>summary::before{transform:rotate(135deg)} .ds-fold>summary>span{font:italic 500 16px/1.4 'Source Serif 4',Charter,Georgia,serif;color:#5b6068} .ds-fold>summary:hover{color:#15171a} .ds-fold>summary:focus-visible{outline:2px solid #15171a;outline-offset:3px} .ds-fold-in{margin:20px 0 0;font:400 14px 'Source Serif 4',Charter,Georgia,serif;color:#5b6068}"
+    },
+    {
+      "name": "Pager Line",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Previous and next pills either side of a 2px ink line carrying the amber station.",
+      "html": "<div class=\"ds-pager\"><a href=\"#\" class=\"ds-pg\">11. if and else</a><span class=\"ds-line\"></span><a href=\"#\" class=\"ds-pg\">13. Functions</a></div>",
+      "css": ".ds-pager{display:flex;align-items:center} .ds-pg{display:inline-flex;align-items:center;min-height:46px;padding:6px 20px;border:2px solid #15171a;border-radius:999px;background:#f6f7f8;color:#15171a;font:600 16px/1.25 'Source Serif 4',Charter,Georgia,serif;text-decoration:none;transition:background-color .16s cubic-bezier(.16,1,.3,1),color .16s cubic-bezier(.16,1,.3,1)} .ds-pg:hover,.ds-pg:focus-visible{background:#15171a;color:#f6f7f8} .ds-line{position:relative;flex:1;min-width:40px;border-top:2px solid #15171a;margin:0 -2px} .ds-line::after{content:'';position:absolute;left:calc(50% - 8px);top:-9px;width:16px;height:16px;border-radius:50%;background:#e29b19;box-shadow:0 0 0 2px #15171a}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Language Set Out as a Book and a Chart",
+    "overview": "The site is a language's home page done properly and a tour that teaches the whole language, and it is set the way a good technical book is set: a cool white paper, one ink, a book serif for everything that is read and its sibling monospace for everything that is run. Two devices belong to teaching a language and nothing else, and they are the system's signature: the grammar drawn as railroad diagrams (in the tour only), and the whole language laid out as one periodic-table chart of 74 tiles in nine chapter colours. Every slide carries its own tile beside its title, so a chapter has a colour and 74 slides stop looking like one.\n\nDensity is a book's: an 18px body at a 66ch measure, generous paper between sections (128px on the front page), two columns where the explanation sits beside the programs it explains. Colour is rationed hard. Chapter colours only ever fill a tile; amber is the way on and where the reader is, and nothing else. Nothing moves: no entrance animation, no positional motion, only a 160ms colour change on the button, pills and tiles. The site ships no JavaScript, so every state the design has (the reader's scheme, read slides, the current station) is drawn by CSS from what HTML and the server already know.\n\nConfirmed rejections: the SaaS landing page (gradient hero, feature-card rows, glow), a literal bee-and-honey theme, cream paper, and railroad drawing outside the tour.",
+    "keyCharacteristics": [
+      "Cool paper (never cream), one ink, flat surfaces separated by paper rather than lines.",
+      "Source Serif 4 for headings and prose, Source Code Pro for programs, tiles and tokens; both embedded, nothing fetched.",
+      "Nine muted chapter colours, each with a deeper read shade, filling tiles only.",
+      "Amber on exactly two things: the one primary button and the reader's current station.",
+      "Square tiles and panels; pills only for links that act as buttons; circles only for stations and drawn markers.",
+      "Light and dark follow the system, with a no-JS cookie switch in the running head."
+    ],
+    "rules": [
+      {
+        "name": "The Tile-Only Rule",
+        "body": "Chapter colours fill tiles and nothing else: never text, borders, backgrounds of sections, or underlines. If it is not a tile (or a key swatch naming a tile's colour), it is paper or ink.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Ambers Rule",
+        "body": "Amber marks the way on (the single primary button) and where the reader is (the current station). A third amber element dilutes both. Hover underlines in amber are the only permitted trace beyond these.",
+        "section": "colors"
+      },
+      {
+        "name": "The Read Shade Rule",
+        "body": "Read state is `:visited` turning a tile to its chapter's deeper shade. It changes colour only, needs no script, and is the whole progress system on the chart.",
+        "section": "colors"
+      },
+      {
+        "name": "The Serif-Reads, Mono-Runs Rule",
+        "body": "Anything a reader could type into a `.hive` file (programs, tokens, commands, tile symbols, terminals in diagrams) is set in the monospace; everything else is the serif. Rule names in diagrams are serif italic, because they are names, not text to type.",
+        "section": "typography"
+      },
+      {
+        "name": "The Bold Keyword Rule",
+        "body": "Syntax highlighting is typographic first: keywords and builtins in bold, comments in the serif italic, colour only for strings and literals. Names, types and calls stay in ink.",
+        "section": "typography"
+      },
+      {
+        "name": "The Inline-Direction Rule",
+        "body": "`hive.ui` writes a row's direction as an inline `style`, so responsive overrides of flex direction, alignment and gap use `!important`, inside the responsive block only and for that purpose only. Nowhere else does the stylesheet use `!important` (besides the reduced-motion reset).",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Paper Rule",
+        "body": "Nothing floats. A surface is paper, a shade off paper, or a chapter fill; edges are ink strokes or nothing.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep amber to the one primary pill and the current station; everything else that needs emphasis uses ink, weight or an underline.",
+      "**Do** fill tiles (chart, slide tile, reads tiles, key swatches) with chapter colours and let `:visited` turn them to the read shade.",
+      "**Do** set every program, token, command and tile symbol in Source Code Pro with ligatures off, and everything read in Source Serif 4.",
+      "**Do** use the ink focus ring (2px solid ink, 3px offset), or the inset 2px ink ring on filled tiles.",
+      "**Do** keep every interactive state in HTML and CSS: `:visited`, `:hover`, `:focus-visible`, server round-trips and the theme cookie.",
+      "**Do** draw marks (chevrons, stations, the theme circle, list dots) with CSS or the canvas at the 2px stroke weight.",
+      "**Do** let code panels and diagrams scroll sideways with scroll shades instead of shrinking or widening the column.",
+      "**Do** keep a slide's railroad figures inside its grammar fold, closed by default, so the slide opens on prose and programs.",
+      "**Do** hold all text, and ink on every chapter fill and read shade, at 4.5:1 or better in both schemes."
+    ],
+    "donts": [
+      "**Don't** use chapter colours for text, borders, section backgrounds or decoration.",
+      "**Don't** add a second amber element, an amber focus ring or amber text on paper.",
+      "**Don't** add drop shadows, gradients as decoration, glow, or feature-card rows.",
+      "**Don't** use cream or warm paper; the paper is cool.",
+      "**Don't** draw railroad diagrams outside the tour.",
+      "**Don't** use arrow characters or icon glyphs for direction or status; draw them.",
+      "**Don't** add hairlines between sections; only table rows get rules.",
+      "**Don't** animate position or add entrance motion; colour changes at 160ms are the only motion.",
+      "**Don't** use `!important` except to take back `hive.ui`'s inline row direction, alignment and gap at a breakpoint.",
+      "**Don't** ship JavaScript, external fonts or any asset not embedded in the binary."
+    ]
+  }
+}

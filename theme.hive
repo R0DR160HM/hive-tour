@@ -5,93 +5,57 @@
 // into the same head straight after it, where an equally specific rule wins
 // by coming last.
 //
-// It is layered on rather than replacing anything, and that is deliberate:
-// every rule here reaches for a class `hive.ui` already puts on the element
-// — `h-link`, `h-column`, `h-bg-good`, `h-spacer` — or for one of the custom
-// properties its stylesheet declares. Nothing reaches for a class of its own
-// except on the three things the widget set has no answer for, which are the
-// same three main.hive writes by hand: a code sample, its caption, and the
-// block of prose under them. So a view stays a view, the markup keeps no
-// record of having been styled, and dropping this one import puts the tour
-// back to stock.
-//
-// What it is not is a stylesheet for the language. `hive.ui`'s defaults are
-// what a program that has not thought about its appearance should look like,
-// and they are the right answer to that question. This is one program that
-// has thought about it.
+// It is layered on rather than replacing anything: every rule here reaches
+// for a class `hive.ui` already puts on the element — `h-link`, `h-column`,
+// `h-bg-good`, `h-spacer` — or for one of the few names main.hive writes by
+// hand round the things the widget set has no answer for: the `<main>` each
+// page is framed in, a code sample, the prose, a drawn rule, a chapter's
+// colour, and the chart. Dropping this one import puts the tour back to stock.
 //
 // ---------------------------------------------------------------------------
 // What it is trying to look like.
 //
-// A page can be tidy and say nothing, and the first version of this file was:
-// a card here, a hairline there, a rounded amber button that rose a pixel
-// under the cursor, everything in the system sans at fifteen pixels, and a
-// rail of every page in the site pinned open down the left of every page in
-// the site. Every one of those is a good default and not one of them belongs
-// to this site in particular — the same stylesheet would have served a
-// billing dashboard without a line changed, which is the whole complaint. A
-// page that could be about anything ends up looking like it is about nothing.
+// The front page is a language's home page, done properly: what Hive is, the
+// one way in, and a real program beside them. The tour is where the language
+// is taught, and it carries the two things that belong to teaching a language
+// and to nothing else.
 //
-// So this one is about something, and the something is a printed technical
-// book. Not a skeuomorph of one: five habits a book has that a web page
-// usually does not.
+//   The grammar, drawn. A slide that teaches a rule of the grammar carries
+//   it, folded under the title, as a railroad diagram — a capsule for a sign written exactly as it
+//   reads, a square box for another rule, lines that split for a choice and
+//   loop back for a repetition — drawn by ./rail from ./grammar with
+//   `hive.ui`'s own canvas, over the EBNF it came from.
 //
-//   There is no rail. A book does not carry its table of contents on every
-//   page; it has a running head saying what you are reading, a contents page
-//   of its own, and a way to turn to the next one. main.hive is where that
-//   argument is made in full, because it is an argument about what a tour is
-//   rather than about how one looks, and the layout it produces is a view
-//   like every other. What is left here is what those three things look like.
+//   The language as one chart. Every slide is a tile with its number and the
+//   piece of Hive it teaches, in the colour of its chapter, and the nine
+//   chapters stand side by side the way the families of a periodic table do.
+//   The contents page is that chart and the front page ends on it; a slide
+//   carries its own tile beside its title, so each chapter of the tour has a
+//   colour of its own and seventy-four slides stop looking like one.
 //
-//   Things are separated by rules and space, never by cards. There is no
-//   box-shadow in this file and no element that floats above another. A
-//   figure on the page of a book is flush with the paper; so is every sample
-//   here.
+// Around those: a book serif, Source Serif 4, for the headings and the prose,
+// because a tour is read; its sibling monospace, Source Code Pro, for the
+// programs and the tokens; ./fonts carries both, so nothing is fetched from
+// anywhere else. Paper that is a cool white rather than cream, one ink, nine
+// muted chapter colours that only ever fill a tile, and amber for exactly one
+// thing — the way on, and where the reader is.
 //
-//   The display face is the monospace. This is a page about a programming
-//   language: setting its headings, its contents, its labels and its one
-//   button in the same face the samples are set in ties the furniture to the
-//   subject, and costs nothing — the stack starts at fonts the reader's
-//   machine already has, because a site that claims no framework underneath
-//   it should not be downloading a typeface either. The prose stays in the
-//   sans, because prose is prose.
-//
-//   Small type is set the way a specimen sheet sets it: monospace, upper
-//   case, tracked out wide. A running head, a figure label and a caption all
-//   read as apparatus rather than as more sentences.
-//
-//   Corners are square. A radius is the single most legible mark of the house
-//   style being rejected here, and taking it off — from the samples, the
-//   screenshots, the button, the focus ring — does more to change what the
-//   page looks like than any colour would.
-//
-// The one ornament is the hexagon, and there is one of it: the bullet against
-// each of the claims the front page makes, which is the mark of the language
-// reduced to its outline at twenty pixels. Nothing else in here is drawn for
-// the sake of drawing.
-//
-// There was a second one for a while — the same hexagon tiled into a comb,
-// washed across the top of every page behind the running head. It was a nice
-// piece of work and it was wallpaper. A page that has taken off its shadows,
-// its radii and its rail, so that what is left is type and rules and paper,
-// does not then want a pattern printed on the paper: every one of those other
-// removals was the page getting out of the way of the reading, and the comb
-// was the one thing left standing in front of it. A plain ground is not an
-// absence of an idea here. It is the idea.
-//
-// It is held in raw strings, where a brace is a brace and CSS can be written
-// the way CSS is written, and split into several of them for the reason the
-// tour is split into slides: so each one is about one thing.
+// It is held in raw strings, where a brace is only a brace if it is written
+// `\{`, and split into several of them for the reason the tour is split into
+// slides: so each one is about one thing.
+import ./fonts
 
 // The whole of it, as the single `<style>` the head carries.
 func styleTag(): Str {
 	return "<style>" + css() + "</style>"
 }
 
-// Order matters exactly once in here: `responsive` comes last of the layout
-// rules so its media query outranks the frame `shell` sets up.
+// Order matters exactly once in here: `responsive` comes last so its media
+// queries outrank everything they take back.
 func css(): Str {
-	return palette() + shell() + navigation() + prose() + code() + syntax() + home() + responsive()
+	return faces() + palette() + darkScheme() + families() + shell() + head() + buttons() + prose()
+		+ code() + syntax() + rules() + track() + slide() + home() + chart()
+		+ contents() + lost() + responsive()
 }
 
 // ---------------------------------------------------------------------------
@@ -101,15 +65,11 @@ func css(): Str {
 // and the half that decides what the rule looks like is in this file. The
 // painter asks for a name and never spells one, so a name can be changed in
 // one place; and there is no way for a span to be emitted with a class this
-// stylesheet has no answer for, which is the failure a highlighter usually
-// has — markup painted in a colour nobody defined, indistinguishable from
-// plain text.
+// stylesheet has no answer for.
 //
 // They are one and two characters long because there is one of them around
-// every token of every sample on the page. `<span class="k">` against
-// `<span class="keyword">` is six bytes, and there are some hundreds of them
-// in a slide: the difference is a page a fifth smaller for no cost at all,
-// since nothing but this file and its painter ever reads them.
+// every token of every sample on the page, and nothing but this file and its
+// painter ever reads them.
 
 func keywordClass(): Str {
 	return "k"
@@ -155,523 +115,645 @@ func punctClass(): Str {
 	return "p"
 }
 
-// The two faces and the colours.
+// The two faces, from the paths ./fonts serves them at. `swap` because a
+// page shown in a fallback for a moment is better than a page shown blank;
+// main.hive preloads the two every page needs, so the moment is short.
+func faces(): Str {
+	return `@font-face\{font-family:"Hive Serif";src:url("{fonts.serifPath()}") format("woff2");
+	font-weight:400 700;font-style:normal;font-display:swap}
+@font-face\{font-family:"Hive Serif";src:url("{fonts.italicPath()}") format("woff2");
+	font-weight:400 600;font-style:italic;font-display:swap}
+@font-face\{font-family:"Hive Mono";src:url("{fonts.monoPath()}") format("woff2");
+	font-weight:400 700;font-style:normal;font-display:swap}
+`
+}
+
+// The colours, and the measures every rule below shares.
 //
-// `hive.ui` ships a blue — a good, legible, entirely generic blue — and a
-// page about a language whose mark is an amber bee has a better one
-// available to it. So the accent becomes the amber, the greys warm by a few
-// degrees of hue to sit beside it, and everything downstream of `--accent`
-// follows without being told: every link, every focus ring, every border a
-// widget draws on its own.
+// `--ink` is text and line alike. `--muted` is the quiet text — captions, the
+// caveats, the spec line under a rule — and is held above 4.5:1 on the paper
+// in both schemes, as is everything a reader is meant to read. `--brand` is
+// the amber exactly as the mark paints it, which is only ever a fill with ink
+// on it; `--accent` is the same hue deep enough to be text. `--brand-hover` is
+// what the button's words turn when it inks in under the pointer: amber on
+// the light scheme's near-black, paper on the dark scheme's, where the ink is
+// light and amber on it would be under 2:1.
 //
-// `--brand` is the amber exactly as the drawing paints it. `--accent` is a
-// darker mix of the same hue, because the brand amber against paper is barely
-// a 2:1 contrast and this one is past 4.5:1. The mark and the prose want the
-// same colour and cannot have it, so they get the same hue at two different
-// weights. `--rule` is the third name in the family: the page's own ink, for
-// the few hairlines that are structure rather than decoration. `--line` stays
-// for everything lighter.
+// `--good` and `--warn` are `hive.ui`'s own names, answered here because they
+// are what a canvas mark is painted when it asks for a tone: the reader's
+// station on the track is `Tone.Good`, and an open station is punched out of
+// `Tone.Warn`, which is the paper.
 //
-// `--invert` is the field the button turns into, and it is its own name rather
-// than a reuse of `--rule` because the two themes need opposite things from
-// it. Inverting means amber text on a dark field, and in the dark theme the
-// hairline ink is a mid brown that puts that text at 3.8:1 — under the 4.5
-// this page holds itself to everywhere else. Deepening it past the page's own
-// background instead gives 9:1, and the light theme's ink already gives 7:1,
-// so the one name carries the same idea in both and the contrast is checked
-// rather than assumed. That is also why the front page's kicker is `--accent`
-// and not `--brand`: small tracked capitals in the drawing's own amber come
-// out at 2.2:1 on cream, which is the very trap the two weights exist to
-// avoid, and it is an easy one to walk back into.
-//
-// `--measure` is how wide this site is: the reading column stops there, and
-// the running head's padding is written in terms of it so the type in the
-// head starts exactly where the prose under it does. One name, because the
-// two have to agree and a number written twice is a number that will not.
+// `--c1` to `--c9` are the chapters' colours, as a tile is filled with them,
+// and `--d1` to `--d9` the deeper shade of the same hue a tile turns once its
+// slide has been read. All eighteen hold the ink at better than 4.5:1, in
+// both schemes, because every tile has words on it.
 func palette(): Str {
 	return `:root\{
-	--f-sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-	--f-mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+	--f-serif:"Hive Serif",Charter,"Bitstream Charter","Sitka Text",Cambria,Georgia,serif;
+	--f-mono:"Hive Mono",ui-monospace,"Cascadia Mono",Menlo,Consolas,monospace;
+	--paper:#f6f7f8;
+	--ink:#15171a;
+	--soft:#3d4249;
+	--muted:#5b6068;
+	--line:#d5d8dd;
+	--wash:#e9ebee;
+	--code:#eceef1;
 	--brand:#e29b19;
-	--brand-ink:#1f180a;
-	--bg:#fdfaf3;
-	--fg:#191714;
-	--muted:#6b6455;
-	--line:#e5dbc5;
-	--rule:#231f18;
-	--invert:#231f18;
-	--accent:#9a5d00;
-	--surface:#f7f0df;
-	--good:#0d7a55;
-	--code:#f4f6f9;
-	--code-line:#dde3ea;
-	--ring:rgba(226,155,25,.38);
-	--measure:1080px;
-	--sy-comment:#6f7a8a;
-	--sy-punct:#5d6878;
-	--sy-keyword:#7038a8;
-	--sy-type:#0d6d76;
-	--sy-string:#2a7a58;
-	--sy-hole:#a03a83;
-	--sy-name:#2361ab;
+	--brand-ink:#16120a;
+	--brand-hover:var(--brand);
+	--accent:#8a5300;
+	--bg:var(--paper);
+	--fg:var(--ink);
+	--surface:var(--wash);
+	--good:var(--brand);
+	--warn:var(--paper);
+	--sy-string:#2f6a2a;
+	--sy-literal:#8b2f6b;
+	--sy-comment:#5a5f66;
+	--c1:#f3dfb5;--d1:#e3be72;
+	--c2:#f5cdbd;--d2:#e9a184;
+	--c3:#f1c9d6;--d3:#de95ad;
+	--c4:#ddd0f2;--d4:#b9a2e3;
+	--c5:#c9d5f3;--d5:#93a9e6;
+	--c6:#c4e2ef;--d6:#84c2dc;
+	--c7:#c6e7d8;--d7:#86cbab;
+	--c8:#dbe8bd;--d8:#b4cf78;
+	--c9:#dedbd3;--d9:#bdb7aa;
+	--rr:2px;
+	--measure:1280px;
+	--gutter:40px;
+	color-scheme:light;
 }
-@media (prefers-color-scheme:dark)\{:root\{
+`
+}
+
+// The dark scheme's values, written once and used twice: under the system's
+// own preference unless the reader picked the light scheme, and whenever the
+// reader picked the dark one. main.hive writes `data-theme` on the page when a
+// reader has picked; with nothing written, the system decides, as it always
+// did.
+func darkScheme(): Str {
+	tokens := dark()
+	return `@media (prefers-color-scheme:dark)\{:root:not([data-theme=light])\{` + tokens + `}}
+:root[data-theme=dark]\{` + tokens + `}
+`
+}
+
+func dark(): Str {
+	return `
+	--paper:#121315;
+	--ink:#e9e7e1;
+	--soft:#c6c3bc;
+	--muted:#a19e97;
+	--line:#2d2f33;
+	--wash:#1d1f22;
+	--code:#1a1c1f;
 	--brand:#e5a53a;
 	--brand-ink:#17120a;
-	--bg:#131210;
-	--fg:#ece6d9;
-	--muted:#9a9282;
-	--line:#2a2621;
-	--rule:#554c3f;
-	--invert:#0c0b09;
-	--accent:#e5a53a;
-	--surface:#1a1813;
-	--good:#3fbf90;
-	--code:#14171c;
-	--code-line:#272c34;
-	--ring:rgba(229,165,58,.34);
-	--sy-comment:#7c8797;
-	--sy-punct:#8d96a6;
-	--sy-keyword:#c8a4ec;
-	--sy-type:#63c4cd;
-	--sy-string:#8ccaa6;
-	--sy-hole:#e29ac9;
-	--sy-name:#8ab6f0;
-}}
+	--brand-hover:var(--paper);
+	--accent:#f0b85a;
+	--sy-string:#9ccc8a;
+	--sy-literal:#e2a2d0;
+	--sy-comment:#9da2a9;
+	--c1:#3d3220;--d1:#5e4b28;
+	--c2:#43291f;--d2:#66392a;
+	--c3:#42252f;--d3:#643547;
+	--c4:#322a45;--d4:#4a3d6b;
+	--c5:#252f47;--d5:#36466e;
+	--c6:#1f3540;--d6:#2c5163;
+	--c7:#1f3a2f;--d7:#2c5946;
+	--c8:#2f3a1f;--d8:#48582c;
+	--c9:#33312c;--d9:#4c4942;
+	color-scheme:dark;
+`
+}
+
+// A chapter's class, wherever main.hive writes one — a tile on the chart, the
+// tile beside a slide's title, a line of the chart's key — names its two
+// colours, and every rule that fills something with a chapter's colour asks
+// for `--fc` and `--fd` rather than for the chapter.
+func families(): Str {
+	return `.f1\{--fc:var(--c1);--fd:var(--d1)}.f2\{--fc:var(--c2);--fd:var(--d2)}
+.f3\{--fc:var(--c3);--fd:var(--d3)}.f4\{--fc:var(--c4);--fd:var(--d4)}
+.f5\{--fc:var(--c5);--fd:var(--d5)}.f6\{--fc:var(--c6);--fd:var(--d6)}
+.f7\{--fc:var(--c7);--fd:var(--d7)}.f8\{--fc:var(--c8);--fd:var(--d8)}
+.f9\{--fc:var(--c9);--fd:var(--d9)}
 `
 }
 
 // The page itself: the type it is set in, the one column everything sits in,
-// and the two things a stylesheet owes a keyboard — a focus ring that is
-// visible, and one that is only there for whoever is actually using it.
+// and the parts of a page a browser draws whatever the design says — the
+// selection, the focus ring, the scroll bars, the underline under a link —
+// all of them in the page's own ink rather than the browser's.
 //
-// Every page in this program is now the same shape, which is what taking the
-// rail out bought: a wrapper, a running head across the top of it, and one
-// column of reading under that. So there is one frame in here instead of two,
-// and no rule anywhere in this file has to know whether it is looking at the
-// front page or a slide.
-//
-// The reading column is centred by a `max-width` and a pair of auto margins,
-// with `width:100%` written out rather than left to `stretch`. That is not
-// belt and braces: an auto margin on the cross axis of a flex container turns
-// `stretch` off, and a column that does not stretch is as wide as the longest
-// line inside it — which would make every slide a different width. The
-// explicit width is what the auto margins then have something to centre.
-//
-// The running head is full width while the type in it lines up with the
-// reading under it, which is one declaration rather than two elements: the
-// padding is whatever it takes to reach the reading's own left edge — half
-// the leftover room, plus the column's forty — with a floor for the case
-// where there is no leftover room at all. So the hairline under it runs the
-// whole window and the type above it starts exactly where the prose does.
-//
-// The wrapper carries no background of its own. `hive.ui` already paints the
-// body in `--bg`, and one colour painted once is the whole of what this page
-// wants behind it.
-//
-// The focus ring is square because everything here is, and the offset keeps
-// it clear of the thing it is ringing.
+// The focus ring is ink, not amber: amber on this paper is under 3:1, and a
+// ring a keyboard user cannot see is not a ring.
 func shell(): Str {
 	return `html\{-webkit-text-size-adjust:100%}
-body\{font:16px/1.7 var(--f-sans);letter-spacing:-.003em;
-text-rendering:optimizeLegibility}
-::selection\{background:var(--ring);color:var(--fg)}
-:focus-visible\{outline:2px solid var(--brand);outline-offset:3px;border-radius:0}
-*\{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
-::-webkit-scrollbar\{width:10px;height:10px}
-::-webkit-scrollbar-thumb\{background:var(--line);
-border:3px solid transparent;background-clip:content-box}
-::-webkit-scrollbar-thumb:hover\{background:var(--muted);background-clip:content-box}
+body\{font:400 18px/1.62 var(--f-serif);font-optical-sizing:auto;
+font-kerning:normal;text-rendering:optimizeLegibility;background:var(--paper);color:var(--ink)}
+::selection\{background:color-mix(in srgb,var(--brand) 42%,transparent);color:var(--ink)}
+:focus-visible\{outline:2px solid var(--ink);outline-offset:3px}
+a\{text-underline-offset:.2em;text-decoration-thickness:1px}
+*\{scrollbar-width:thin;scrollbar-color:var(--muted) transparent}
 .h-root>.h-column\{min-height:100vh}
-.h-root>.h-column>.h-column\{width:100%;max-width:var(--measure);margin-inline:auto}
-.h-root>.h-column>.h-row:first-child\{
-padding:15px max(20px,calc((100% - var(--measure)) / 2 + 40px));
-border-bottom:1px solid var(--line)}
+main\{display:block;width:100%;max-width:var(--measure);margin:0 auto;
+padding:0 var(--gutter) 112px}
+.h-link\{color:var(--ink)}
+.h-link:hover\{text-decoration:underline;text-decoration-color:var(--brand);
+text-decoration-thickness:2px}
+h1.h-size-title\{font:600 clamp(40px,5vw,64px)/1.04 var(--f-serif);letter-spacing:-.022em;
+margin:0;text-wrap:balance}
+h2.h-size-subtitle\{font:600 clamp(28px,3vw,38px)/1.12 var(--f-serif);letter-spacing:-.016em;
+margin:0;text-wrap:balance}
+h2,h3\{margin:0}
+h3.h-text\{font:600 19px/1.35 var(--f-serif)}
+.h-size-caption\{font:500 14.5px/1.4 var(--f-serif);color:var(--muted)}
+.h-tone-muted\{color:var(--muted)}
+@media (prefers-reduced-motion:reduce)\{*\{transition:none !important}}
 `
 }
 
-// Side by side while there is room for both, and stacked the moment there is
-// not. Outside the front page — which stacks its own, in `home` — the only
-// thing on this site that is ever side by side is the contents' three
-// columns, and they are a `ui.row`, which is a row inline, in every viewport.
-// There is no attribute that says "a row until it is narrow".
+// The running head: the mark, the tour's name, the contents, the colour
+// scheme and the language, set in the text face at the size of a line of
+// prose. The language switch is two words with the reader's language
+// underlined in amber; it is marked with `ui.background(Tone.Muted())`, and
+// that class is what the underline hangs on.
 //
-// That is what the `!important`s are for, and it is the whole of what they
-// are for. `ui.row` and `ui.gap(52)` are attributes of a box, and `hive.ui`
-// renders an attribute as a `style` attribute — which no rule in a stylesheet
-// outranks, however late it is written. So the three properties a phone has
-// to take back have to be taken back by force. They sit only in here, and
-// only on those three.
-//
-// The running head wraps rather than being taken apart, because it is four
-// things in a line and a line too long for the window is a line that should
-// be two. `flex-wrap` is not something any attribute sets, so it costs
-// nothing to say here, and it is outside the media query because the right
-// width to wrap at is the width where it stops fitting.
-//
-// The contents is the exception to the thirty. Stacked, its three columns are
-// one list again, and a list with thirty pixels every eighteen entries reads
-// as three sections of something — which is a grouping the tour does not have
-// and the page never meant to claim. Two pixels is the gap the columns
-// themselves use, so stacking them puts the list back exactly as it would
-// have been written down the page in the first place. Which row is that one
-// is a question its contents answer: it is the row whose columns are made of
-// links, and `:has` is what asks.
-func responsive(): Str {
-	return `.h-root>.h-column>.h-row:first-child\{flex-wrap:wrap;row-gap:10px}
-@media (max-width:880px)\{
-	.h-root>.h-column>.h-column\{padding:26px 20px 52px !important}
-	.h-root>.h-column>.h-column>.h-row\{flex-direction:column !important;
-	gap:30px !important}
-	.h-root>.h-column>.h-column>.h-row:has(>.h-column>.h-link)\{gap:2px !important}
+// The scheme switch is two links, one to each scheme, and only the one that
+// is not on screen is shown — which is a question about the page's scheme,
+// so it is answered by the same two conditions the scheme itself is: the
+// reader's pick when there is one, and the system's preference when there is
+// not. Each wears a circle half filled with its own colour, drawn here rather
+// than borrowed from a font.
+func head(): Str {
+	return `.h-root>.h-column>.h-row:first-child\{align-items:center;gap:20px;
+padding:16px max(var(--gutter),calc((100% - var(--measure)) / 2 + var(--gutter)))}
+.h-root>.h-column>.h-row:first-child>.h-image\{width:30px;height:30px}
+.h-root>.h-column>.h-row:first-child>.h-link\{font:600 16.5px/1.3 var(--f-serif)}
+.h-root>.h-column>.h-row:first-child>.h-image+.h-link\{margin-left:-8px}
+.h-root>.h-column>.h-row:first-child>.h-row\{gap:14px}
+.h-root>.h-column>.h-row:first-child>.h-row>.h-link\{background:none;padding:2px 0;
+font:600 14.5px/1.2 var(--f-serif);letter-spacing:.04em;color:var(--muted);
+border-bottom:2px solid transparent}
+.h-root>.h-column>.h-row:first-child>.h-row>.h-link:hover\{color:var(--ink);text-decoration:none}
+.h-root>.h-column>.h-row:first-child>.h-row>.h-link.h-bg-muted\{color:var(--ink);
+border-bottom-color:var(--brand)}
+.h-root>.h-column>.h-row:first-child>a[href^="/theme/"]\{display:inline-flex;align-items:center;
+gap:8px;padding:2px 0;font:600 14.5px/1.2 var(--f-serif);color:var(--muted);text-decoration:none}
+.h-root>.h-column>.h-row:first-child>a[href^="/theme/"]:hover\{color:var(--ink);text-decoration:none}
+.h-root>.h-column>.h-row:first-child>a[href^="/theme/"]::before\{content:"";width:13px;height:13px;
+border:var(--rr) solid currentColor;border-radius:50%;
+background:linear-gradient(90deg,currentColor 50%,transparent 50%)}
+.h-root>.h-column>.h-row:first-child>a[href^="/theme/light"]\{display:none}
+:root[data-theme=dark] .h-root>.h-column>.h-row:first-child>a[href^="/theme/dark"]\{display:none}
+:root[data-theme=dark] .h-root>.h-column>.h-row:first-child>a[href^="/theme/light"]\{display:inline-flex}
+@media (prefers-color-scheme:dark)\{
+	:root:not([data-theme=light]) .h-root>.h-column>.h-row:first-child>a[href^="/theme/dark"]\{display:none}
+	:root:not([data-theme=light]) .h-root>.h-column>.h-row:first-child>a[href^="/theme/light"]\{display:inline-flex}
 }
 `
 }
 
-// The running head, the language switch, the bar of progress, the contents,
-// and the pager at the foot of a slide. All of it is navigation, and all of
-// it is the same argument: `hive.ui` renders a link as a link, which is the
-// right default and the wrong thing for a line of apparatus across the top of
-// a page — at that size and that count the blue stops being a signal and
-// becomes the decoration.
+// The one button on the site, and the links that sit beside it.
 //
-// So the head is set as a running head: small, monospace, upper case, tracked
-// out, in the page's own ink, earning the accent by being hovered. Four items
-// with a `ui.spacer` between the second and the third, and the spacer needs
-// no rule at all — `flex:1 1 auto` is what the widget already renders as, and
-// it is exactly right.
+// `hive.ui` renders `ui.link([ui.background(Tone.Good())], ...)` as an anchor
+// carrying both `h-link` and `h-bg-good`, and its own stylesheet colours
+// each of them, so the call that plainly means "this is the button" comes
+// out as one colour of text on another of field. One rule naming both classes
+// settles it: amber, with ink on it, rounded at the ends, and inked in under
+// the pointer — the one movement on the page, and a change of colour rather
+// than of position.
 //
-// The progress bar is two boxes in a row and the ratio between them, so all
-// this has to say is what the filled half is painted in. `h-bg-good` is the
-// class `ui.background(Tone.Good())` renders as, and `hive.ui`'s own
-// stylesheet paints it green; the tour paints it amber, in the one place that
-// class lands on a box rather than on the button. The empty half is left
-// alone, because the hairline under the head is already the track, and a
-// second one drawn over it would only be darker in places.
-//
-// The contents is set as the index of a book, which is what it is. Monospace,
-// so the numbers down the left edge line up into a column of their own; and a
-// hanging indent of exactly four characters, so a title long enough to wrap
-// comes back underneath the title rather than underneath the number. Four is
-// not a guess — main.hive pads the number to two digits precisely so that
-// every entry reads `NN. ` and every one of them is four characters wide. The
-// two files have to agree about that, and the comment in each of them says so.
-//
-// The language switch used to be a bordered pill with the current half filled
-// in, which is a segmented control, which is a widget out of an application
-// and not a thing the page of a book contains. Now it is two words with a
-// rule under the one you are reading in. It is marked with
-// `ui.background(Tone.Muted())` and that class is what the rule hangs on, so
-// the view still describes the state and this file still decides what the
-// state looks like. The `background:none` is not tidiness: the half that is
-// *not* current is `Tone.Normal()`, which `hive.ui` renders as
-// `background:var(--bg)`, and a fill of the page's own colour is a fill that
-// shows up the moment what is under it is not the page.
-func navigation(): Str {
-	return `.h-root>.h-column>.h-row:first-child>.h-link\{
-background:none;color:var(--fg);font:600 11px/1.4 var(--f-mono);
-letter-spacing:.16em;text-transform:uppercase;transition:color .12s ease}
-.h-root>.h-column>.h-row:first-child>.h-link:hover\{
-color:var(--accent);text-decoration:none}
-.h-root>.h-column>.h-row:first-child>.h-row\{gap:14px !important}
-.h-root>.h-column>.h-row:first-child>.h-row>.h-link\{
-padding:0 0 3px;background:none;font:700 11px/1 var(--f-mono);
-letter-spacing:.14em;color:var(--muted);
-border-bottom:1px solid transparent}
-.h-root>.h-column>.h-row:first-child>.h-row>.h-link:hover\{
-color:var(--accent);text-decoration:none}
-.h-root>.h-column>.h-row:first-child>.h-row>.h-link.h-bg-muted\{
-background:none;color:var(--fg);border-bottom-color:var(--brand)}
-.h-root>.h-column>.h-row:nth-child(2)\{margin-top:-1px}
-.h-root>.h-column>.h-row>.h-column.h-bg-good\{background:var(--brand)}
-.h-root>.h-column>.h-column>.h-row>.h-column>.h-link\{
-display:block;background:none;color:var(--fg);
-font:12.5px/1.55 var(--f-mono);letter-spacing:-.01em;
-padding:3px 6px 3px calc(6px + 4ch);text-indent:-4ch;
-transition:color .12s ease,background .12s ease}
-.h-root>.h-column>.h-column>.h-row>.h-column>.h-link:hover\{
-background:var(--surface);color:var(--accent);text-decoration:none}
-.tour-prose>.h-column>.h-row:last-child\{
-margin-top:16px;padding-top:18px;border-top:1px solid var(--line)}
-.tour-prose>.h-column>.h-row:last-child .h-link,
-.tour-prose>.h-column>.h-row:last-child .h-text\{
-font:600 12px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
-.tour-prose>.h-column>.h-row:last-child .h-text\{color:var(--muted)}
+// A row of ways in — the button and plain links beside it — wraps rather than
+// squeezing, and the plain links are underlined in the page's hairline until
+// the pointer reaches them.
+func buttons(): Str {
+	return `.h-link.h-bg-good\{display:inline-flex;align-items:center;min-height:50px;
+padding:0 28px;border-radius:999px;background:var(--brand);color:var(--brand-ink);
+font:600 17px/1.2 var(--f-serif);text-decoration:none;
+transition:background-color .16s cubic-bezier(.16,1,.3,1),color .16s cubic-bezier(.16,1,.3,1)}
+.h-link.h-bg-good:hover,.h-link.h-bg-good:focus-visible\{background:var(--ink);
+color:var(--brand-hover);text-decoration:none}
+main .h-row:has(>.h-link.h-bg-good)\{flex-wrap:wrap;align-items:center;gap:14px 26px}
+main .h-row:has(>.h-link.h-bg-good)>.h-link:not(.h-bg-good)\{font:600 16.5px/1.3 var(--f-serif);
+text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:2px}
+main .h-row:has(>.h-link.h-bg-good)>.h-link:not(.h-bg-good):hover\{text-decoration-color:var(--brand)}
+main .h-column:has(>.h-row>.h-link.h-bg-good)\{gap:16px;align-items:flex-start}
+main .h-column:has(>.h-row>.h-link.h-bg-good)>.h-row:last-child\{flex-wrap:wrap;gap:6px 24px}
+main .h-column:has(>.h-row>.h-link.h-bg-good)>.h-row:last-child>.h-link\{
+font:500 15.5px/1.4 var(--f-serif);color:var(--soft);text-decoration:underline;
+text-decoration-color:var(--line);text-decoration-thickness:2px}
+main .h-column:has(>.h-row>.h-link.h-bg-good)>.h-row:last-child>.h-link:hover\{color:var(--ink);
+text-decoration-color:var(--brand)}
+.anchor\{position:absolute;scroll-margin-top:28px}
+@media (prefers-reduced-motion:no-preference)\{html\{scroll-behavior:smooth}}
 `
 }
 
-// The reading: the headings, the paragraphs, the list of what the language
-// is, and the one button on the site.
-//
-// The headings are monospace, and that is the single decision this file turns
-// on. A title set in the same face as the code beneath it is a page that has
-// admitted what it is about; the same title in the system sans is a page that
-// could be selling anything. The front page takes it furthest — the name of
-// the language at sixty-odd pixels, tracked in tight, beside the mark — and
-// every page after it carries the smaller version of the same idea, over a
-// rule, under a line saying which slide of the tour this is.
-//
-// The front page's title is told apart from every other title by where it
-// sits rather than by a class of its own. `.h-image + .h-column > h1` is a
-// drawing with a heading beside it, and the only place on the site where that
-// is true is the masthead — a slide's screenshot is inside a column with its
-// caption under it, never beside a heading. So the view says "a picture and a
-// title in a row", the stylesheet reads that back, and neither of them has to
-// carry a name for the front page.
-//
-// The claims on the front page used to be check marks, which is the bullet
-// every landing page has used for fifteen years. They are hexagons now: the
-// same `ui.icon` view, the same tick inside it, in a tile clipped to the
-// shape of the mark. The front page's lists of claims are the only place the
-// shape appears at all, now that the background is a plain one — in amber
-// against what Hive is for, and in the page's own quiet greys against what it
-// is not for yet, which is the same mark saying the opposite thing.
-//
-// The button is the rule this whole file was worth writing for. `hive.ui`
-// renders `ui.link([ui.background(Tone.Good())], ...)` as an anchor carrying
-// both `h-link` and `h-bg-good`, and its own stylesheet sets a colour in each
-// of them — the green fill in one, the accent text in the other — with the
-// link rule written second. So the two disagree, the later one wins, and the
-// call that plainly means "this is the button" comes out as blue text on a
-// green field with no padding at all. One rule naming both classes at once
-// settles it.
-//
-// What it settles into is amber under the page's own ink, square, with no
-// shadow and nothing that moves. It used to rise a pixel and grow a soft
-// shadow on hover, which is the gesture every button on the web makes and
-// which says only that the cursor is where the cursor plainly is. This one
-// inverts instead — ink where the amber was, amber where the ink was — which
-// is a thing ink on paper can actually do, and which is unmistakable at a
-// glance rather than a pixel of parallax you have to be looking for.
+// The reading: the prose a slide explains itself in, and the paragraphs of
+// the front page, with the little markup they carry — a name set as code,
+// a word in bold, a list. A line stops at sixty-six characters, which is
+// where a line of a book stops.
 func prose(): Str {
-	return `h1.h-size-title\{font:700 33px/1.15 var(--f-mono);
-letter-spacing:-.035em;margin:0}
-.h-root>.h-column>.h-column>.h-column:first-child\{
-padding-bottom:18px;border-bottom:1px solid var(--rule)}
-.h-image+.h-column>h1.h-size-title\{
-font-size:clamp(40px,7vw,58px);line-height:1;letter-spacing:-.045em}
-.h-image+.h-column>.h-size-caption\{color:var(--accent)}
-.h-size-subtitle\{letter-spacing:-.012em}
-.h-size-caption\{font:600 11px/1.4 var(--f-mono);letter-spacing:.16em;
-text-transform:uppercase}
-.h-column>.h-text\{max-width:66ch}
-.h-link\{transition:color .12s ease}
-
-/* The claims on the front page: the tick ui.icon writes, in a hexagon. The
-   view asks for an icon and a tone and gets both — nothing here is spliced,
-   and taking this one rule out puts the plain check mark back. A CSS comment
-   inside a raw string is one of the few places on this page that cannot spell
-   a name in backticks, because a backtick is what ends the string. */
-.h-icon.h-tone-good,.h-icon.h-tone-muted\{display:inline-grid;place-items:center;
-width:20px;height:22px;flex:0 0 auto;margin-top:1px;font-size:11px;line-height:1;
-background:var(--brand);color:var(--brand-ink);
-clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
-.h-icon.h-tone-muted\{background:var(--line);color:var(--fg)}
-.h-image\{filter:none}
-
-/* A slide's screenshot. It is a picture of a window, so it is given the edge
-   a window has — the same hairline the code samples carry, since both are the
-   same kind of thing on the page: a figure holding something the prose is
-   talking about rather than saying. Which is also why the amber rule came off
-   this at the same time it came off those: the whole point of the two being
-   dressed alike is that they go on being dressed alike. Square, flush, and no
-   shadow, because nothing on this page floats. */
-.h-root>.h-column>.h-column .h-column>.h-image\{
-width:100%;height:auto;border:1px solid var(--code-line);
-background:var(--code)}
-.h-link.h-bg-good\{
-display:inline-block;background:var(--brand);color:var(--brand-ink);
-font:700 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;
-padding:13px 20px;border:1px solid var(--brand);
-transition:background .13s ease,color .13s ease,border-color .13s ease}
-.h-link.h-bg-good:hover\{
-background:var(--invert);color:var(--brand);border-color:var(--invert);
-text-decoration:none}
-.h-link.h-bg-good:active\{
-background:var(--accent);color:var(--bg);border-color:var(--accent)}
+	return `.tour-text\{display:flex;flex-direction:column;gap:18px}
+.tour-text p,.tour-text ul\{margin:0;max-width:66ch}
+.tour-text ul\{padding-left:1.2em;display:flex;flex-direction:column;gap:8px}
+.tour-text li::marker\{color:var(--muted)}
+.tour-text strong\{font-weight:650}
+.tour-text code\{font-family:var(--f-mono);font-size:.84em;font-variant-ligatures:none;
+padding:.06em .15em;background:var(--wash);overflow-wrap:anywhere}
 `
 }
 
-// The code samples and the prose around them, the parts of the page that
-// are not views and never could be: `hive.ui` has no monospaced, boxed text, so main.hive
-// writes the `<pre>` by hand. What it writes carries a class and no style
-// attribute, and the style is here — which is the whole reason the class
-// exists, since a `style=` written inline in the middle of a Str is a thing
-// nobody can find again later.
-//
-// A sample is a figure, and it is set the way a book sets one: a label above
-// it in small tracked capitals, and a panel flush with the text below it. A
-// hairline and nothing else — no radius, no shadow, and no rule down the left
-// edge. There was an amber one there for a while, on the reasoning that a
-// panel this cold in the middle of a page this warm wanted something of the
-// page's colour touching it. It did not: the sample already announces itself
-// twice over, by its fill and by every token inside it, and a third mark on
-// the edge was the page pointing at something that was not hiding. The panel
-// scrolls sideways on its own rather than widening the column, because a long
-// line in one example is not a reason for every paragraph on the page to get
-// longer.
+// A program: a panel a shade off the paper, flush with the page, with a
+// caption above it in the serif italic, which is how a book captions a
+// figure. The panel scrolls sideways on its own rather than widening the
+// column, because one long line in one example is not a reason for every
+// paragraph on the page to get longer.
 func code(): Str {
-	return `.tour-example\{margin:0 0 26px}
+	return `.tour-example\{margin:0 0 28px;min-width:0}
 .tour-example:last-child\{margin-bottom:0}
-.tour-caption\{margin:0 0 8px;font:600 11px/1.4 var(--f-mono);
-letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.tour-code\{margin:0;padding:16px 18px;overflow-x:auto;tab-size:4;
-background:var(--code);border:1px solid var(--code-line)}
-.tour-code code\{font:13.5px/1.65 var(--f-mono);font-variant-ligatures:none;
-letter-spacing:0;color:var(--fg)}
-.tour-prose\{display:flex;flex-direction:column}
-.tour-text\{display:flex;flex-direction:column;gap:16px;margin:0 0 16px}
-.tour-text p,.tour-text ul\{margin:0;max-width:66ch}
-.tour-text ul\{padding-left:1.25em;display:flex;flex-direction:column;gap:8px}
-.tour-text li::marker\{color:var(--brand)}
-.tour-text strong\{font-weight:650}
-.tour-text code\{font-family:var(--f-mono);font-size:.86em;
-font-variant-ligatures:none;padding:.08em .32em;
-background:var(--code);border:1px solid var(--code-line);overflow-wrap:anywhere}
+.tour-caption\{margin:0 0 10px;font:italic 400 16px/1.4 var(--f-serif);color:var(--soft)}
+.tour-code\{margin:0;padding:20px 24px;overflow-x:auto;tab-size:4;font-size:14px;line-height:1.62;
+background:linear-gradient(to right,var(--code) 40%,transparent) left / 32px 100% no-repeat local,
+linear-gradient(to left,var(--code) 40%,transparent) right / 32px 100% no-repeat local,
+linear-gradient(to right,color-mix(in srgb,var(--ink) 16%,transparent),transparent) left / 12px 100% no-repeat scroll,
+linear-gradient(to left,color-mix(in srgb,var(--ink) 16%,transparent),transparent) right / 12px 100% no-repeat scroll,
+var(--code)}
+.tour-code code\{font:400 14px/1.62 var(--f-mono);font-variant-ligatures:none;
+letter-spacing:0;color:var(--ink)}
 `
 }
 
 // What ./highlight's spans look like. Every rule is scoped under `.tour-code`,
 // so a one-letter class name can never reach anything but a code sample.
 //
-// Every one of them is cold, and that is the point of them. The page around
-// the samples is amber and warm greys all the way down — it is a site about a
-// bee — and a code theme in the same family would have the samples melting
-// into the paper they sit on. So the panel turns a few degrees blue, and
-// everything written on it is violet, teal, green, mauve and azure: nothing
-// on this list shares a hue with anything outside the box it is in. The
-// contrast is what says *this is not prose, this is a program* before a word
-// of it has been read, and it does that work at a glance and from across the
-// room — which matters more now than it did, because the headings are
-// monospace too, and the face is no longer the thing telling them apart.
-//
-// Five hues and a grey, which is fewer than a code theme usually spends, and
-// the grouping is by what a thing *is* rather than by what it is called. An
-// escape and an interpolation share a colour because they are the same idea
-// twice — a hole in a string where something that is not text goes — and
-// seeing them as one thing is more use than telling them apart. A builtin and
-// a call share one because both are something being called; the builtin
-// carries the weight, because it is the one a reader may not recognise.
-//
-// The comment is the only rule that takes light from the page rather than
-// adding to it. A comment in these samples is not an aside — half the tour's
-// explanation lives in them — so it recedes rather than disappears, and it is
-// the one token deliberately kept above the contrast a body of grey text
-// would need.
+// The words of the language are in bold, as the ALGOL report printed them;
+// the comments are in the serif italic, because they are prose; strings and
+// literal values each have a quiet colour of their own, because where text
+// starts and stops and where a literal value sits are the two things a
+// reader most needs to see at a glance. Names, types and calls stay in ink.
 func syntax(): Str {
-	return `.tour-code .c\{color:var(--sy-comment)}
-.tour-code .p\{color:var(--sy-punct)}
-.tour-code .k\{color:var(--sy-keyword)}
-.tour-code .t\{color:var(--sy-type)}
+	return `.tour-code .k,.tour-code .b\{font-weight:700}
 .tour-code .s\{color:var(--sy-string)}
-.tour-code .n\{color:var(--sy-hole)}
-.tour-code .a\{color:var(--sy-hole)}
-.tour-code .e\{color:var(--sy-hole)}
-.tour-code .i\{color:var(--sy-hole)}
-.tour-code .f\{color:var(--sy-name)}
-.tour-code .b\{color:var(--sy-name);font-weight:600}
+.tour-code .e,.tour-code .i,.tour-code .n,.tour-code .a\{color:var(--sy-literal)}
+.tour-code .c\{font-family:var(--f-serif);font-style:italic;font-size:1.08em;
+color:var(--sy-comment)}
+.tour-code .p\{color:var(--soft)}
 `
 }
 
-// The front page, which is the one page long enough to need a shape of its
-// own. main.hive renders it inside one wrapper, `.tour-home`, and every rule
-// here hangs from that, so nothing in this function can reach a slide.
+// The fold a slide's drawn rules sit behind: one line, closed, a chevron of
+// the line's own weight and the word "Grammar" with the rules' names after it
+// in the italic, which is how a rule is named everywhere on the site. It
+// opens without a script, being HTML's own `<details>`, and the chevron turns
+// to say so.
 //
-// It is a book's front matter rather than a landing page. Each part of it is
-// separated from the next by a hairline and a good deal of paper, never by a
-// band of colour or a card; each opens on a heading in the monospace, the way
-// a slide does; and the numbered points carry their number as a running
-// label in small tracked capitals, so the page reads as chapters of one
-// argument rather than as a stack of unrelated panels.
+// A drawn rule: its name in the italic, the link to the spec beside it, the
+// diagram, and the EBNF it was drawn from under it in the monospace.
 //
-// The lede is the one piece of large type set in the sans. It is a sentence
-// rather than a title — what the language is, said once and plainly — and a
-// sentence at that size in the monospace reads as a line of code somebody
-// forgot to put in a box.
+// The diagram keeps its own size and scrolls sideways inside the figure when
+// the page is narrower, rather than shrinking: ./rail draws it so that one of
+// its units is one pixel, and a rule shrunk to fit a phone is a rule whose
+// words are too small to read.
 //
-// The three lists set beside the prose instead of a program — the platforms,
-// what is in the standard library, and the commands — are set as a book sets
-// a table: a rule above and below each line and nothing else, the name or the
-// command in the monospace in the accent, and the words that go with it in
-// the text face. A line of a table is a row with a text marked `Tone.Good` in
-// it, which is how main.hive marks one and the only place on the page where
-// that is true; whichever side it is on, the left column is one width, so the
-// right one lines up. On a phone the platforms stack, the platform over its
-// command, because a command broken across two lines is harder to read than
-// one that has the whole width to itself.
-//
-// The links into the tour under each point are small monospace with a
-// hairline under them, which is what a cross-reference looks like in print,
-// rather than the accent the prose links carry: there are a dozen of them,
-// and a dozen amber links down the left of the page would outshout the
-// headings they sit under.
-//
-// Narrow, every part stacks — the prose over its program, the fit over the
-// caveats, the claims one per line — and the space between parts shrinks
-// with the screen. The `!important`s are there for the reason the ones in
-// `responsive` are: a row's direction, gap and alignment are attributes,
-// rendered as a `style` no stylesheet rule outranks without them.
-//
-// It happens at two widths rather than one. The parts with a program beside
-// the prose go first, at 1020: below that, seven twelfths of the page is
-// narrower than the sixty-four columns the samples are written to, and a
-// sample scrolled sideways next to prose with room to spare is the wrong way
-// round. The reasons and the fit are only short lines of text, and keep their
-// columns down to the 880 the rest of the site stacks at.
-//
-// Stacked, the columns are stretched to the width of the page. Left at the
-// `align(Start)` the row gave them, a column holding a sample is as wide as
-// the sample's longest line — and that pushes the whole page sideways on a
-// phone, where it is the panel alone that should scroll.
-func home(): Str {
-	return `.tour-home>.h-column>*+*\{margin-top:76px;padding-top:68px;
-border-top:1px solid var(--line)}
-.tour-home .h-row>.h-column\{min-width:0}
-.tour-home .h-size-subtitle:not(h2)\{font:400 21px/1.5 var(--f-sans);
-letter-spacing:-.014em;color:var(--fg)}
-.tour-home h2.h-size-subtitle\{font:700 28px/1.2 var(--f-mono);
-letter-spacing:-.035em;margin:0;max-width:24ch}
-.tour-home h3\{font:700 14.5px/1.45 var(--f-mono);letter-spacing:-.01em;margin:0}
-.tour-home h3+.h-text\{font-size:15px;line-height:1.6}
-.tour-home .h-size-caption.h-tone-good\{color:var(--accent)}
-.tour-home .h-column>.h-link\{align-self:flex-start;color:var(--fg);
-font:600 12.5px/1.5 var(--f-mono);letter-spacing:-.005em;
-border-bottom:1px solid var(--line);transition:color .12s ease,border-color .12s ease}
-.tour-home .h-column>.h-link:hover\{color:var(--accent);
-border-bottom-color:var(--brand);text-decoration:none}
-.tour-home .h-column>.h-size-caption+.h-link\{margin-top:2px}
-.tour-home .h-row:has(>.h-text.h-tone-good)\{align-items:baseline !important;
-padding:10px 0;border-top:1px solid var(--line)}
-.tour-home .h-row:has(>.h-text.h-tone-good):last-child\{
-border-bottom:1px solid var(--line)}
-.tour-home .h-row:has(>.h-text.h-tone-good)>.h-text:first-child\{flex:0 0 9em}
-.tour-home .h-row>.h-text.h-tone-good\{font:600 13px/1.6 var(--f-mono);color:var(--accent)}
-.tour-home .h-row:has(>.h-text.h-tone-good)>.h-text:not(.h-tone-good)\{
-font-size:15px;line-height:1.55}
-.tour-home .h-row:has(>.h-text+.h-text.h-tone-good)>.h-text:first-child\{
-flex-basis:7em;font-weight:600}
-.tour-home .h-column>.h-size-caption:has(+.h-row>.h-text.h-tone-good)\{margin-bottom:10px}
-.tour-home .h-row:has(>.h-link)\{flex-wrap:wrap;row-gap:12px}
-.tour-home>.h-column>.h-column:last-child\{text-align:center}
-.tour-home>.h-column>.h-column:last-child>h2\{max-width:none;
-font-size:clamp(26px,3.4vw,34px)}
-.tour-home>.h-column>.h-column:last-child>.h-text\{margin-inline:auto}
-.tour-home>.h-column>.h-column:last-child .h-row\{justify-content:center}
-.tour-home>.h-column>.h-column:last-child\{padding-bottom:24px}
-@media (max-width:1020px)\{
-	.tour-home>.h-column>.h-row\{flex-direction:column !important;
-	align-items:stretch !important;gap:28px !important}
+// The words on the canvas are told apart by the tone ./rail paints them: a
+// terminal is `currentColor` and is set in the monospace; a name is painted
+// `var(--muted)`, which is only a label, and is set in the italic in ink.
+func rules(): Str {
+	return `.tour-grammar\{margin-top:-8px}
+.tour-grammar>summary\{display:inline-flex;align-items:baseline;gap:10px;padding:6px 0;cursor:pointer;
+list-style:none;font:600 16px/1.4 var(--f-serif);color:var(--soft)}
+.tour-grammar>summary::-webkit-details-marker\{display:none}
+.tour-grammar>summary::before\{content:"";align-self:center;flex:none;width:7px;height:7px;margin:0 2px 0 1px;
+border-top:var(--rr) solid currentColor;border-right:var(--rr) solid currentColor;transform:rotate(45deg);
+transition:transform .16s cubic-bezier(.16,1,.3,1)}
+.tour-grammar[open]>summary::before\{transform:rotate(135deg)}
+.tour-grammar>summary>span\{font:italic 500 16px/1.4 var(--f-serif);color:var(--muted)}
+.tour-grammar>summary:hover\{color:var(--ink)}
+.tour-grammar>summary:hover>span\{color:var(--soft)}
+.tour-grammar>.tour-rules\{margin-top:20px}
+.tour-rules\{display:flex;flex-wrap:wrap;gap:36px 72px;align-items:flex-start}
+figure.rr\{margin:0;min-width:0;max-width:100%}
+figure.rr>.h-column\{gap:8px}
+figure.rr>.h-column>.h-row:first-child\{align-items:baseline;gap:20px}
+figure.rr>.h-column>.h-row:first-child>.h-text\{font:italic 600 18px/1.3 var(--f-serif)}
+figure.rr>.h-column>.h-row:first-child>.h-link\{font:500 14px/1.3 var(--f-serif);
+color:var(--muted);text-decoration:underline;text-decoration-color:var(--line)}
+figure.rr>.h-column>.h-row:first-child>.h-link:hover\{color:var(--ink);text-decoration-color:var(--brand)}
+figure.rr>.h-column>.h-row:nth-child(2)\{overflow-x:auto;padding:2px 0 6px;
+background:linear-gradient(to right,var(--paper) 40%,transparent) left / 32px 100% no-repeat local,
+linear-gradient(to left,var(--paper) 40%,transparent) right / 32px 100% no-repeat local,
+linear-gradient(to right,color-mix(in srgb,var(--ink) 18%,transparent),transparent) left / 12px 100% no-repeat scroll,
+linear-gradient(to left,color-mix(in srgb,var(--ink) 18%,transparent),transparent) right / 12px 100% no-repeat scroll}
+figure.rr .h-canvas\{margin-right:16px}
+figure.rr .h-canvas\{flex:none;max-width:none;color:var(--ink)}
+figure.rr .h-canvas text\{font:400 15px var(--f-mono);fill:currentColor}
+figure.rr .h-canvas text[fill="var(--muted)"]\{font-family:var(--f-serif);font-style:italic}
+figure.rr>.h-column>.h-text:nth-child(3)\{font:400 13.5px/1.55 var(--f-mono);color:var(--muted);
+max-width:76ch}
+figure.rr>.h-column>.h-text:nth-child(4)\{font:italic 400 14.5px/1.45 var(--f-serif);color:var(--muted)}
+`
 }
-@media (max-width:880px)\{
+
+// The tour's line, at the top of every slide: ./rail draws it a thousand units
+// wide, and this stretches it across the page. Under it, which chapter this
+// is and how far along.
+func track(): Str {
+	return `.tour-slide>.h-column:first-child\{gap:6px;padding-top:8px}
+.tour-slide>.h-column:first-child>.h-canvas\{width:100%;height:auto;color:var(--ink)}
+.tour-slide>.h-column:first-child>.h-row>.h-text\{font-variant-numeric:lining-nums tabular-nums}
+`
+}
+
+// A slide, top to bottom: the line of the tour; the slide's tile in its
+// chapter's colour, beside the title; its rules, folded; then the explanation and
+// the programs side by side; and at the foot, the slides either side.
+//
+// The tile is the chart's own, larger: the number, the piece of the language
+// it is about, and the chapter's name. It is the one place on a slide that
+// carries colour, and it is what makes the ninth chapter look like a
+// different part of the language from the first.
+//
+// The two columns are the explanation and the examples. The examples' column
+// is sized for a program of about eighty columns — the width most of the
+// tour's programs are written to — and the explanation takes what is left,
+// because a program is the one thing on the page that cannot wrap. A slide
+// marked wide — its programs are wider than that — stacks them instead, the
+// text first and the programs at the full width of the page.
+//
+// The foot is two links either side of a stretch of line with the reader's
+// station on it in amber. Which way each goes is drawn with a chevron of the
+// line's own weight, rather than an arrow character, so it is the same mark
+// at every size and in every face.
+func slide(): Str {
+	return `.tour-slide\{display:flex;flex-direction:column;gap:30px}
+.tour-head>.h-row\{align-items:center;gap:32px;margin-top:22px}
+.tour-head .h-row>.h-column\{flex:none;position:relative;width:136px;height:136px;
+padding:12px 14px;justify-content:space-between;background:var(--fc)}
+.tour-head .h-row>.h-column>.h-text:first-child\{font:500 14px/1 var(--f-mono)}
+.tour-head .h-row>.h-column>.h-text:nth-child(2)\{font:600 32px/1 var(--f-mono);
+letter-spacing:-.02em;white-space:nowrap;overflow:hidden}
+.tour-head .h-row>.h-column>.h-text.h-size-caption:nth-child(2)\{font-size:22px;color:var(--ink)}
+.tour-head .h-row>.h-column>.h-text:last-child\{font:500 13px/1.25 var(--f-serif);color:var(--soft)}
+.tour-slide>.h-row:has(.tour-text)\{gap:56px;align-items:flex-start;margin-top:6px}
+.tour-slide>.h-row:has(.tour-text)>.h-column:first-child\{flex:1 1 0;min-width:340px;gap:28px}
+.tour-slide>.h-row:has(.tour-text)>.h-column:last-child\{flex:0 1 700px;min-width:0;gap:28px}
+.tour-slide .tour-code,.tour-slide .tour-code code\{font-size:13.5px}
+.tour-wide>.h-row:has(.tour-text)\{flex-direction:column !important;gap:44px}
+.tour-wide>.h-row:has(.tour-text)>.h-column\{flex:none !important;width:100%;min-width:0}
+.tour-slide .h-column>.h-column>.h-image\{width:100%;height:auto}
+.tour-slide .h-column>.h-column>.h-image+.h-text\{margin-top:8px;font-style:italic}
+.tour-slide>.h-row:has(.tour-text) .h-column>.h-row\{flex-wrap:wrap;gap:12px}
+.tour-slide>.h-row:has(.tour-text) .h-column>.h-row>.h-link\{display:inline-flex;align-items:center;
+min-height:44px;padding:6px 20px;border:var(--rr) solid var(--ink);border-radius:999px;
+font:600 16px/1.25 var(--f-serif);text-decoration:none;
+transition:background-color .16s cubic-bezier(.16,1,.3,1),color .16s cubic-bezier(.16,1,.3,1)}
+.tour-slide>.h-row:has(.tour-text) .h-column>.h-row>.h-link:hover,
+.tour-slide>.h-row:has(.tour-text) .h-column>.h-row>.h-link:focus-visible\{
+background-color:var(--ink);color:var(--paper);text-decoration:none}
+.tour-slide>.h-row:has(.tour-text) .h-column>.h-row>.h-link+.h-link\{min-height:0;padding:0;border:0;
+border-radius:0;font:600 16px/1.3 var(--f-serif);text-decoration:underline;
+text-decoration-color:var(--line);text-decoration-thickness:2px}
+.tour-slide>.h-row:has(.tour-text) .h-column>.h-row>.h-link+.h-link:hover\{background:none;color:var(--ink);
+text-decoration-color:var(--brand)}
+.tour-slide>.h-row:last-child\{align-items:center;margin-top:44px}
+.tour-slide>.h-row:last-child>.h-spacer\{position:relative;height:0;min-width:40px;
+border-top:var(--rr) solid var(--ink);margin:0 -2px}
+.tour-slide>.h-row:last-child>.h-spacer::after\{content:"";position:absolute;
+left:calc(50% - 8px);top:-9px;width:16px;height:16px;border-radius:50%;
+background:var(--brand);box-shadow:0 0 0 var(--rr) var(--ink)}
+.tour-slide>.h-row:last-child>.h-link\{display:inline-flex;align-items:center;gap:12px;
+min-height:46px;padding:6px 20px;border:var(--rr) solid var(--ink);border-radius:999px;
+background-color:var(--paper);color:var(--ink);font:600 16px/1.25 var(--f-serif);
+text-decoration:none;transition:background-color .16s cubic-bezier(.16,1,.3,1),color .16s cubic-bezier(.16,1,.3,1)}
+.tour-slide>.h-row:last-child>.h-link::before,.tour-slide>.h-row:last-child>.h-link::after\{
+content:"";flex:none;width:8px;height:8px;border-top:var(--rr) solid currentColor;
+border-right:var(--rr) solid currentColor}
+.tour-slide>.h-row:last-child>.h-link:first-child::before\{transform:rotate(-135deg);margin-left:4px}
+.tour-slide>.h-row:last-child>.h-link:first-child::after,
+.tour-slide>.h-row:last-child>.h-link:last-child::before\{display:none}
+.tour-slide>.h-row:last-child>.h-link:last-child::after\{transform:rotate(45deg);margin-right:4px}
+.tour-slide>.h-row:last-child>.h-link:visited\{background-color:var(--wash)}
+.tour-slide>.h-row:last-child>.h-link:hover,.tour-slide>.h-row:last-child>.h-link:focus-visible\{
+background-color:var(--ink);color:var(--paper);text-decoration:none}
+`
+}
+
+// The front page.
+//
+// The top is a language's home page: the mark and the name, the sentence that
+// says what it is, the paragraph that says it at length, the one button and
+// the plain links beside it, and a whole program at the right.
+//
+// Sections after that are separated by paper and nothing else, each opening
+// on a heading in the serif. The tables beside the points are data and get
+// the one hairline in this file — a rule between rows, which is what a table
+// is.
+func home(): Str {
+	return `.tour-home\{padding-top:36px}
+.tour-home>.h-column\{gap:128px}
+.tour-home>.h-column>.h-row:first-child\{gap:64px;align-items:flex-start}
+.tour-home>.h-column>.h-row:first-child>.h-column:first-child\{flex:5 1 0;min-width:0;gap:24px}
+.tour-home>.h-column>.h-row:first-child>.h-column:last-child\{flex:7 1 0;min-width:0;padding-top:8px}
+.tour-home>.h-column>.h-row:first-child>.h-column>.h-row:first-child\{align-items:center;gap:16px;
+margin-bottom:4px}
+.tour-home>.h-column>.h-row:first-child .h-image\{width:84px;height:84px;flex:none}
+.tour-home>.h-column>.h-row:first-child h1.h-size-title\{font-size:clamp(64px,8vw,104px);
+line-height:.9;letter-spacing:-.035em;padding-bottom:8px}
+.tour-home .h-size-subtitle:not(h2)\{font:500 27px/1.32 var(--f-serif);letter-spacing:-.012em;
+color:var(--ink);max-width:26ch;text-wrap:pretty}
+.tour-home>.h-column>.h-row:first-child>.h-column:first-child>.h-text:not(.h-size-subtitle)\{
+color:var(--soft);max-width:58ch}
+.tour-home>.h-column>.h-row:first-child .h-column:has(>.h-row>.h-link.h-bg-good)\{margin-top:10px}
+.tour-home>.h-column>.h-column\{gap:40px}
+.tour-home>.h-column>.h-column>.h-row\{gap:56px;align-items:flex-start}
+.tour-home>.h-column>.h-column>.h-row>.h-row,
+.tour-home>.h-column>.h-column>.h-row>.h-column\{flex:1 1 0;min-width:0}
+.tour-home>.h-column>.h-column:nth-child(2)>.h-column\{max-width:980px}
+.tour-home>.h-column>.h-column:nth-child(2)>.h-column>.h-row\{align-items:baseline;gap:32px;
+padding:14px 0;border-top:1px solid var(--line)}
+.tour-home>.h-column>.h-column:nth-child(2)>.h-column>.h-row:last-child\{border-bottom:1px solid var(--line)}
+.tour-home>.h-column>.h-column:nth-child(2)>.h-column>.h-row>.h-link\{flex:0 0 17em;
+font:600 19px/1.35 var(--f-serif);text-decoration:underline;text-decoration-color:var(--line);
+text-decoration-thickness:2px}
+.tour-home>.h-column>.h-column:nth-child(2)>.h-column>.h-row>.h-link:hover\{text-decoration-color:var(--brand)}
+.tour-home>.h-column>.h-column:nth-child(2)>.h-column>.h-row>.h-text\{flex:1 1 auto;font-size:17px;line-height:1.55}
+.tour-home .h-row:has(>.h-icon)\{gap:16px;align-items:flex-start}
+.tour-home .h-row:has(>.h-icon)>.h-column\{gap:6px}
+.tour-home .h-row:has(>.h-icon)>.h-column>.h-text:not(h3)\{font-size:17px;line-height:1.55}
+.tour-home .h-icon\{flex:none;width:12px;height:12px;margin-top:.55em;font-size:0;
+border:var(--rr) solid var(--ink);border-radius:50%;background:var(--ink)}
+.tour-home .h-icon.h-tone-muted\{background:var(--paper)}
+.tour-home>.h-column>.h-column>.h-row>.h-column\{gap:22px}
+.tour-home>.h-column>.h-column>.h-row>.h-column>h3.h-tone-muted\{font:italic 600 18px/1.3 var(--f-serif)}
+.tour-home>.h-column>.h-row:not(:first-child)\{gap:64px;align-items:flex-start}
+.tour-home>.h-column>.h-row:not(:first-child)>.h-column:first-child\{flex:5 1 0;min-width:0;gap:22px}
+.tour-home>.h-column>.h-row:not(:first-child)>.h-column:last-child\{flex:7 1 0;min-width:0;gap:22px}
+.tour-home .h-column:has(>.reads)\{gap:10px;align-items:flex-start}
+.tour-home .h-column:has(>.reads)>.h-text\{font:italic 400 16px/1.4 var(--f-serif);color:var(--muted)}
+.reads\{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+.reads>li>.h-link\{display:inline-block;padding:7px 12px;background-color:var(--fc);color:var(--ink);
+font:500 15px/1.3 var(--f-serif);text-decoration:none;
+transition:box-shadow .16s cubic-bezier(.16,1,.3,1)}
+.reads>li>.h-link:visited\{background-color:var(--fd)}
+.reads>li>.h-link:hover,.reads>li>.h-link:focus-visible\{box-shadow:inset 0 0 0 var(--rr) var(--ink);
+text-decoration:none;outline:none}
+.tour-home .h-column:has(>.h-row>.h-text.h-tone-good)>.h-text\{font:italic 400 16px/1.4 var(--f-serif);
+color:var(--soft);margin-bottom:10px}
+.tour-home .h-row:has(>.h-text.h-tone-good)\{align-items:baseline;gap:20px;padding:11px 0;
+border-top:1px solid var(--line)}
+.tour-home .h-row:has(>.h-text.h-tone-good):last-child\{border-bottom:1px solid var(--line)}
+.tour-home .h-row:has(>.h-text.h-tone-good)>.h-text\{font-size:16.5px;line-height:1.5}
+.tour-home .h-row>.h-text.h-tone-good\{font:500 14.5px/1.6 var(--f-mono);color:var(--ink);
+flex:0 0 9.5em}
+.tour-home .h-row:has(>.h-text+.h-text.h-tone-good)>.h-text:first-child\{flex:0 0 7em;font-weight:600}
+.tour-home .h-row:has(>.h-text+.h-text.h-tone-good)>.h-text.h-tone-good\{flex:1 1 auto}
+.tour-home>.h-column>.h-column:last-child\{gap:22px}
+.tour-home>.h-column>.h-column:last-child>.h-text\{max-width:60ch}
+.tour-home>.h-column>.h-column:last-child>.chart\{margin:18px 0 10px}
+`
+}
+
+// The chart: the whole tour as tiles, the way a periodic table sets out the
+// elements.
+//
+// A tile is a link the size of the tile, with the slide's title at its foot,
+// and its number and symbol laid over its top without catching the pointer —
+// so the whole tile is the link, and a screen reader hears its title. The
+// fill is the chapter's colour; once the slide has been read it is the deeper
+// shade of it. That is `:visited`, which may change a colour and nothing
+// else, and a colour is all this asks of it.
+//
+// The chapters stand side by side, each a block one or two tiles wide, on one
+// baseline, so the eye reads their lengths as a skyline. The long one — the
+// standard library — is set apart in rows of its own under the rest, right-
+// aligned the way a periodic table's lanthanides are, and an empty tile in
+// the skyline, outlined in that chapter's colour, marks the place it belongs.
+// main.hive writes how many rows and how many columns each block takes, from
+// its length.
+//
+// The chapters' names are each block's own heading, there for a screen reader
+// on a wide screen and shown above each block on a narrow one; on a wide one
+// the key under the chart names the colours instead, because a name will not
+// fit over a block one tile wide.
+func chart(): Str {
+	return `.chart\{--tile:82px;--tall:108px;--g:5px}
+.chart-sky\{display:grid;grid-template-columns:repeat(var(--fams),auto);grid-auto-flow:column;
+justify-content:start;align-items:end;column-gap:9px;row-gap:24px}
+.chart-sky>.fam,.chart-sky>.fam-gap\{grid-row:1}
+.chart-sky>.fam-long\{grid-row:2;grid-column:1 / -1;justify-self:end}
+.fam\{position:relative;min-width:0}
+.fam>h2,.fam>h3\{font:italic 600 18px/1.3 var(--f-serif);position:absolute;width:1px;height:1px;
+overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.fam-tiles\{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows),var(--tall));
+grid-auto-columns:var(--tile);gap:var(--g)}
+.fam-long .fam-tiles\{grid-auto-flow:row;grid-template-rows:none;grid-auto-rows:var(--tall);
+grid-template-columns:repeat(var(--wide),var(--tile))}
+.fam-tiles>.h-column\{position:relative;width:var(--tile);height:var(--tall)}
+.fam-tiles>.h-column>.h-link\{position:absolute;inset:0;display:-webkit-box;
+-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden;padding:48px 4px 0 6px;
+background-color:var(--fc);color:var(--ink);font:500 11px/1.2 var(--f-serif);
+letter-spacing:-.015em;hyphens:auto;overflow-wrap:normal;word-break:normal;
+text-decoration:none;transition:box-shadow .16s cubic-bezier(.16,1,.3,1)}
+.fam-tiles>.h-column>.h-link:visited\{background-color:var(--fd)}
+.fam-tiles>.h-column>.h-link:hover,.fam-tiles>.h-column>.h-link:focus-visible\{
+box-shadow:inset 0 0 0 var(--rr) var(--ink);text-decoration:none;outline:none}
+.fam-tiles>.h-column>.h-text\{position:absolute;left:7px;right:4px;pointer-events:none;
+white-space:nowrap;overflow:hidden;color:var(--ink)}
+.fam-tiles>.h-column>.h-text:nth-child(2)\{top:6px;font:500 11px/1 var(--f-mono)}
+.fam-tiles>.h-column>.h-text:nth-child(3)\{top:24px;font:600 17px/1 var(--f-mono);letter-spacing:-.02em}
+.fam-tiles>.h-column>.h-text.h-size-caption:nth-child(3)\{font-size:12.5px;top:27px}
+.fam-gap\{width:var(--tile);height:var(--tall);display:grid;place-items:end start;padding:8px;
+background:color-mix(in srgb,var(--fc) 45%,transparent);border:var(--rr) dashed var(--fd);
+font:500 11px/1 var(--f-mono);color:var(--ink)}
+.chart-key\{display:flex;flex-wrap:wrap;gap:8px 22px;list-style:none;padding:0;margin:26px 0 0;
+font:500 14px/1.4 var(--f-serif);color:var(--soft)}
+.chart-key>li::before\{content:"";display:inline-block;width:13px;height:13px;margin-right:8px;
+vertical-align:-1px;background:var(--fc);
+box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 35%,transparent)}
+`
+}
+
+// The contents: its title, a line saying what the shades mean, and the chart.
+func contents(): Str {
+	return `.tour-contents\{padding-top:36px}
+.tour-contents>.h-column\{gap:10px;margin-bottom:44px}
+.tour-contents>.h-column>.h-text\{max-width:60ch}
+`
+}
+
+// A page that is not there.
+func lost(): Str {
+	return `.tour-lost\{padding-top:72px}
+.tour-lost>.h-column\{gap:18px;align-items:flex-start}
+.tour-lost h1.h-size-title\{font-size:clamp(88px,14vw,160px);line-height:.9}
+.tour-lost .h-column:has(>.h-row>.h-link.h-bg-good)\{margin-top:20px}
+`
+}
+
+// Side by side while there is room, and stacked the moment there is not.
+//
+// That is what the `!important`s are for, and it is the whole of what they
+// are for: a row's direction is how `hive.ui` renders a `ui.row`, and it
+// renders it as a `style` attribute no rule in a stylesheet outranks however
+// late it is written. So the one property a phone has to take back is taken
+// back by force, in here and nowhere else.
+//
+// The chart lets go of its skyline first, at the width it stops fitting:
+// below that, each chapter is a block under its own name, the tiles flowing
+// across the page in order, and the key is no longer needed.
+func responsive(): Str {
+	return `.h-root>.h-column>.h-row:first-child\{flex-wrap:wrap;row-gap:8px}
+@media (max-width:1180px)\{
+	.chart-sky\{display:block}
+	.fam\{margin:0 0 26px}
+	.fam>h2,.fam>h3\{position:static;width:auto;height:auto;overflow:visible;clip:auto;
+	clip-path:none;white-space:normal;margin:0 0 10px;font:italic 600 18px/1.3 var(--f-serif)}
+	.fam-tiles,.fam-long .fam-tiles\{grid-auto-flow:row;grid-template-rows:none;
+	grid-auto-rows:var(--tall);grid-template-columns:repeat(auto-fill,var(--tile))}
+	.chart-sky>.fam-long\{justify-self:auto}
+	.fam-gap,.chart-key\{display:none}
+}
+@media (max-width:980px)\{
+	.tour-slide>.h-row:has(.tour-text),
+	.tour-home>.h-column>.h-row,
 	.tour-home>.h-column>.h-column>.h-row\{flex-direction:column !important;
-	align-items:stretch !important;gap:24px !important}
-	.tour-home>.h-column>*+*\{margin-top:48px;padding-top:44px}
-	.tour-home h2.h-size-subtitle\{font-size:24px}
-	.tour-home .h-size-subtitle:not(h2)\{font-size:19px}
-	.tour-home .h-row:has(>.h-text.h-tone-good)>.h-text:first-child\{flex-basis:8em}
-	.tour-home .h-row:has(>.h-text+.h-text.h-tone-good)\{flex-direction:column !important;
-	gap:2px !important}
-	.tour-home .h-row:has(>.h-text+.h-text.h-tone-good)>.h-text:first-child\{flex-basis:auto}
+	align-items:stretch !important;gap:36px}
+	.tour-slide>.h-row:has(.tour-text)>.h-column,
+	.tour-home>.h-column>.h-row>.h-column,
+	.tour-home>.h-column>.h-column>.h-row>.h-column,
+	.tour-home>.h-column>.h-column>.h-row>.h-row\{flex:none !important;min-width:0}
+	.tour-home>.h-column>.h-column:nth-child(2)\{gap:36px}
+}
+@media (max-width:640px)\{
+	:root\{--gutter:20px}
+	.h-root>.h-column>.h-row:first-child\{gap:10px;flex-wrap:nowrap}
+	.h-root>.h-column>.h-row:first-child>.h-link\{font-size:15.5px}
+	.h-root>.h-column>.h-row:first-child>.h-image+.h-link\{margin-left:-4px}
+	.h-root>.h-column>.h-row:first-child>.h-row\{gap:10px !important}
+	.h-root>.h-column>.h-row:first-child>a[href^="/theme/"]\{font-size:0;gap:0;padding:6px 2px}
+	.tour-home>.h-column>.h-column:nth-child(2)>.h-column>.h-row\{flex-direction:column !important;gap:4px}
+	.tour-home>.h-column>.h-column:nth-child(2)>.h-column>.h-row>.h-link\{flex:none}
+	body\{font-size:17px}
+	.tour-home>.h-column\{gap:88px}
+	.tour-home>.h-column>.h-row:first-child .h-image\{width:60px;height:60px}
+	.tour-home .h-size-subtitle:not(h2)\{font-size:23px}
+	.tour-head>.h-row\{gap:18px}
+	.tour-head .h-row>.h-column\{width:96px;height:96px;padding:9px 10px}
+	.tour-head .h-row>.h-column>.h-text:nth-child(2)\{font-size:22px}
+	.tour-head .h-row>.h-column>.h-text.h-size-caption:nth-child(2)\{font-size:15px}
+	.tour-head .h-row>.h-column>.h-text:last-child\{display:none}
+	.chart\{--tile:78px;--tall:108px}
+	.tour-home .h-row:has(>.h-text+.h-text.h-tone-good)\{flex-direction:column !important;gap:2px}
+	.tour-home .h-row:has(>.h-text+.h-text.h-tone-good)>.h-text\{flex:none !important}
+	.tour-home .h-row>.h-text.h-tone-good\{flex-basis:auto}
+	.tour-slide>.h-row:last-child\{flex-direction:column !important;
+	align-items:stretch !important;gap:14px}
+	.tour-slide>.h-row:last-child>.h-spacer\{display:none}
+	.tour-slide>.h-row:last-child>.h-link\{justify-content:center}
 }
 `
 }

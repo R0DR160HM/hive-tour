@@ -1,0 +1,511 @@
+// Railroad diagrams, drawn with `hive.ui`'s own canvas.
+//
+// A railroad diagram is a grammar rule drawn as track: you enter at the left,
+// follow any line the track allows, and every sequence of signs you can pass
+// on the way is a sentence the rule accepts. Niklaus Wirth drew Pascal's
+// syntax this way in 1973, and it has been the picture of a language's grammar
+// ever since. The front page and the tour are drawn in the same notation,
+// which is why it is worth getting exactly right:
+//
+//   a capsule is a terminal, a sign written exactly as it reads — `if`, `{`;
+//   a square box is a non-terminal, another rule, named in italic;
+//   a line that splits is a choice, a line that loops back is a repetition,
+//   and a line that goes over the top of something is a way around it.
+//
+// Nothing here knows about HTML. A diagram is measured, then drawn as marks —
+// lines, words — in the canvas's own units, which this file keeps equal to
+// pixels so that a two-pixel track is two pixels on every diagram on the site.
+// `hive.ui` turns the marks into an SVG on the server, and a diagram on this
+// site is a picture no script had to draw.
+//
+// The marks carry no colour of their own. A line is `currentColor`, so
+// ./theme decides the ink and the dark scheme gets it for free; a name is
+// painted `Tone.Muted` only so ./theme can tell it apart from a terminal and
+// set it in the italic. The tone is a label here, not a colour.
+
+// What a diagram is made of. `Seq` is one thing after another, `Choice` is
+// one of several (the first on the main line), `Opt` is a thing that may be
+// left out, `Many` is a thing that may be written any number of times,
+// including none.
+type Rail {
+	Term   { text: Str }
+	Name   { text: Str }
+	Seq    { items: Rail[dyn] }
+	Choice { items: Rail[dyn] }
+	Opt    { item: Rail }
+	Many   { item: Rail }
+}
+
+// How much room a piece of track takes: its length along the line, and how
+// far it reaches above and below the line it runs on.
+type Box {
+	width: Int
+	up:    Int
+	down:  Int
+}
+
+// ---------------------------------------------------------------------------
+// The measures. One place, because every one of them is a decision about how
+// the whole family of diagrams looks, and two diagrams drawn to different
+// numbers are two different notations.
+
+// The size the words are set at, in pixels, and the width of one character of
+// the monospace at that size: Source Code Pro advances 600 units of 1000.
+func fontSize(): Int {
+	return 15
+}
+
+func monoAdvance(): Int {
+	return 9
+}
+
+// A capsule's and a box's height, and the room left either side of the words
+// inside one.
+func half(): Int {
+	return 16
+}
+
+func termPad(): Int {
+	return 14
+}
+
+func namePad(): Int {
+	return 12
+}
+
+// How much straight track separates two things in a row, the radius of every
+// bend, and the room between two branches of a choice.
+func gap(): Int {
+	return 18
+}
+
+func radius(): Int {
+	return 10
+}
+
+func rise(): Int {
+	return 12
+}
+
+// The ends of a diagram: the margin the stroke needs, the dot the track
+// starts from and the bar it stops at, and the run of track either side.
+func margin(): Int {
+	return 8
+}
+
+func lead(): Int {
+	return 18
+}
+
+func thick(): Float {
+	return 2.0
+}
+
+// ---------------------------------------------------------------------------
+// Measuring.
+
+func most(a: Int, b: Int): Int {
+	if a > b { return a }
+	return b
+}
+
+// How wide a word is, in the face it is going to be set in. A terminal is in
+// the monospace, where every character is the same width. A name is in the
+// serif italic, where none of them are, so it is summed from the face's own
+// advance widths — see `italicAdvances` at the foot of this file.
+func termWidth(text: Str): Int {
+	return len(text) * monoAdvance() + 2 * termPad()
+}
+
+func nameWidth(text: Str): Int {
+	mut units := 0
+	table := italicAdvances()
+	for each ch in split(text, "") {
+		mut advance := 500
+		if indexOf(printable(), ch) is Result.Ok(at) {
+			if table bounds at {
+				advance = table[at]
+			}
+		}
+		units += advance
+	}
+	return units * fontSize() / 1000 + 2 * namePad()
+}
+
+func measure(rail: Rail): Box {
+	if rail is Rail.Term(text) {
+		return Box(width: termWidth(text), up: half(), down: half())
+	} else if rail is Rail.Name(text) {
+		return Box(width: nameWidth(text), up: half(), down: half())
+	} else if rail is Rail.Seq(items) {
+		mut width := 0
+		mut up := 0
+		mut down := 0
+		mut count := 0
+		for each item in items {
+			box := measure(item)
+			width += box.width
+			up = most(up, box.up)
+			down = most(down, box.down)
+			count += 1
+		}
+		if count > 1 {
+			width += gap() * (count - 1)
+		}
+		return Box(width: width, up: up, down: down)
+	} else if rail is Rail.Choice(items) {
+		mut inner := 0
+		mut up := 0
+		mut down := 0
+		mut first := true
+		for each item in items {
+			box := measure(item)
+			inner = most(inner, box.width)
+			if first {
+				up = box.up
+				down = box.down
+				first = false
+			} else {
+				down += rise() + box.up + box.down
+			}
+		}
+		return Box(width: inner + 4 * radius(), up: up, down: down)
+	} else if rail is Rail.Opt(item) {
+		box := measure(item)
+		return Box(width: box.width + 4 * radius(), up: box.up + rise(), down: box.down)
+	} else if rail is Rail.Many(item) {
+		box := measure(item)
+		return Box(width: box.width + 4 * radius(), up: box.up + rise(), down: box.down + rise())
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Drawing. Every piece is drawn with its entry at (x, y), on the line, and
+// its exit at (x + width, y).
+
+func at(x: Int, y: Int): Float[dyn] {
+	return [conv.itf(x), conv.itf(y)]
+}
+
+// A quarter of a bend, as points along it: around (cx, cy), from one angle
+// to another, in degrees, measured the way the canvas measures them — nought
+// is to the right and ninety is straight down.
+func bend(cx: Int, cy: Int, from: Int, to: Int): Float[dyn] {
+	mut Float[dyn] points = []
+	steps := 8
+	for i := 0; i <= steps; i++ {
+		degrees := conv.itf(from) + conv.itf(to - from) * conv.itf(i) / conv.itf(steps)
+		turn := degrees * math.pi() / 180.0
+		append(points, conv.itf(cx) + conv.itf(radius()) * math.cos(turn))
+		append(points, conv.itf(cy) + conv.itf(radius()) * math.sin(turn))
+	}
+	return points
+}
+
+func track(points: Float[dyn]): ui.Mark {
+	return ui.path([ui.thick(thick())], points)
+}
+
+func line(x1: Int, y1: Int, x2: Int, y2: Int): ui.Mark[dyn] {
+	if x1 == x2 && y1 == y2 {
+		return []
+	}
+	return [track(at(x1, y1) + at(x2, y2))]
+}
+
+// A capsule, as one closed line: along the top, round the right end, back
+// along the bottom and round the left. Its ends are half circles of the
+// capsule's own height rather than bends of the track's radius.
+func capsule(x: Int, y: Int, width: Int): ui.Mark {
+	r := half()
+	mut Float[dyn] points = at(x + r, y - r) + at(x + width - r, y - r)
+	steps := 12
+	for i := 1; i <= steps; i++ {
+		turn := (-90.0 + 180.0 * conv.itf(i) / conv.itf(steps)) * math.pi() / 180.0
+		append(points, conv.itf(x + width - r) + conv.itf(r) * math.cos(turn))
+		append(points, conv.itf(y) + conv.itf(r) * math.sin(turn))
+	}
+	points = points + at(x + r, y + r)
+	for i := 1; i <= steps; i++ {
+		turn := (90.0 + 180.0 * conv.itf(i) / conv.itf(steps)) * math.pi() / 180.0
+		append(points, conv.itf(x + r) + conv.itf(r) * math.cos(turn))
+		append(points, conv.itf(y) + conv.itf(r) * math.sin(turn))
+	}
+	return track(points)
+}
+
+func square(x: Int, y: Int, width: Int): ui.Mark {
+	r := half()
+	return track(at(x, y - r) + at(x + width, y - r) + at(x + width, y + r)
+		+ at(x, y + r) + at(x, y - r))
+}
+
+func draw(rail: Rail, x: Int, y: Int): ui.Mark[dyn] {
+	if rail is Rail.Term(text) {
+		width := termWidth(text)
+		middle := conv.itf(x) + conv.itf(width) / 2.0
+		return [
+			capsule(x, y, width),
+			ui.words([], middle, conv.itf(y), conv.itf(fontSize()), text),
+		]
+	} else if rail is Rail.Name(text) {
+		width := nameWidth(text)
+		middle := conv.itf(x) + conv.itf(width) / 2.0
+		return [
+			square(x, y, width),
+			ui.words([ui.paint(ui.Tone.Muted())], middle, conv.itf(y), conv.itf(fontSize()), text),
+		]
+	} else if rail is Rail.Seq(items) {
+		mut ui.Mark[dyn] marks = []
+		mut cursor := x
+		mut first := true
+		for each item in items {
+			if !first {
+				marks = marks + line(cursor, y, cursor + gap(), y)
+				cursor += gap()
+			}
+			first = false
+			marks = marks + draw(item, cursor, y)
+			cursor += measure(item).width
+		}
+		return marks
+	} else if rail is Rail.Choice(items) {
+		return choice(items, x, y)
+	} else if rail is Rail.Opt(item) {
+		return optional(item, x, y)
+	} else if rail is Rail.Many(item) {
+		return many(item, x, y)
+	}
+}
+
+// One of several. The first runs on the line itself; the rest hang below it,
+// each reached by bending down off the line and rejoining it by bending back
+// up. Every branch is stretched to the widest one with plain track, so they
+// all leave and arrive at the same two places.
+func choice(items: Rail[dyn], x: Int, y: Int): ui.Mark[dyn] {
+	r := radius()
+	mut inner := 0
+	for each item in items {
+		inner = most(inner, measure(item).width)
+	}
+	left := x + 2 * r
+	right := left + inner
+	mut ui.Mark[dyn] marks = []
+	mut branch := y
+	mut below := 0
+	mut first := true
+	for each item in items {
+		box := measure(item)
+		if first {
+			marks = marks + line(x, y, left, y)
+			below = box.down
+			first = false
+		} else {
+			branch = branch + below + rise() + box.up
+			below = box.down
+			marks = plus(marks, track(bend(x, y + r, -90, 0) + bend(x + 2 * r, branch - r, 180, 90)))
+			marks = plus(marks, track(bend(right, branch - r, 90, 0) + bend(right + 2 * r, y + r, 180, 270)))
+		}
+		marks = marks + draw(item, left, branch) + line(left + box.width, branch, right, branch)
+	}
+	return marks + line(right, y, right + 2 * r, y)
+}
+
+// A thing that may be left out: it stays on the line, and a second line goes
+// over the top of it, from just before to just after.
+func optional(item: Rail, x: Int, y: Int): ui.Mark[dyn] {
+	r := radius()
+	box := measure(item)
+	left := x + 2 * r
+	right := left + box.width
+	over := y - box.up - rise()
+	bypass := bend(x, y - r, 90, 0) + bend(left, over + r, 180, 270)
+		+ bend(right, over + r, -90, 0) + bend(right + 2 * r, y - r, 180, 90)
+	return line(x, y, left, y) + draw(item, left, y) + line(right, y, right + 2 * r, y)
+		+ [track(bypass)]
+}
+
+// A thing written any number of times. The line over the top is the way
+// round it, for none at all; the line underneath runs backwards, from just
+// after it to just before it, for one more — and it carries an arrow, because
+// it is the one stretch of track on any diagram that is travelled right to
+// left.
+func many(item: Rail, x: Int, y: Int): ui.Mark[dyn] {
+	r := radius()
+	box := measure(item)
+	left := x + 2 * r
+	right := left + box.width
+	under := y + box.down + rise()
+	back := bend(right, y + r, -90, 0) + bend(right, under - r, 0, 90)
+		+ bend(left, under - r, 90, 180) + bend(left, y + r, 180, 270)
+	middle := left + box.width / 2
+	arrow := at(middle + 4, under - 5) + at(middle - 3, under) + at(middle + 4, under + 5)
+	return optional(item, x, y) + [track(back), track(arrow)]
+}
+
+// `marks` with one more on the end. `append` grows a vector in place and so
+// needs one to grow; this is the same thing for a value that is going to be
+// handed back.
+func plus(marks: ui.Mark[dyn], mark: ui.Mark): ui.Mark[dyn] {
+	mut ui.Mark[dyn] out = marks
+	append(out, mark)
+	return out
+}
+
+// ---------------------------------------------------------------------------
+// A whole diagram.
+
+// One or more rows of track, read as one: a rule too long for one line goes
+// on to the next the way a sentence does, the end of one row running round
+// and back to the start of the one under it. Most rules are one row.
+//
+// Answered as the marks and the size of the plane they are drawn on, so the
+// caller can size the canvas to fit them exactly.
+type Drawing {
+	marks:  ui.Mark[dyn]
+	width:  Int
+	height: Int
+}
+
+func layout(rows: Rail[dyn]): Drawing {
+	r := radius()
+	x := margin() + lead()
+	mut widest := 0
+	mut ui.Mark[dyn] marks = []
+	for each row in rows {
+		widest = most(widest, measure(row).width)
+	}
+	left := x + 2 * r
+	right := left + widest
+	end := right + 3 * r + lead()
+
+	mut y := margin() + 4
+	mut count := 0
+	mut last := 0
+	mut below := 0
+	for each row in rows {
+		box := measure(row)
+		if count == 0 {
+			y = y + box.up
+			marks = plus(marks, ui.dot([], conv.itf(margin()), conv.itf(y), 4.0))
+			marks = marks + line(margin(), y, left, y)
+		} else {
+			turn := last + below + rise()
+			y = turn + rise() + box.up
+			marks = plus(marks, track(bend(right, last + r, -90, 0) + bend(right, turn - r, 0, 90)))
+			marks = marks + line(right, turn, left, turn)
+			marks = plus(marks, track(bend(left, turn + r, 270, 180) + bend(left, y - r, 180, 90)))
+		}
+		marks = marks + draw(row, left, y) + line(left + box.width, y, right, y)
+		last = y
+		below = box.down
+		count += 1
+	}
+	marks = marks + line(right, last, end, last)
+	marks = marks + line(end, last - 9, end, last + 9)
+	return Drawing(marks: marks, width: end + margin(), height: last + below + margin() + 4)
+}
+
+// The view: a canvas exactly the size of what is on it, in units that are
+// pixels. It is as wide as the diagram and no wider; ./theme lets it scroll
+// sideways inside its figure rather than shrink, because a diagram shrunk to
+// fit a phone is a diagram whose words are too small to read.
+func view(rows: Rail[dyn]): ui.View {
+	drawing := layout(rows)
+	return ui.canvas([
+		ui.width(drawing.width),
+		ui.height(drawing.height),
+		ui.region(0.0, 0.0, conv.itf(drawing.width), conv.itf(drawing.height)),
+	], drawing.marks)
+}
+
+// ---------------------------------------------------------------------------
+// The tour as one line.
+//
+// The same notation, used once more for the one diagram on the site that is
+// not a grammar rule: the tour itself, drawn as a single line of track with a
+// station for every slide. It is split into its chapters by a tick in the
+// gap between them, the way a long rule is split into the rules it names.
+// Every station before the reader's is inked, every one after is open, and
+// the reader's own is the one place on the line in the brand's amber.
+//
+// It is drawn a thousand units wide and given no size of its own, so ./theme
+// can stretch it across whatever width the page has: a line of track is the
+// one diagram here that reads at any scale, because it has no words in it.
+//
+// The amber and the open stations' paper are tones only so ./theme can name
+// them: `Tone.Good` is where the reader is and `Tone.Warn` is the paper an
+// open station is punched out of.
+func journey(lengths: Int[dyn], current: Int): ui.View {
+	wide := 1000.0
+	tall := 28.0
+	y := 14.0
+	edge := 10.0
+	between := 18.0
+	mut stations := 0
+	mut sections := 0
+	for each length in lengths {
+		stations += length
+		sections += 1
+	}
+	steps := stations - sections
+	mut step := 0.0
+	if steps > 0 {
+		step = (wide - 2.0 * edge - between * conv.itf(sections - 1)) / conv.itf(steps)
+	}
+
+	mut ui.Mark[dyn] line = [
+		ui.path([ui.thick(2.0)], [edge, y, wide - edge, y]),
+		ui.path([ui.thick(2.0)], [wide - edge, y - 7.0, wide - edge, y + 7.0]),
+	]
+	mut ui.Mark[dyn] marks = []
+	mut x := edge
+	mut index := 0
+	mut first := true
+	for each length in lengths {
+		if !first {
+			tick := x - between / 2.0
+			append(line, ui.path([ui.thick(2.0)], [tick, y - 6.0, tick, y + 6.0]))
+		}
+		first = false
+		for j := 0; j < length; j++ {
+			if index == current {
+				append(marks, ui.dot([], x, y, 7.5))
+				append(marks, ui.dot([ui.paint(ui.Tone.Good())], x, y, 5.5))
+			} else if index < current {
+				append(marks, ui.dot([], x, y, 3.4))
+			} else {
+				append(marks, ui.dot([], x, y, 3.4))
+				append(marks, ui.dot([ui.paint(ui.Tone.Warn())], x, y, 1.7))
+			}
+			index += 1
+			if j < length - 1 {
+				x += step
+			}
+		}
+		x += between
+	}
+	return ui.canvas([ui.region(0.0, 0.0, wide, tall)], line + marks)
+}
+
+// ---------------------------------------------------------------------------
+// The italic's widths.
+//
+// The advance of every printable ASCII character in the serif italic carried
+// in ./fonts, in thousandths of the size it is set at, in the order of
+// `printable`. Read off the font file itself rather than estimated, because a
+// box drawn round a name is only as good as this table.
+func printable(): Str {
+	return " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz\{|}~"
+}
+
+func italicAdvances(): Int[95] {
+	return [
+		229, 300, 445, 567, 519, 903, 699, 259, 382, 382, 480, 533, 300, 313, 300, 335,
+		528, 528, 528, 528, 528, 528, 528, 528, 528, 528, 300, 300, 533, 533, 533, 454,
+		877, 681, 623, 607, 702, 598, 565, 664, 769, 363, 357, 680, 579, 932, 739, 669,
+		568, 669, 646, 501, 583, 720, 636, 902, 665, 580, 553, 338, 325, 338, 532, 511,
+		400, 543, 514, 425, 546, 430, 314, 503, 568, 315, 267, 489, 291, 852, 585, 513,
+		533, 509, 417, 375, 345, 589, 500, 761, 549, 502, 482, 386, 287, 386, 533,
+	]
+}

@@ -52,6 +52,32 @@ func all(): Slide[74] {
 		+ tools()
 }
 
+// The nine chapters `all` is built from, by name and by length, in the same
+// order. The tour's track is drawn in these nine sections and the contents
+// page is set out in them, so a reader always knows which part of the
+// language a slide belongs to. Each length is asked of the chapter itself
+// rather than written down, so it is never a number that can disagree with
+// the slides.
+type Chapter {
+	title:   Str
+	titlePt: Str
+	length:  Int
+}
+
+func chapters(): Chapter[9] {
+	return [
+		Chapter(title: "Getting started", titlePt: "Primeiros passos", length: len(start())),
+		Chapter(title: "Control flow and functions", titlePt: "Controle de fluxo e funções", length: len(flow())),
+		Chapter(title: "Vectors, bounds and tables", titlePt: "Vetores, limites e tabelas", length: len(collections())),
+		Chapter(title: "Types, patterns and values", titlePt: "Tipos, padrões e valores", length: len(types())),
+		Chapter(title: "Threads and services", titlePt: "Threads e serviços", length: len(concurrency())),
+		Chapter(title: "Modules and tests", titlePt: "Módulos e testes", length: len(modules())),
+		Chapter(title: "The standard library", titlePt: "A biblioteca padrão", length: len(library())),
+		Chapter(title: "Windows, canvases and scenes", titlePt: "Janelas, canvases e cenas", length: len(interfaces())),
+		Chapter(title: "Tools", titlePt: "Ferramentas", length: len(tools())),
+	]
+}
+
 // Getting started
 func start(): Slide[10] {
 	return [

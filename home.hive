@@ -41,12 +41,13 @@ type Claim {
 	textPt:  Str
 }
 
-// One reason to pick the language, set out at length: a label, a heading, a
-// few paragraphs carrying the markup a slide's explanation does, the slides
-// to read next, and any samples to set beside it.
+// One reason to pick the language, set out at length: a heading, a few
+// paragraphs carrying the markup a slide's explanation does, the slides to
+// read next, and any samples to set beside it. It used to carry a label as
+// well — "Reliability", "Scale" — set over the heading in small capitals, and
+// every one of them said again, in one word, what the heading under it said
+// in a sentence.
 type Point {
-	label:    Str
-	labelPt:  Str
 	title:    Str
 	titlePt:  Str
 	text:     Str
@@ -289,8 +290,6 @@ func readsLabel(lang: Str): Str {
 func points(): Point[5] {
 	return [
 		Point(
-			label: "Reliability",
-			labelPt: "Confiabilidade",
 			title: "What would crash does not compile",
 			titlePt: "O que falharia não compila",
 			text: "Null references, uncaught exceptions and out-of-range indexes are among the most common causes of crashes in production, and in Hive none of them can happen. Anything that can fail returns a `Result`, and the compiler makes you check it before you touch the value inside. An index it cannot prove safe is a compile error, and the error says how to fix it. Even a division by zero is a value, not a crash.\n\nThe mistakes that would have shown up in production show up while you are still writing the code.",
@@ -349,8 +348,6 @@ proc main(): void \{
 			],
 		),
 		Point(
-			label: "Runs everywhere",
-			labelPt: "Roda em qualquer lugar",
 			title: "One codebase, every platform",
 			titlePt: "Um código, todas as plataformas",
 			text: "The same Hive code runs on Windows, Linux and macOS, in the browser through WebAssembly, in a container, and on Android. Choosing a platform is a flag on the build, not a port of the program — no separate toolchain, and no C compiler to install. On the desktop and the server, a build is a single native executable with no runtime to ship beside it.\n\nInterfaces travel too. A `hive.ui` view is drawn as a desktop window, served as a web page, or packaged as an Android app — the same view, unchanged.",
@@ -359,8 +356,6 @@ proc main(): void \{
 			examples: [],
 		),
 		Point(
-			label: "Scale",
-			labelPt: "Escala",
 			title: "Start as one process, grow to many machines",
 			titlePt: "Comece como um processo, cresça para muitas máquinas",
 			text: "Concurrency in Hive is built around services: a piece of state that handles one message at a time, so there are no locks to get wrong. Calling a service on another machine is the same line of code as calling one in the same process, over connections that are encrypted and authenticated for you.\n\nA system can start as a single executable and be spread across machines later, without being rewritten around a message queue or an RPC framework.",
@@ -423,8 +418,6 @@ proc main(): void \{
 			],
 		),
 		Point(
-			label: "Batteries included",
-			labelPt: "Baterias inclusas",
 			title: "Less to install, less to audit",
 			titlePt: "Menos para instalar, menos para auditar",
 			text: "The standard library covers what most services need, so a project starts with no dependencies and tends to stay with few. Its defaults are the safe ones: SQL values are always sent as parameters, secrets cannot end up in a log by accident, and machines only talk to each other over TLS.\n\nWhen you do need a package, it is imported straight from its git repository and pinned to a commit — there is no registry in between. And a Go file can be imported directly, bringing the whole Go ecosystem with it.",
@@ -433,8 +426,6 @@ proc main(): void \{
 			examples: [],
 		),
 		Point(
-			label: "Tooling",
-			labelPt: "Ferramentas",
 			title: "One tool, from the first line to production",
 			titlePt: "Uma ferramenta, da primeira linha à produção",
 			text: "The `hive` command checks, runs, tests and builds, and the only other thing it needs is Go. Tests are part of the language and every run reports coverage, so there is no test framework to choose.\n\n`hive analyze` points out code that will be expensive to run before it ever runs, and every error the compiler reports names the problem and says how to fix it.",
@@ -512,8 +503,6 @@ func commands(): Entry[5] {
 // anything: the page they are reading.
 func proof(): Point {
 	return Point(
-		label: "The proof",
-		labelPt: "A prova",
 		title: "This site is a Hive program",
 		titlePt: "Este site é um programa Hive",
 		text: "Every page here is served by an HTTP server written in Hive and laid out with Hive's own UI library — no web framework, and no JavaScript. The whole site is one executable, deployed in a container.",
