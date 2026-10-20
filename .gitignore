@@ -4,4 +4,14 @@ main.hive-build/
 main
 main.exe
 
+# The same folder for every other entrypoint the compiler is pointed at —
+# each test file gets one of its own on every `hive test`.
+*.hive-build/
+
+# What a design review leaves behind: the screenshots it judged and the
+# sketches a direction was chosen from. The design itself — DESIGN.md,
+# .impeccable/design.json and the surface briefs — stays in the repository.
+.impeccable/review/
+.impeccable/mocks/
+
 *.log
