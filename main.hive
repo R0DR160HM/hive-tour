@@ -1448,10 +1448,11 @@ func chartHtml(all: slides.Slide[], lang: Str, level: Int): Str {
 	mut Str[dyn] key = []
 	mut index := 0
 	mut part := 0
+	apart := apartChapter()
 	for each chapter in slides.chapters() {
 		part += 1
 		name := inLang(lang, chapter.title, chapter.titlePt)
-		long := chapter.length > 12
+		long := part == apart
 		mut wide := 1
 		if chapter.length > 5 { wide = 2 }
 		if long { wide = 11 }
@@ -1478,6 +1479,26 @@ func chartHtml(all: slides.Slide[], lang: Str, level: Int): Str {
 	}
 	return "<div class=\"chart\"><div class=\"chart-sky\" style=\"--fams:{part}\">" + join(families, "") + "</div>"
 		+ "<ul class=\"chart-key\">" + join(key, "") + "</ul></div>"
+}
+
+// Which chapter the chart sets apart under its skyline, counted from one: the
+// longest, when it is too long to stand in the skyline — more than eight rows
+// of two — and none, as nought, when none is. Never more than one, because
+// ./theme has one place under the skyline to put it, and a second chapter
+// sent there is drawn over by the first rather than beside it.
+func apartChapter(): Int {
+	mut longest := 0
+	mut size := 0
+	mut part := 0
+	for each chapter in slides.chapters() {
+		part += 1
+		if chapter.length > size {
+			longest = part
+			size = chapter.length
+		}
+	}
+	if size > 16 { return longest }
+	return 0
 }
 
 func chartTileView(idx: Int, slide: slides.Slide, lang: Str): ui.View {
