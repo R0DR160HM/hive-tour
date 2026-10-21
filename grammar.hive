@@ -305,6 +305,30 @@ func ifStmt(): Rule {
 		])
 }
 
+func switchStmt(): Rule {
+	return spec("switch-stmt", "2.5",
+		"switch-stmt = \"switch\" expression \{ \",\" expression } \"\{\" \{ arm } \"}\" ;",
+		[seq([
+			sign("switch"), rule("expression"), many(seq([sign(","), rule("expression")])),
+			sign("\{"), many(rule("arm")), sign("}"),
+		])])
+}
+
+func arm(): Rule {
+	return spec("arm", "2.5",
+		"arm = position \{ \",\" position } block ;",
+		[seq([rule("position"), many(seq([sign(","), rule("position")])), rule("block")])])
+}
+
+func position(): Rule {
+	return spec("position", "2.5",
+		"position = \"_\" | pattern | [ \"-\" ] INT | FLOAT | ATOM | \"true\" | \"false\" ;",
+		[either([
+			sign("_"), rule("pattern"), seq([opt(sign("-")), rule("INT")]),
+			rule("FLOAT"), rule("ATOM"), sign("true"), sign("false"),
+		])])
+}
+
 func forStmt(): Rule {
 	return spec("for-stmt", "2.5",
 		"for-stmt = \"for\" [ statement ] \";\" [ expression ] \";\" [ statement ] block | \"for\" \"each\" IDENT [ \":\" type ] \"in\" expression block ;",
@@ -594,6 +618,7 @@ func slideRules(): SlideRules[dyn] {
 		SlideRules(title: "Matching with is", rules: [isExpr(), pattern(), ctorPattern(), part()]),
 		SlideRules(title: "Matching vectors and strings", rules: [vectorPattern(), element(), stringPattern()]),
 		SlideRules(title: "Chains that cover a type", rules: [ifStmt()]),
+		SlideRules(title: "Matching with switch", rules: [switchStmt(), arm(), position()]),
 		SlideRules(title: "Named arguments", rules: [callSuffix(), args(), arg()]),
 		SlideRules(title: "First-class functions", rules: [fnType(), fnParams(), fnParam()]),
 		SlideRules(title: "Mutability and value semantics", rules: [param(), assign()]),

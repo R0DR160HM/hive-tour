@@ -1,0 +1,128 @@
+// The playground: which samples a browser can run, what the server refuses to
+// build before it builds anything, and that a slide only carries the script
+// when it has something for the script to run. Nothing here compiles a
+// program — every request below is one the server answers without the
+// compiler — so the suite needs no Go to run.
+import ./main as tour
+import ./play
+import ./slides
+
+test "a program that only computes can run" {
+	assert play.runnable("proc main(): void \{\n\techo \"hi\"\n}")
+	assert play.runnable("import hive.ui\n\nproc main(): void \{\n\techo ui.html(ui.text([], \"x\"))\n}")
+}
+
+test "what is not a program has no Run button" {
+	assert play.runnable("$ hive run hello.hive\nproc main(): void \{ }") == false
+	assert play.runnable("package measures\n\nfunc Grams() int \{ return 1 }") == false
+	assert play.runnable("type Shape \{ Point }") == false
+}
+
+test "a module a browser does not have is found under either of its names" {
+	assert play.runnable("proc main(): void \{\n\t_ := hive.file.read(\"x\")\n}") == false
+	assert play.runnable("proc main(): void \{\n\t_ := file.read(\"x\")\n}") == false
+	assert play.runnable("proc main(): void \{\n\tspawn(ui.window(\"T\", view, update), 0)\n}") == false
+	assert play.runnable("proc main(): void \{\n\t_ := hide(\"hunter2\")\n}") == false
+	assert play.runnable("proc main(): void \{\n\t_ := hive.crypto.randomSecret(16)\n}") == false
+}
+
+test "a module renamed by its import is still that module" {
+	assert play.runnable("import hive.net as web\n\nproc main(): void \{\n\t_ := web.resolve(\"localhost\")\n}") == false
+	assert play.runnable("import hive.file as disk\n\nproc main(): void \{\n\t_ := disk.read(\"x\")\n}") == false
+	assert play.runnable("import hive.net as web\n\nproc main(): void \{\n\techo web.urlEncode(\"a b\")\n}")
+}
+
+test "the tail of another name is not the name" {
+	assert play.mentions("profile.x", "file.") == false
+	assert play.mentions("x := profile.size", "file.") == false
+	assert play.mentions("hive.file.read", "file.")
+	assert play.mentions("file.read", "file.")
+	assert play.mentions("bypass(\"x\")", "Secret(") == false
+}
+
+test "only the library is imported" {
+	assert play.foreignImport("import hive.ui\nimport hive.net") is Result.Error(_)
+	assert play.foreignImport("import ./lib/text") is Result.Ok("./lib/text")
+	assert play.foreignImport("import\t\"./lib/my file\"") is Result.Ok("\"./lib/my")
+	assert play.foreignImport("import https://github.com/owner/repo/src/text") is Result.Ok(_)
+	assert play.foreignImport("x := 1; import ../../etc") is Result.Ok("../../etc")
+	assert play.foreignImport("reimport ./x") is Result.Error(_)
+}
+
+test "a refusal is in the reader's language" {
+	english := play.refusal("import ./lib/text", "en")
+	portuguese := play.refusal("import ./lib/text", "pt")
+	assert english is Result.Ok(_)
+	assert portuguese is Result.Ok(_)
+	assert english != portuguese
+	assert play.refusal("proc main(): void \{ }", "en") is Result.Error(_)
+}
+
+test "the tour has programs to run, and leaves the rest alone" {
+	mut runs := 0
+	mut programs := 0
+	for each slide in slides.all() {
+		for each ex in slide.examples {
+			if indexOf(ex.code, "proc main(") is Result.Ok(_) {
+				programs += 1
+			}
+			if play.runnable(ex.code) {
+				runs += 1
+			}
+		}
+	}
+	echo "{runs} of {programs} programs on the tour can run in a browser"
+	assert runs > 90
+	assert runs < programs
+}
+
+test "the server builds nothing it was not asked for properly" {
+	program := "proc main(): void \{\n\techo \"hi\"\n}"
+	header := [["X-Hive-Tour", "play"]]
+	path := play.compilePath()
+
+	asGet := tour.compileResponse(hive.net.HttpRequest("GET", path, header, program))
+	assert asGet.status == 405
+
+	noHeader := tour.compileResponse(hive.net.HttpRequest("POST", path, [], program))
+	assert noHeader.status == 403
+
+	mut Str[dyn] lines = []
+	for i := 0; i < 5000; i++ {
+		append(lines, "// a comment long enough to add up")
+	}
+	tooLong := tour.compileResponse(hive.net.HttpRequest("POST", path, header, join(lines, "\n") + program))
+	assert tooLong.status == 413
+
+	importing := tour.compileResponse(hive.net.HttpRequest("POST", path + "?lang=pt", header, "import ./segredo\n" + program))
+	assert importing.status == 403
+	assert indexOf(importing.body, "./segredo") is Result.Ok(_)
+}
+
+test "a slide carries the script only when it has something to run" {
+	all := slides.all()
+	mut withScript := 0
+	mut without := 0
+	for i := 0; i < len(all); i++ {
+		page := tour.route("/{i + 1}").body
+		hasScript := indexOf(page, "<script src=\"" + play.scriptPath() + "\"") is Result.Ok(_)
+		hasControls := indexOf(page, "class=\"tour-example tour-play\"") is Result.Ok(_)
+		assert hasScript == hasControls
+		if hasScript {
+			withScript += 1
+		} else {
+			without += 1
+		}
+	}
+	assert withScript > 0
+	assert without > 0
+	assert indexOf(tour.homeResponse("en").body, "<script src=") is Result.Error(_)
+}
+
+test "the script asks for the paths the server answers" {
+	source := play.script()
+	assert indexOf(source, play.loaderPath()) is Result.Ok(_)
+	assert indexOf(source, play.compilePath()) is Result.Ok(_)
+	assert indexOf(source, play.scriptPath()) is Result.Ok(_)
+	assert tour.route(play.scriptPath()).status == 200
+}

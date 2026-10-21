@@ -160,9 +160,9 @@ components:
 
 **Creative North Star: "The Language Set Out as a Book and a Chart"**
 
-The site is a language's home page done properly and a tour that teaches the whole language, and it is set the way a good technical book is set: a cool white paper, one ink, a book serif for everything that is read and its sibling monospace for everything that is run. Two devices belong to teaching a language and nothing else, and they are the system's signature: the grammar drawn as railroad diagrams (in the tour only), and the whole language laid out as one periodic-table chart of 74 tiles in nine chapter colours. Every slide carries its own tile beside its title, so a chapter has a colour and 74 slides stop looking like one.
+The site is a language's home page done properly and a tour that teaches the whole language, and it is set the way a good technical book is set: a cool white paper, one ink, a book serif for everything that is read and its sibling monospace for everything that is run. Two devices belong to teaching a language and nothing else, and they are the system's signature: the grammar drawn as railroad diagrams (in the tour only), and the whole language laid out as one periodic-table chart of 75 tiles in nine chapter colours. Every slide carries its own tile beside its title, so a chapter has a colour and 75 slides stop looking like one.
 
-Density is a book's: an 18px body at a 66ch measure, generous paper between sections (128px on the front page), two columns where the explanation sits beside the programs it explains. Colour is rationed hard. Chapter colours only ever fill a tile; amber is the way on and where the reader is, and nothing else. Nothing moves: no entrance animation, no positional motion, only a 160ms colour change on the button, pills and tiles. The site ships no JavaScript, so every state the design has (the reader's scheme, read slides, the current station) is drawn by CSS from what HTML and the server already know.
+Density is a book's: an 18px body at a 66ch measure, generous paper between sections (128px on the front page), two columns where the explanation sits beside the programs it explains. Colour is rationed hard. Chapter colours only ever fill a tile; amber is the way on and where the reader is, and nothing else. Nothing moves: no entrance animation, no positional motion, only a 160ms colour change on the button, pills and tiles. The site ships no JavaScript beyond the playground's one script, so every state the design has (the reader's scheme, read slides, the current station) is drawn by CSS from what HTML and the server already know; only running an example needs the script.
 
 Confirmed rejections: the SaaS landing page (gradient hero, feature-card rows, glow), a literal bee-and-honey theme, cream paper, and railroad drawing outside the tour.
 
@@ -234,7 +234,7 @@ The dark scheme (`#121315` paper, `#e9e7e1` ink, darkened chapter fills `#3d3220
 One centred column of 1280px max (`measure`) with 40px gutters (20px under 640px), with the running head aligned to the same column. Pages end with 112px of paper.
 
 - **Front page:** the hero is a 5:7 split, text left (name, lede, intro at 58ch, then the ways in on two lines) and a whole program right, starting level with the name. Sections follow at 128px intervals (88px on phones), separated by paper alone; reasoned sections repeat the 5:7 split of argument and program/table. The page ends on the chart.
-- **Slide:** track across the full width with chapter and "Slide n of 74" under it; then the slide tile (136px square) beside the headline; then the grammar fold, closed, under which the railroad figures sit in a wrapping row (36px / 72px gaps); then two columns that start level: prose (flex, min 340px) and examples (up to 700px, sized for ~80-column programs), 56px apart. A slide whose widest program exceeds 84 columns is marked wide and stacks prose above full-width programs. Pager at the foot.
+- **Slide:** track across the full width with chapter and "Slide n of 75" under it; then the slide tile (136px square) beside the headline; then the grammar fold, closed, under which the railroad figures sit in a wrapping row (36px / 72px gaps); then two columns that start level: prose (flex, min 340px) and examples (up to 700px, sized for ~80-column programs), 56px apart. A slide whose widest program exceeds 84 columns is marked wide and stacks prose above full-width programs. Pager at the foot.
 - **Contents:** headline, one line of explanation (60ch), then the chart.
 - **Chart:** chapters stand side by side as grid blocks one or two 82×108px tiles wide with 5px gaps and 9px between chapters, aligned on one baseline so their lengths read as a skyline. The long standard-library chapter is detached into rows below, right-aligned like a periodic table's lanthanides, with a dashed placeholder tile in the skyline.
 
@@ -266,7 +266,7 @@ Confident and singular: there is one button on the site.
 - **Shape:** fully rounded pill (999px), 50px tall.
 - **Primary:** amber field, amber-ink text, serif 600 17px, 28px side padding. "Start the tour" on the front page and the 404.
 - **Hover / Focus:** inks in (ink field; amber text on light, paper text on dark) over 160ms `cubic-bezier(.16,1,.3,1)`; a change of colour, never of position.
-- **Outline pill:** paper field, 2px ink outline, ink text, serif 600 16px, 44–46px tall, 6px 20px padding; hover/focus fills ink with paper text. Used for a slide's download link and for previous/next.
+- **Outline pill:** paper field, 2px ink outline, ink text, serif 600 16px, 44–46px tall, 6px 20px padding; hover/focus fills ink with paper text. Used for a slide's download link, for previous/next, and (as a `<button>`, 22px side padding, no chevron) for a runnable example's Run, which reads Stop while it runs.
 - **Plain links beside a button:** serif 600 16.5px underlined in hairline (2px), the underline turning amber on hover. A second, quieter line (500 15.5px, soft ink) carries repository and download on the front page.
 
 ### Chips (reads tiles)
@@ -275,11 +275,12 @@ Confident and singular: there is one button on the site.
 
 ### Cards / Containers
 - **Code panel:** square, `code-panel` fill, 20px 24px padding, flush with the column, scrolls sideways on its own with scroll shades; captioned above in serif italic 16px soft ink.
+- **Playground (runnable examples on slides):** under the code panel, 14px down, a wrapping row of the Run outline pill, "Put the original back" as a plain underlined serif 600 15.5px soft-ink button (shown only once the program is edited), and a state line in serif italic 15.5px muted ink ("You can edit this program and run it here.", "Compiling…", "It exited with status 2."). The panel itself is the editor: the 2px ink focus ring goes round the whole panel while editing, and the program drops its highlighting to plain ink at the first edit. What comes back sits 20px under the row: a caption in the code-caption style ("What it printed", "What the compiler said", "Why it did not run") over a second code-panel-shade block in mono 13.5px, at most 420px tall, scrolling on its own. No colour marks an error; the caption says what the text is. All of it is rendered `hidden` and uncovered by the script, so without it the slide is unchanged. The front page has none.
 - **Tables:** rows separated by 1px hairlines top and bottom; first column is a mono or underlined-link label at a fixed width. These are the only hairlines in the system.
 
 ### Navigation
 - **Running head:** mark (30px), "The Hive Tour" and Contents in serif 600 16.5px; at the right, the scheme switch (a drawn half-filled circle plus "Dark"/"Light", only the scheme not on screen shown) and EN/PT in label type, muted at rest, ink on hover, the current language underlined 2px in amber.
-- **Track:** a full-width canvas line of 74 stations in nine chapter segments divided by ticks, ending in a buffer stop: stations behind the reader solid ink, those ahead punched out in paper, the current station a larger amber dot ringed in ink. Under it, chapter name left and "Slide n of 74" right in tabular figures.
+- **Track:** a full-width canvas line of 75 stations in nine chapter segments divided by ticks, ending in a buffer stop: stations behind the reader solid ink, those ahead punched out in paper, the current station a larger amber dot ringed in ink. Under it, chapter name left and "Slide n of 75" right in tabular figures.
 - **Pager:** outline pills with drawn chevrons either side of a 2px ink line carrying the amber station; a visited pager pill rests on wash.
 
 ### Wall Chart (signature)
@@ -301,7 +302,7 @@ Rule name in serif italic 600 18px with a muted underlined spec link beside it, 
 - **Do** fill tiles (chart, slide tile, reads tiles, key swatches) with chapter colours and let `:visited` turn them to the read shade.
 - **Do** set every program, token, command and tile symbol in Source Code Pro with ligatures off, and everything read in Source Serif 4.
 - **Do** use the ink focus ring (2px solid ink, 3px offset), or the inset 2px ink ring on filled tiles.
-- **Do** keep every interactive state in HTML and CSS: `:visited`, `:hover`, `:focus-visible`, server round-trips and the theme cookie.
+- **Do** keep every interactive state in HTML and CSS: `:visited`, `:hover`, `:focus-visible`, server round-trips and the theme cookie. The playground's running states are the one exception, and even they are server-rendered markup the script only uncovers and relabels.
 - **Do** draw marks (chevrons, stations, the theme circle, list dots) with CSS or the canvas at the 2px stroke weight.
 - **Do** let code panels and diagrams scroll sideways with scroll shades instead of shrinking or widening the column.
 - **Do** keep a slide's railroad figures inside its grammar fold, closed by default, so the slide opens on prose and programs.
@@ -317,4 +318,4 @@ Rule name in serif italic 600 18px with a muted underlined spec link beside it, 
 - **Don't** add hairlines between sections; only table rows get rules.
 - **Don't** animate position or add entrance motion; colour changes at 160ms are the only motion.
 - **Don't** use `!important` except to take back `hive.ui`'s inline row direction, alignment and gap at a breakpoint.
-- **Don't** ship JavaScript, external fonts or any asset not embedded in the binary.
+- **Don't** ship JavaScript beyond the playground's one script, external fonts, or any asset not embedded in the binary (the playground's compiled programs and Go's `wasm_exec.js` excepted).

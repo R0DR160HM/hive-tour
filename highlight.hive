@@ -296,7 +296,7 @@ func isKeyword(word: Str): Bool {
 		"import", "proc", "func", "query", "test", "type", "if", "else",
 		"return", "is", "with", "void", "true", "false", "echo",
 		"assert", "panic", "dyn", "mut", "async", "await", "for", "in",
-		"each", "bounds", "break", "continue",
+		"each", "bounds", "break", "continue", "switch",
 	], word) is Result.Ok(_)
 }
 

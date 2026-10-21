@@ -658,7 +658,7 @@
       "name": "Outline Pill",
       "kind": "button",
       "refersTo": "pill-outline",
-      "description": "Ink-outline pill for a slide's download link and for previous/next, with a drawn chevron.",
+      "description": "Ink-outline pill for a slide's download link and for previous/next, with a drawn chevron; without the chevron, as a button, it is a runnable example's Run.",
       "html": "<a class=\"ds-pill\" href=\"#\">13. Functions</a>",
       "css": ".ds-pill{display:inline-flex;align-items:center;gap:12px;min-height:46px;padding:6px 20px;border:2px solid #15171a;border-radius:999px;background:#f6f7f8;color:#15171a;font:600 16px/1.25 'Source Serif 4',Charter,Georgia,serif;text-decoration:none;transition:background-color .16s cubic-bezier(.16,1,.3,1),color .16s cubic-bezier(.16,1,.3,1)} .ds-pill::after{content:'';width:8px;height:8px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate(45deg);margin-right:4px} .ds-pill:hover,.ds-pill:focus-visible{background:#15171a;color:#f6f7f8} .ds-pill:focus-visible{outline:2px solid #15171a;outline-offset:3px}"
     },
@@ -711,6 +711,14 @@
       "css": ".ds-ex{margin:0} .ds-ex figcaption{margin:0 0 10px;font:italic 400 16px/1.4 'Source Serif 4',Charter,Georgia,serif;color:#3d4249} .ds-code{margin:0;padding:20px 24px;overflow-x:auto;background:#eceef1;color:#15171a;font:400 14px/1.62 'Source Code Pro',ui-monospace,monospace;font-variant-ligatures:none} .ds-code b{font-weight:700} .ds-code .s{color:#2f6a2a} .ds-code .n{color:#8b2f6b} .ds-code i{font-family:'Source Serif 4',Charter,Georgia,serif;font-style:italic;font-size:1.08em;color:#5a5f66}"
     },
     {
+      "name": "Playground",
+      "kind": "custom",
+      "refersTo": "code-panel",
+      "description": "Under a runnable example on a slide: the Run outline pill, 'Put the original back' once edited, a muted italic state line, and what the program printed in a captioned code-shade panel. Rendered hidden; the one script uncovers it.",
+      "html": "<div class=\"ds-run\"><button type=\"button\" class=\"ds-run-go\">Run</button><button type=\"button\" class=\"ds-run-reset\">Put the original back</button><span class=\"ds-run-state\">It exited with status 2.</span></div><div class=\"ds-out\"><div class=\"ds-out-cap\">What it printed</div><pre>the basket adds up</pre></div>",
+      "css": ".ds-run{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;margin:14px 0 0} .ds-run-go{display:inline-flex;align-items:center;min-height:44px;padding:6px 22px;border:2px solid #15171a;border-radius:999px;background:#f6f7f8;color:#15171a;font:600 16px/1.25 'Source Serif 4',Charter,Georgia,serif;cursor:pointer;transition:background-color .16s cubic-bezier(.16,1,.3,1),color .16s cubic-bezier(.16,1,.3,1)} .ds-run-go:hover,.ds-run-go:focus-visible{background:#15171a;color:#f6f7f8} .ds-run-reset{padding:0;border:0;background:none;color:#3d4249;cursor:pointer;font:600 15.5px/1.4 'Source Serif 4',Charter,Georgia,serif;text-decoration:underline;text-decoration-color:#d5d8dd;text-decoration-thickness:2px;text-underline-offset:.2em} .ds-run-reset:hover{color:#15171a;text-decoration-color:#e29b19} .ds-run-state{font:italic 400 15.5px/1.4 'Source Serif 4',Charter,Georgia,serif;color:#5b6068} .ds-out{margin:20px 0 0} .ds-out-cap{margin:0 0 10px;font:italic 400 16px/1.4 'Source Serif 4',Charter,Georgia,serif;color:#3d4249} .ds-out pre{margin:0;padding:16px 24px;max-height:420px;overflow:auto;background:#eceef1;color:#15171a;font:400 13.5px/1.62 'Source Code Pro',ui-monospace,monospace;font-variant-ligatures:none}"
+    },
+    {
       "name": "Grammar Fold",
       "kind": "custom",
       "refersTo": null,
@@ -729,7 +737,7 @@
   ],
   "narrative": {
     "northStar": "The Language Set Out as a Book and a Chart",
-    "overview": "The site is a language's home page done properly and a tour that teaches the whole language, and it is set the way a good technical book is set: a cool white paper, one ink, a book serif for everything that is read and its sibling monospace for everything that is run. Two devices belong to teaching a language and nothing else, and they are the system's signature: the grammar drawn as railroad diagrams (in the tour only), and the whole language laid out as one periodic-table chart of 74 tiles in nine chapter colours. Every slide carries its own tile beside its title, so a chapter has a colour and 74 slides stop looking like one.\n\nDensity is a book's: an 18px body at a 66ch measure, generous paper between sections (128px on the front page), two columns where the explanation sits beside the programs it explains. Colour is rationed hard. Chapter colours only ever fill a tile; amber is the way on and where the reader is, and nothing else. Nothing moves: no entrance animation, no positional motion, only a 160ms colour change on the button, pills and tiles. The site ships no JavaScript, so every state the design has (the reader's scheme, read slides, the current station) is drawn by CSS from what HTML and the server already know.\n\nConfirmed rejections: the SaaS landing page (gradient hero, feature-card rows, glow), a literal bee-and-honey theme, cream paper, and railroad drawing outside the tour.",
+    "overview": "The site is a language's home page done properly and a tour that teaches the whole language, and it is set the way a good technical book is set: a cool white paper, one ink, a book serif for everything that is read and its sibling monospace for everything that is run. Two devices belong to teaching a language and nothing else, and they are the system's signature: the grammar drawn as railroad diagrams (in the tour only), and the whole language laid out as one periodic-table chart of 74 tiles in nine chapter colours. Every slide carries its own tile beside its title, so a chapter has a colour and 74 slides stop looking like one.\n\nDensity is a book's: an 18px body at a 66ch measure, generous paper between sections (128px on the front page), two columns where the explanation sits beside the programs it explains. Colour is rationed hard. Chapter colours only ever fill a tile; amber is the way on and where the reader is, and nothing else. Nothing moves: no entrance animation, no positional motion, only a 160ms colour change on the button, pills and tiles. The site ships no JavaScript beyond the playground's one script, so every state the design has (the reader's scheme, read slides, the current station) is drawn by CSS from what HTML and the server already know; only running an example needs the script.\n\nConfirmed rejections: the SaaS landing page (gradient hero, feature-card rows, glow), a literal bee-and-honey theme, cream paper, and railroad drawing outside the tour.",
     "keyCharacteristics": [
       "Cool paper (never cream), one ink, flat surfaces separated by paper rather than lines.",
       "Source Serif 4 for headings and prose, Source Code Pro for programs, tiles and tokens; both embedded, nothing fetched.",
@@ -796,7 +804,7 @@
       "**Don't** add hairlines between sections; only table rows get rules.",
       "**Don't** animate position or add entrance motion; colour changes at 160ms are the only motion.",
       "**Don't** use `!important` except to take back `hive.ui`'s inline row direction, alignment and gap at a breakpoint.",
-      "**Don't** ship JavaScript, external fonts or any asset not embedded in the binary."
+      "**Don't** ship JavaScript beyond the playground's one script, external fonts, or any asset not embedded in the binary (the playground's compiled programs and Go's `wasm_exec.js` excepted)."
     ]
   }
 }

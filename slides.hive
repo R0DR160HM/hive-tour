@@ -5,7 +5,7 @@
 // than this file's.
 //
 // It lives apart from the server for the reason the drawing in ./logo does.
-// The tour is 74 slides of prose in two languages, and a server is about
+// The tour is 75 slides of prose in two languages, and a server is about
 // two hundred lines; kept in one file, the second is a footnote to the first.
 //
 // Every code example below is a complete program: copy it into a `.hive` file
@@ -40,7 +40,7 @@ type Slide {
 	shot:          Str
 }
 
-func all(): Slide[74] {
+func all(): Slide[75] {
 	return start()
 		+ flow()
 		+ collections()
@@ -160,8 +160,8 @@ Compiled hello.hive -> hello (0s)`),
 			titlePt: "Nomes têm formas",
 			download: false,
 			shot: "",
-			explanation: "A name's spelling says what it is, and each shape is enforced where the name is declared:\n\n- `camelCase` names variables, parameters, fields, every `proc`, `func` and `query`, and the name an import is reached through.\n- `PascalCase` names types, their variants, and atoms.\n- `UPPER_CASE` may name a variable nothing reassigns, the way a constant is usually spelled. It is only ever allowed, never required — `camelCase` is the default — and a `mut` variable, a parameter, a field, a loop counter or a name a pattern binds may not use it.\n\nA leading `_` is set aside before the shape is checked, so `_scratch` and `_MAX` are fine, and `_` on its own throws a value away. Names are ASCII letters, digits and `_`; `café` is not one.\n\nThe keywords are `import proc func query test type if else return is with void true false echo assert panic dyn mut async await for in each bounds break continue`. They are lower case and only lower case, and they are reserved in **every** casing: `Proc` or `IF` is a compile error naming both readings, and no name anywhere may lowercase to a keyword — a variant called `Return`, a type called `Test` or a field called `type` is refused. A field whose JSON key is a keyword takes another name and says the key in an annotation, shown on the JSON slide.",
-			explanationPt: "A grafia de um nome diz o que ele é, e cada forma é obrigatória no lugar onde o nome é declarado:\n\n- `camelCase` nomeia variáveis, parâmetros, campos, todo `proc`, `func` e `query`, e o nome pelo qual um import é alcançado.\n- `PascalCase` nomeia tipos, suas variantes e átomos.\n- `UPPER_CASE` pode nomear uma variável que nada reatribui, do jeito que uma constante costuma ser escrita. É sempre permitido, nunca obrigatório — `camelCase` é o padrão — e uma variável `mut`, um parâmetro, um campo, um contador de laço ou um nome vinculado por um padrão não podem usá-lo.\n\nUm `_` no início é posto de lado antes de a forma ser checada, então `_scratch` e `_MAX` valem, e `_` sozinho descarta um valor. Nomes são letras ASCII, dígitos e `_`; `café` não é um.\n\nAs palavras-chave são `import proc func query test type if else return is with void true false echo assert panic dyn mut async await for in each bounds break continue`. Elas são minúsculas e somente minúsculas, e reservadas em **qualquer** grafia: `Proc` ou `IF` é um erro de compilação que aponta as duas leituras, e nenhum nome em lugar algum pode virar uma palavra-chave em minúsculas — uma variante chamada `Return`, um tipo chamado `Test` ou um campo chamado `type` são recusados. Um campo cuja chave JSON é uma palavra-chave recebe outro nome e diz a chave em uma anotação, mostrada no slide de JSON.",
+			explanation: "A name's spelling says what it is, and each shape is enforced where the name is declared:\n\n- `camelCase` names variables, parameters, fields, every `proc`, `func` and `query`, and the name an import is reached through.\n- `PascalCase` names types, their variants, and atoms.\n- `UPPER_CASE` may name a variable nothing reassigns, the way a constant is usually spelled. It is only ever allowed, never required — `camelCase` is the default — and a `mut` variable, a parameter, a field, a loop counter or a name a pattern binds may not use it.\n\nA leading `_` is set aside before the shape is checked, so `_scratch` and `_MAX` are fine, and `_` on its own throws a value away. Names are ASCII letters, digits and `_`; `café` is not one.\n\nThe keywords are `import proc func query test type if else return is with void true false echo assert panic dyn mut async await for in each bounds break continue switch`. They are lower case and only lower case, and they are reserved in **every** casing: `Proc` or `IF` is a compile error naming both readings, and no name anywhere may lowercase to a keyword — a variant called `Return`, a type called `Test` or a field called `type` is refused. A field whose JSON key is a keyword takes another name and says the key in an annotation, shown on the JSON slide.",
+			explanationPt: "A grafia de um nome diz o que ele é, e cada forma é obrigatória no lugar onde o nome é declarado:\n\n- `camelCase` nomeia variáveis, parâmetros, campos, todo `proc`, `func` e `query`, e o nome pelo qual um import é alcançado.\n- `PascalCase` nomeia tipos, suas variantes e átomos.\n- `UPPER_CASE` pode nomear uma variável que nada reatribui, do jeito que uma constante costuma ser escrita. É sempre permitido, nunca obrigatório — `camelCase` é o padrão — e uma variável `mut`, um parâmetro, um campo, um contador de laço ou um nome vinculado por um padrão não podem usá-lo.\n\nUm `_` no início é posto de lado antes de a forma ser checada, então `_scratch` e `_MAX` valem, e `_` sozinho descarta um valor. Nomes são letras ASCII, dígitos e `_`; `café` não é um.\n\nAs palavras-chave são `import proc func query test type if else return is with void true false echo assert panic dyn mut async await for in each bounds break continue switch`. Elas são minúsculas e somente minúsculas, e reservadas em **qualquer** grafia: `Proc` ou `IF` é um erro de compilação que aponta as duas leituras, e nenhum nome em lugar algum pode virar uma palavra-chave em minúsculas — uma variante chamada `Return`, um tipo chamado `Test` ou um campo chamado `type` são recusados. Um campo cuja chave JSON é uma palavra-chave recebe outro nome e diz a chave em uma anotação, mostrada no slide de JSON.",
 			examples: [
 				Example(caption: "", captionPt: "", code: `type Shape \{                  // a declared type, met properly later on
 	Circle \{ radius: Int }
@@ -1165,7 +1165,7 @@ proc main(): void \{
 }
 
 // Types, patterns and values
-func types(): Slide[12] {
+func types(): Slide[13] {
 	return [
 		Slide(
 			title: "Declared types",
@@ -1421,8 +1421,8 @@ proc main(): void \{
 			titlePt: "Casando com is",
 			download: false,
 			shot: "",
-			explanation: "`value is Pattern` is a `Bool` that is `true` when the value has that shape, and binds names for what it carries. There is no `match` statement: a match is an `if`, or an `if`/`else if` chain testing one subject.\n\n- A variant pattern names the variant and binds its fields **by position**, a variant's own fields first and the shared ones after: `shape is Shape.Rectangle(w, h)`. It binds every field or none — `Shape.Rectangle` alone matches any rectangle — and `_` takes a field without binding it.\n- `Result.Ok(v)` and `Result.Error(e)` are variant patterns too.\n- A name in a pattern is always a **new** name: it never compares with a variable already in scope. To test for a particular value, write the value itself in its place — `Result.Ok(1)` — or bind it and compare after `&&`.\n\nA name a match binds is immutable. It is in scope in the branch the match guards and in the rest of the same condition after `&&` — `if r is Result.Ok(n) && n > 10` — but not in an `else`, and not past an `||`, where nothing says which side matched.",
-			explanationPt: "`valor is Padrão` é um `Bool` que é `true` quando o valor tem aquela forma, e vincula nomes para o que ele carrega. Não existe instrução `match`: um casamento é um `if`, ou uma cadeia `if`/`else if` testando um mesmo sujeito.\n\n- Um padrão de variante nomeia a variante e vincula seus campos **por posição**, os próprios da variante primeiro e os compartilhados depois: `shape is Shape.Rectangle(w, h)`. Ele vincula todos os campos ou nenhum — `Shape.Rectangle` sozinho casa com qualquer retângulo — e `_` pega um campo sem vinculá-lo.\n- `Result.Ok(v)` e `Result.Error(e)` também são padrões de variante.\n- Um nome em um padrão é sempre um nome **novo**: ele nunca é comparado com uma variável que já está no escopo. Para testar um valor específico, escreva o próprio valor no lugar dele — `Result.Ok(1)` — ou vincule-o e compare depois de `&&`.\n\nUm nome vinculado por um casamento é imutável. Ele está no escopo do ramo que o casamento protege e no resto da mesma condição depois de `&&` — `if r is Result.Ok(n) && n > 10` — mas não em um `else`, e não depois de um `||`, onde nada diz qual lado casou.",
+			explanation: "`value is Pattern` is a `Bool` that is `true` when the value has that shape, and binds names for what it carries. A match is an `if`, an `if`/`else if` chain, or an arm of a `switch`, three slides on.\n\n- A variant pattern names the variant and binds its fields **by position**, a variant's own fields first and the shared ones after: `shape is Shape.Rectangle(w, h)`. It binds every field or none — `Shape.Rectangle` alone matches any rectangle — and `_` takes a field without binding it.\n- `Result.Ok(v)` and `Result.Error(e)` are variant patterns too.\n- A name in a pattern is always a **new** name: it never compares with a variable already in scope. To test for a particular value, write the value itself in its place — `Result.Ok(1)` — or bind it and compare after `&&`.\n\nA name a match binds is immutable. It is in scope in the branch the match guards and in the rest of the same condition after `&&` — `if r is Result.Ok(n) && n > 10` — but not in an `else`, and not past an `||`, where nothing says which side matched.",
+			explanationPt: "`valor is Padrão` é um `Bool` que é `true` quando o valor tem aquela forma, e vincula nomes para o que ele carrega. Um casamento é um `if`, uma cadeia `if`/`else if`, ou um braço de um `switch`, três slides adiante.\n\n- Um padrão de variante nomeia a variante e vincula seus campos **por posição**, os próprios da variante primeiro e os compartilhados depois: `shape is Shape.Rectangle(w, h)`. Ele vincula todos os campos ou nenhum — `Shape.Rectangle` sozinho casa com qualquer retângulo — e `_` pega um campo sem vinculá-lo.\n- `Result.Ok(v)` e `Result.Error(e)` também são padrões de variante.\n- Um nome em um padrão é sempre um nome **novo**: ele nunca é comparado com uma variável que já está no escopo. Para testar um valor específico, escreva o próprio valor no lugar dele — `Result.Ok(1)` — ou vincule-o e compare depois de `&&`.\n\nUm nome vinculado por um casamento é imutável. Ele está no escopo do ramo que o casamento protege e no resto da mesma condição depois de `&&` — `if r is Result.Ok(n) && n > 10` — mas não em um `else`, e não depois de um `||`, onde nada diz qual lado casou.",
 			examples: [
 				Example(caption: "Variants, and what they bind", captionPt: "Variantes, e o que vinculam", code: `type Shape \{
 	Circle    \{ radius: Int }
@@ -1717,6 +1717,115 @@ proc main(): void \{
 	echo kind(Result.Ok(Route.Page(["a", "b"])))   // uma página de 2
 	echo kind(Result.Ok(Route.Missing()))          // uma página ausente
 	echo kind(Result.Error("offline"))             // nenhuma página
+}`),
+			],
+		),
+		Slide(
+			title: "Matching with switch",
+			titlePt: "Casando com switch",
+			download: false,
+			shot: "",
+			explanation: "`switch` matches one or more values, its subjects, against a list of arms, and runs the first arm that matches them all. Each subject is evaluated once, left to right, before any arm is tried, so a call is as good a subject as a variable.\n\nAn arm has one position per subject, separated by commas, and a position is:\n\n- a pattern, exactly as it would be after `is`: `Shape.Circle(r)`, `Result.Ok([first, ...rest])`, `\"/users/\{id}\"`;\n- a literal the value has to equal: `0`, `-1`, `#Ready`, `true`;\n- `_`, which takes any value.\n\nAn arm is the `if` its positions spell, so what it binds is in scope in its body and nowhere else, and it binds a name once across all its positions. Nothing falls through: only the first arm that matches runs, and `break` and `continue` act on the loop around the `switch`.\n\nTwo things are compile errors. A combination of values **no arm takes** is one, and the message names it — `Shape.Circle(_), Fill.Empty` — so a `switch` is always exhaustive: coverage works as on the previous slide, over every subject at once, and a number, an atom or a string needs a `_`. An arm that **can never run**, because the arms above it already take everything it would, is the other. So a `switch` whose every arm returns ends a function, with nothing after it.",
+			explanationPt: "`switch` casa um ou mais valores, os seus sujeitos, com uma lista de braços, e executa o primeiro braço que casa com todos eles. Cada sujeito é avaliado uma vez, da esquerda para a direita, antes de qualquer braço ser testado, então uma chamada serve de sujeito tão bem quanto uma variável.\n\nUm braço tem uma posição por sujeito, separadas por vírgulas, e uma posição é:\n\n- um padrão, exatamente como seria depois de `is`: `Shape.Circle(r)`, `Result.Ok([first, ...rest])`, `\"/users/\{id}\"`;\n- um literal ao qual o valor precisa ser igual: `0`, `-1`, `#Ready`, `true`;\n- `_`, que aceita qualquer valor.\n\nUm braço é o `if` que as suas posições formam, então o que ele vincula está no escopo do seu corpo e em nenhum outro lugar, e ele vincula um nome uma única vez entre todas as suas posições. Nada cai para o braço seguinte: só o primeiro braço que casa é executado, e `break` e `continue` agem sobre o laço em volta do `switch`.\n\nDuas coisas são erros de compilação. Uma combinação de valores que **nenhum braço aceita** é uma, e a mensagem a nomeia — `Shape.Circle(_), Fill.Empty` —, então um `switch` é sempre exaustivo: a cobertura funciona como no slide anterior, sobre todos os sujeitos de uma vez, e um número, um átomo ou uma string precisa de um `_`. Um braço que **nunca pode ser executado**, porque os braços acima dele já aceitam tudo o que ele aceitaria, é a outra. Então um `switch` cujos braços todos retornam encerra uma função, sem nada depois dele.",
+			examples: [
+				Example(caption: "Several values at once", captionPt: "Vários valores de uma vez", code: `type Shape \{
+	Circle \{ radius: Int }
+	Point
+}
+
+type Fill \{
+	Solid \{ color: Str }
+	Empty
+}
+
+// Every shape with every fill has an arm, so the switch ends the function.
+func describe(shape: Shape, fill: Fill): Str \{
+	switch shape, fill \{
+		Shape.Circle(r), Fill.Solid(color) \{ return "a \{color} circle of \{r}" }
+		Shape.Circle(r), Fill.Empty        \{ return "an empty circle of \{r}" }
+		Shape.Point, _                     \{ return "a point" }
+	}
+}
+
+proc main(): void \{
+	echo describe(Shape.Circle(2), Fill.Solid("red"))   // a red circle of 2
+	echo describe(Shape.Circle(5), Fill.Empty())        // an empty circle of 5
+	echo describe(Shape.Point(), Fill.Solid("blue"))    // a point
+}`, codePt: `type Shape \{
+	Circle \{ radius: Int }
+	Point
+}
+
+type Fill \{
+	Solid \{ color: Str }
+	Empty
+}
+
+// Toda forma com todo preenchimento tem um braço, então o switch encerra a função.
+func describe(shape: Shape, fill: Fill): Str \{
+	switch shape, fill \{
+		Shape.Circle(r), Fill.Solid(color) \{ return "um círculo \{color} de \{r}" }
+		Shape.Circle(r), Fill.Empty        \{ return "um círculo vazio de \{r}" }
+		Shape.Point, _                     \{ return "um ponto" }
+	}
+}
+
+proc main(): void \{
+	echo describe(Shape.Circle(2), Fill.Solid("vermelho"))   // um círculo vermelho de 2
+	echo describe(Shape.Circle(5), Fill.Empty())             // um círculo vazio de 5
+	echo describe(Shape.Point(), Fill.Solid("azul"))         // um ponto
+}`),
+				Example(caption: "Literals, and the two errors", captionPt: "Literais, e os dois erros", code: `// Without the last arm this is a compile error, since no finite set of
+// numbers covers an Int; and an arm under that one could never run, which
+// is a compile error too.
+func size(n: Int, loud: Bool): Str \{
+	switch n, loud \{
+		0, _     \{ return "none" }
+		1, true  \{ return "ONE" }
+		1, false \{ return "one" }
+		_, _     \{ return "many" }
+	}
+}
+
+proc main(): void \{
+	echo size(0, true)    // none
+	echo size(1, true)    // ONE
+	echo size(7, false)   // many
+}`, codePt: `// Sem o último braço isto é um erro de compilação, já que nenhum conjunto
+// finito de números cobre um Int; e um braço abaixo dele nunca poderia ser
+// executado, o que também é um erro de compilação.
+func size(n: Int, loud: Bool): Str \{
+	switch n, loud \{
+		0, _     \{ return "nenhum" }
+		1, true  \{ return "UM" }
+		1, false \{ return "um" }
+		_, _     \{ return "muitos" }
+	}
+}
+
+proc main(): void \{
+	echo size(0, true)    // nenhum
+	echo size(1, true)    // UM
+	echo size(7, false)   // muitos
+}`),
+				Example(caption: "A call as the subject", captionPt: "Uma chamada como sujeito", code: `proc main(): void \{
+	names := ["ada", "bob"]
+	for each wanted in ["bob", "eve"] \{
+		// The call is made once, before any arm is tried.
+		switch indexOf(names, wanted) \{
+			Result.Ok(i)    \{ echo "\{wanted} is at \{i}" }
+			Result.Error(_) \{ echo "no \{wanted}" }
+		}
+	}
+}`, codePt: `proc main(): void \{
+	names := ["ada", "bob"]
+	for each wanted in ["bob", "eve"] \{
+		// A chamada é feita uma vez, antes de qualquer braço ser testado.
+		switch indexOf(names, wanted) \{
+			Result.Ok(i)    \{ echo "\{wanted} está na posição \{i}" }
+			Result.Error(_) \{ echo "nenhum \{wanted}" }
+		}
+	}
 }`),
 			],
 		),

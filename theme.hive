@@ -54,7 +54,7 @@ func styleTag(): Str {
 // queries outrank everything they take back.
 func css(): Str {
 	return faces() + palette() + darkScheme() + families() + shell() + head() + buttons() + prose()
-		+ code() + syntax() + rules() + track() + slide() + home() + chart()
+		+ code() + syntax() + play() + rules() + track() + slide() + home() + chart()
 		+ contents() + lost() + responsive()
 }
 
@@ -402,6 +402,45 @@ func syntax(): Str {
 .tour-code .c\{font-family:var(--f-serif);font-style:italic;font-size:1.08em;
 color:var(--sy-comment)}
 .tour-code .p\{color:var(--soft)}
+`
+}
+
+// Under a program a reader can run, ./play's controls: Run as an outline pill,
+// the shape a slide's download link already is — amber is the way on, and a
+// second amber thing on the page would dilute it — a plain underlined button
+// that puts the original back once it has been edited, and a line of the
+// caption italic beside them saying what is happening. What the program
+// printed is a panel of its own under them, a shade off the paper like the
+// program above it, under a caption the way the program is.
+//
+// The controls are written `hidden`, and stay that way until the script
+// uncovers them. A rule that sets `display` outranks the attribute, so the
+// three that do say `hidden` again in so many words.
+//
+// A program being edited takes the focus ring the rest of the page has, round
+// the whole panel rather than round the run of text inside it, and the text
+// is stretched to the panel's width so a click anywhere on it lands in it.
+func play(): Str {
+	return `.tour-run\{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;margin:14px 0 0}
+.tour-run[hidden],.tour-run-reset[hidden],.tour-output[hidden]\{display:none}
+.tour-run-go\{display:inline-flex;align-items:center;min-height:44px;padding:6px 22px;
+border:var(--rr) solid var(--ink);border-radius:999px;background:var(--paper);color:var(--ink);
+font:600 16px/1.25 var(--f-serif);cursor:pointer;
+transition:background-color .16s cubic-bezier(.16,1,.3,1),color .16s cubic-bezier(.16,1,.3,1)}
+.tour-run-go:hover,.tour-run-go:focus-visible\{background:var(--ink);color:var(--paper)}
+.tour-run-reset\{padding:0;border:0;background:none;color:var(--soft);cursor:pointer;
+font:600 15.5px/1.4 var(--f-serif);text-decoration:underline;text-decoration-color:var(--line);
+text-decoration-thickness:2px;text-underline-offset:.2em}
+.tour-run-reset:hover\{color:var(--ink);text-decoration-color:var(--brand)}
+.tour-run-state\{font:italic 400 15.5px/1.4 var(--f-serif);color:var(--muted)}
+.tour-run-keys\{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);
+white-space:nowrap}
+.tour-play .tour-code:focus-within\{outline:2px solid var(--ink);outline-offset:3px}
+.tour-play .tour-code code[contenteditable]\{display:inline-block;min-width:100%;outline:none;
+cursor:text;caret-color:var(--ink)}
+.tour-output\{margin:20px 0 0;min-width:0}
+.tour-output pre\{margin:0;padding:16px 24px;max-height:420px;overflow:auto;background:var(--code);
+font:400 13.5px/1.62 var(--f-mono);font-variant-ligatures:none;tab-size:4;color:var(--ink)}
 `
 }
 

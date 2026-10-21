@@ -7,11 +7,11 @@
 // does, because code is not prose. `handle` reads the slide number and the
 // chosen language out of the URL, `hive.net.httpServe` does the rest.
 //
-// This file is the server, and only the server. Ten others hold the things
+// This file is the server, and only the server. Twelve others hold the things
 // that are not it, each because a program is easier to read when the thing it
 // does and the material it does it to are not interleaved:
 //
-//   ./slides     the tour itself, seventy-three slides of it in two languages,
+//   ./slides     the tour itself, seventy-five slides of it in two languages,
 //                and the two types that hold one. Four fifths of the whole
 //                program by weight, and none of it about HTTP.
 //   ./home       what the front page says: the case for the language, made to
@@ -40,6 +40,13 @@
 //                here rather than in a script tag because the home page
 //                claims there is no framework underneath this site, and that
 //                claim is worth more than the eight lines it saves.
+//   ./play       the playground: which samples can run in a reader's
+//                browser, what to say about one that cannot, and the one
+//                script this site ships, which runs them there. It says
+//                why there is a script at all.
+//   ./compile.go the build behind the playground's Run button — the one
+//                file not written in Hive, because it has to be able to give
+//                up on a build, and Hive cannot stop a program it started.
 //
 // The interface is built with `hive.ui`: the running head, the track, the
 // headings, the columns, the links and the diagrams are all `View`s, rendered
@@ -62,11 +69,13 @@
 import hive.ui
 import ./logo
 import ./chart
+import ./compile.go
 import ./fonts
 import ./grammar
 import ./highlight
 import ./home
 import ./icon
+import ./play
 import ./rail
 import ./shots
 import ./slides
@@ -108,7 +117,15 @@ proc main(): void {
 
 // Every request, answered: routed to the page or file it asks for, and then,
 // if the reader has picked a colour scheme of their own, marked with it.
+//
+// A build is answered before any of that. It is the one request that is not
+// a GET and the one answer that is not a page, and it must never be marked: a
+// compiled program is bytes, and a program holding the text `<html lang=` in
+// one of its strings would have the scheme written into the middle of it.
 proc handle(request: hive.net.HttpRequest): hive.net.HttpResponse {
+	if requestPath(request.url) == play.compilePath() {
+		return compileResponse(request)
+	}
 	response := route(request.url)
 	theme := requestTheme(request.headers)
 	if theme == "" {
@@ -173,6 +190,15 @@ proc route(url: Str): hive.net.HttpResponse {
 		return rasterResponse(shots.scene(), icon.pngType())
 	}
 
+	// The playground's script, and the loader it runs a compiled program
+	// with. ./play says why there is a script on this site at all.
+	if path == play.scriptPath() {
+		return scriptResponse(play.script())
+	}
+	if path == play.loaderPath() {
+		return loaderResponse()
+	}
+
 	// The two files a crawler asks for that no visitor ever does. Neither
 	// depends on the language either: the sitemap names both of them for
 	// every page, which is the point of it.
@@ -206,10 +232,11 @@ proc route(url: Str): hive.net.HttpResponse {
 //
 // A page follows the reader's system — light or dark, whichever their machine
 // is set to — until they say otherwise, and saying otherwise is a link in the
-// running head. There is no script on this site to remember a choice with, so
-// the choice is remembered the way the web did it before scripts: in a cookie,
-// set by the server, sent back with every request after. It holds one word,
-// `dark` or `light`, and nothing about who is asking.
+// running head. The one script on this site runs programs and nothing else —
+// ./play says why there is even that one — so the choice is remembered the
+// way the web did it before scripts: in a cookie, set by the server, sent back
+// with every request after. It holds one word, `dark` or `light`, and nothing
+// about who is asking.
 //
 // The link goes to `/theme/dark` or `/theme/light` followed by the page it was
 // on. This answers it with the cookie and a redirect back there; every page
@@ -564,7 +591,7 @@ func jsonText(s: Str): Str {
 // arrives at either finds the other. `robots.txt` names it, which is the
 // one line in that file worth having.
 func robotsResponse(): hive.net.HttpResponse {
-	body := "User-agent: *\nAllow: /\nDisallow: /theme/\n\nSitemap: " + siteUrl() + "/sitemap.xml\n"
+	body := "User-agent: *\nAllow: /\nDisallow: /theme/\nDisallow: /play/\n\nSitemap: " + siteUrl() + "/sitemap.xml\n"
 	headers := [
 		["Content-Type", "text/plain; charset=utf-8"],
 		["Cache-Control", "public, max-age=86400"],
@@ -694,6 +721,107 @@ func fontResponse(decoded: Result<Str, hive.crypto.CryptoError>): hive.net.HttpR
 	return hive.net.HttpResponse(404, [["Content-Type", "text/plain; charset=utf-8"]], "")
 }
 
+// The other end of a Run button: one program's source in, and that program
+// built for a browser out — or what the compiler said about it, or why it was
+// never handed to the compiler at all. ./play says why the server compiles
+// and never runs, and ./compile.go is the build.
+//
+// Each refusal comes before the one after it costs anything. Only a POST from
+// the tour's own script, which says so in a header — one that another site's
+// page cannot send here without asking first, and is never told yes — then nothing
+// longer than any program on the tour by some way, then nothing a browser
+// could not run anyway. What is left waits up to fifteen seconds for the one
+// build slot and gets thirty to build in.
+//
+// The status says which of the three answers this is, and the script reads
+// it that way: 200 is a program, 422 is the compiler's own words about one,
+// and anything else is a sentence of ours. Nothing is cached anywhere: a
+// build is one reader's program, asked for once.
+proc compileResponse(request: hive.net.HttpRequest): hive.net.HttpResponse {
+	lang := requestLang(request.url)
+	if request.method != "POST" {
+		return hive.net.HttpResponse(405, [["Allow", "POST"], ["Cache-Control", "no-store"]], "")
+	}
+	if requestHeader(request.headers, "X-Hive-Tour") != "play" {
+		return playText(403, notFromPageNote(lang))
+	}
+	if bytes(request.body) > 65536 {
+		return playText(413, tooLongNote(lang))
+	}
+	if play.refusal(request.body, lang) is Result.Ok(why) {
+		return playText(403, why)
+	}
+
+	built := compile.wasm(request.body, 15000, 30000)
+	if built is Result.Ok(outcome) {
+		if outcome.problems != "" {
+			return playText(422, outcome.problems)
+		}
+		headers := [
+			["Content-Type", "application/wasm"],
+			["Cache-Control", "no-store"],
+		]
+		return hive.net.HttpResponse(200, headers, outcome.wasm)
+	}
+	if built is Result.Error(why) {
+		if why == "busy" {
+			return playText(503, busyNote(lang))
+		}
+		if why == "timeout" {
+			return playText(503, timedOutNote(lang))
+		}
+		hive.term.status("the playground could not run the compiler: {why}")
+	}
+	return playText(503, brokenNote(lang))
+}
+
+// A sentence for the playground to show, as the whole of an answer.
+func playText(status: Int, text: Str): hive.net.HttpResponse {
+	headers := [
+		["Content-Type", "text/plain; charset=utf-8"],
+		["Cache-Control", "no-store"],
+	]
+	return hive.net.HttpResponse(status, headers, text)
+}
+
+// The value of one header, or nothing. The server underneath writes every
+// name in its canonical case, so one spelling of it is enough to ask for.
+func requestHeader(headers: Str[dyn][dyn], name: Str): Str {
+	for each row in headers {
+		if row bounds 0 && row bounds 1 {
+			if row[0] == name {
+				return row[1]
+			}
+		}
+	}
+	return ""
+}
+
+// The playground's script, cached for as long as a page is, because a page
+// and the script that reads its controls have to change together.
+func scriptResponse(source: Str): hive.net.HttpResponse {
+	headers := [
+		["Content-Type", "text/javascript; charset=utf-8"],
+		["Cache-Control", "public, max-age=300"],
+	]
+	return hive.net.HttpResponse(200, headers, source)
+}
+
+// Go's loader for a `js/wasm` program: what instantiates one in a browser
+// and stands in for the operating system it was compiled to talk to. It is
+// the one file this server sends that is not in the binary, on purpose. A
+// loader has to match the Go that compiled the program it loads, and the copy
+// beside that Go's own toolchain is the only copy that is sure to.
+proc loaderResponse(): hive.net.HttpResponse {
+	if hive.term.exec("go", ["env", "GOROOT"], "") is Result.Ok(found) {
+		root := replaceAll(replaceAll(found, "\n", ""), "\r", "")
+		if hive.file.read(root + "/lib/wasm/wasm_exec.js") is Result.Ok(loader) {
+			return scriptResponse(loader)
+		}
+	}
+	return hive.net.HttpResponse(404, [["Content-Type", "text/plain; charset=utf-8"]], "")
+}
+
 // One slide: the line of the tour with this slide's station on it, the
 // slide's own tile in its chapter's colour beside its title, the grammar
 // rules it teaches drawn as railroad diagrams and folded away under a line
@@ -744,13 +872,14 @@ func renderSlide(slide: slides.Slide, idx: Int, all: slides.Slide[], lang: Str):
 		ui.column([], shotView(slide, lang) + [holeView("CODE", 1)]),
 	])
 	mut text := fill(ui.html(body), "TEXT", 1, proseHtml(slideExplanation(slide, lang)))
-	text = fill(text, "CODE", 1, examplesHtml(slide.examples, lang))
+	text = fill(text, "CODE", 1, examplesHtml(slide.examples, lang, true))
 
 	inner := ui.html(trackView(idx, total, lang))
 		+ "<div class=\"tour-head f{part}\">" + ui.html(title) + "</div>"
 		+ rulesHtml(grammar.forSlide(slide.title), lang)
 		+ text
 		+ ui.html(pagerView(idx, all, lang))
+		+ playScriptTag(slide.examples, lang)
 	mut name := "tour-slide"
 	if widest(slide.examples, lang) > 84 {
 		name = "tour-slide tour-wide"
@@ -805,7 +934,7 @@ func chapterTitle(part: Int, lang: Str): Str {
 
 // A slide's tile, the way the chart draws it: its number, the piece of the
 // language it is about, and the chapter it belongs to. On a slide it stands
-// beside the title, large; on the chart it is one of seventy-four.
+// beside the title, large; on the chart it is one of seventy-five.
 func tileView(idx: Int, title: Str, chapter: Str): ui.View {
 	return ui.column([], [
 		ui.text([], "{idx + 1}"),
@@ -893,11 +1022,11 @@ func homeResponse(lang: Str): hive.net.HttpResponse {
 		closingView(lang, len(all), proofNumber + 1),
 	])
 
-	mut inner := fill(ui.html(view), "CODE", 0, examplesHtml(home.hero(), lang))
+	mut inner := fill(ui.html(view), "CODE", 0, examplesHtml(home.hero(), lang, false))
 	inner = fill(inner, "CHART", 1, chartHtml(all, lang, 3))
 	for i := 0; i < len(points); i++ {
 		inner = fill(inner, "TEXT", i + 1, proseHtml(inLang(lang, points[i].text, points[i].textPt)))
-		inner = fill(inner, "CODE", i + 1, examplesHtml(points[i].examples, lang))
+		inner = fill(inner, "CODE", i + 1, examplesHtml(points[i].examples, lang, false))
 		inner = fill(inner, "READS", i + 1, readsHtml(points[i].reads, all, lang))
 		inner = fill(inner, "ANCHOR", i + 1, anchorHtml(pointAnchor(i + 1)))
 	}
@@ -1308,7 +1437,7 @@ func contentsResponse(lang: Str): hive.net.HttpResponse {
 // name.
 //
 // Every tile is a link to its slide whose label is the slide's title, so a
-// screen reader reads the chart as seventy-four named links in order. The
+// screen reader reads the chart as seventy-five named links in order. The
 // number and the symbol are laid over the link by ./theme, and the colour is
 // the family's class, written here, because a colour that has to change with
 // the scheme cannot be an inline one. How many rows a family takes is worked
@@ -1474,15 +1603,21 @@ func revisedViews(r: grammar.Rule, lang: Str): ui.View[dyn] {
 // slide split into several shows what each one is about, so a big feature
 // still arrives as several small, focused programs rather than one long
 // one.
-func examplesHtml(examples: slides.Example[], lang: Str): Str {
+//
+// On a slide, `runs` is true, and a program ./play says a browser can run
+// gets the controls to run it under it. The front page passes false: it makes
+// its case in programs a reader looks at, and ships no script to run them.
+func examplesHtml(examples: slides.Example[], lang: Str, runs: Bool): Str {
 	mut Str[dyn] blocks = []
+	mut n := 0
 	for each ex in examples {
-		append(blocks, exampleHtml(ex, lang))
+		n += 1
+		append(blocks, exampleHtml(ex, lang, n, runs))
 	}
 	return join(blocks, "")
 }
 
-func exampleHtml(ex: slides.Example, lang: Str): Str {
+func exampleHtml(ex: slides.Example, lang: Str, n: Int, runs: Bool): Str {
 	mut caption := ex.caption
 	if lang == "pt" {
 		caption = ex.captionPt
@@ -1491,11 +1626,69 @@ func exampleHtml(ex: slides.Example, lang: Str): Str {
 	if caption != "" {
 		captionHtml = "<div class=\"tour-caption\">" + escapeHtml(caption) + "</div>"
 	}
-	mut code := ex.code
-	if lang == "pt" {
-		code = ex.codePt
+	code := exampleCode(ex, lang)
+	if runs && play.runnable(code) {
+		return "<div class=\"tour-example tour-play\">" + captionHtml + codeBlockHtml(code)
+			+ runHtml(lang, n) + "</div>"
 	}
 	return "<div class=\"tour-example\">" + captionHtml + codeBlockHtml(code) + "</div>"
+}
+
+func exampleCode(ex: slides.Example, lang: Str): Str {
+	if lang == "pt" {
+		return ex.codePt
+	}
+	return ex.code
+}
+
+// Under a program a reader can run: the button, the button that puts the
+// original back, a line saying what is happening, and the place what it
+// prints goes. All of it is written hidden, so a page read without the script
+// is exactly the page it always was, and only the script uncovers it.
+//
+// Every word the script will ever show is written here too, as data on the
+// controls, so that the script carries no language of its own and the tour's
+// two languages stay in the one file that has the rest of its words. `n`
+// tells the samples on one slide apart, for the one id each needs: the
+// sentence a screen reader is given about the keys.
+func runHtml(lang: Str, n: Int): Str {
+	says := dataAttr("lang", lang)
+		+ dataAttr("label", editorLabel(lang))
+		+ dataAttr("run", runLabel(lang))
+		+ dataAttr("stop", stopLabel(lang))
+		+ dataAttr("compiling", compilingNote(lang))
+		+ dataAttr("running", runningNote(lang))
+		+ dataAttr("output", outputCaption(lang))
+		+ dataAttr("problems", problemsCaption(lang))
+		+ dataAttr("refused", refusedCaption(lang))
+		+ dataAttr("unreachable", unreachableNote(lang))
+		+ dataAttr("stopped", stoppedNote(lang))
+		+ dataAttr("slow", slowNote(lang))
+		+ dataAttr("long", longNote(lang))
+		+ dataAttr("silent", silentNote(lang))
+		+ dataAttr("status", statusNote(lang))
+	return "<div class=\"tour-run\" hidden" + says + ">"
+		+ "<button type=\"button\" class=\"tour-run-go\">" + escapeHtml(runLabel(lang)) + "</button>"
+		+ "<button type=\"button\" class=\"tour-run-reset\" hidden>" + escapeHtml(resetLabel(lang)) + "</button>"
+		+ "<span class=\"tour-run-state\" role=\"status\">" + escapeHtml(editHint(lang)) + "</span>"
+		+ "<span class=\"tour-run-keys\" id=\"tour-keys-{n}\">" + escapeHtml(keysHint(lang)) + "</span>"
+		+ "</div><div class=\"tour-output\" hidden><div class=\"tour-caption\"></div><pre></pre></div>"
+}
+
+func dataAttr(name: Str, value: Str): Str {
+	return " data-" + name + "=\"" + escapeAttr(value) + "\""
+}
+
+// The script, on a slide with anything for it to run, and nothing on one
+// without: a slide of terminal sessions and windows is a page with no script
+// on it at all.
+func playScriptTag(examples: slides.Example[], lang: Str): Str {
+	for each ex in examples {
+		if play.runnable(exampleCode(ex, lang)) {
+			return "<script src=\"" + play.scriptPath() + "\" defer></script>"
+		}
+	}
+	return ""
 }
 
 // A slide's explanation, which carries the little markup prose needs and no
@@ -1777,6 +1970,122 @@ func startTourLabel(lang: Str): Str {
 func downloadLabel(lang: Str): Str {
 	if lang == "pt" { return "Baixar o compilador" }
 	return "Download the compiler"
+}
+
+// The playground's words: its controls, what it says beside them while a
+// program compiles and runs, the captions over what comes back, and the
+// sentences the server answers with when it does not build one. ./play holds
+// the words for a program a browser cannot run, because it holds the list.
+
+func editorLabel(lang: Str): Str {
+	if lang == "pt" { return "O programa" }
+	return "The program"
+}
+
+func runLabel(lang: Str): Str {
+	if lang == "pt" { return "Rodar" }
+	return "Run"
+}
+
+func stopLabel(lang: Str): Str {
+	if lang == "pt" { return "Parar" }
+	return "Stop"
+}
+
+func resetLabel(lang: Str): Str {
+	if lang == "pt" { return "Voltar ao original" }
+	return "Put the original back"
+}
+
+func editHint(lang: Str): Str {
+	if lang == "pt" { return "Dá para editar este programa e rodá-lo aqui." }
+	return "You can edit this program and run it here."
+}
+
+func keysHint(lang: Str): Str {
+	if lang == "pt" { return "Tab indenta, Esc sai do programa e Ctrl+Enter o roda." }
+	return "Tab indents, Escape leaves the program, and Ctrl+Enter runs it."
+}
+
+func compilingNote(lang: Str): Str {
+	if lang == "pt" { return "Compilando…" }
+	return "Compiling…"
+}
+
+func runningNote(lang: Str): Str {
+	if lang == "pt" { return "Rodando…" }
+	return "Running…"
+}
+
+func outputCaption(lang: Str): Str {
+	if lang == "pt" { return "O que ele imprimiu" }
+	return "What it printed"
+}
+
+func problemsCaption(lang: Str): Str {
+	if lang == "pt" { return "O que o compilador disse" }
+	return "What the compiler said"
+}
+
+func refusedCaption(lang: Str): Str {
+	if lang == "pt" { return "Por que não rodou" }
+	return "Why it did not run"
+}
+
+func unreachableNote(lang: Str): Str {
+	if lang == "pt" { return "Não foi possível falar com o compilador. Tente de novo em instantes." }
+	return "The compiler could not be reached. Try again in a moment."
+}
+
+func stoppedNote(lang: Str): Str {
+	if lang == "pt" { return "Parado." }
+	return "Stopped."
+}
+
+func slowNote(lang: Str): Str {
+	if lang == "pt" { return "Parado depois de dez segundos." }
+	return "Stopped after ten seconds."
+}
+
+func longNote(lang: Str): Str {
+	if lang == "pt" { return "Parado: é mais do que esta página comporta." }
+	return "Stopped: that is more than this page will hold."
+}
+
+func silentNote(lang: Str): Str {
+	if lang == "pt" { return "Não imprimiu nada." }
+	return "It printed nothing."
+}
+
+// Followed by the number and a full stop, by the script.
+func statusNote(lang: Str): Str {
+	if lang == "pt" { return "Terminou com o código" }
+	return "It exited with status"
+}
+
+func notFromPageNote(lang: Str): Str {
+	if lang == "pt" { return "Programas são rodados a partir das páginas do próprio tour." }
+	return "Programs are run from the tour's own pages."
+}
+
+func tooLongNote(lang: Str): Str {
+	if lang == "pt" { return "Esse programa é maior do que esta página compila: no máximo sessenta e quatro kilobytes." }
+	return "That program is longer than this page will compile: sixty-four kilobytes at most."
+}
+
+func busyNote(lang: Str): Str {
+	if lang == "pt" { return "O compilador está ocupado com o programa de outra pessoa. Tente de novo em instantes." }
+	return "The compiler is busy with somebody else's program. Try again in a moment."
+}
+
+func timedOutNote(lang: Str): Str {
+	if lang == "pt" { return "O compilador levou mais de trinta segundos e foi interrompido." }
+	return "The compiler took longer than thirty seconds, and was stopped."
+}
+
+func brokenNote(lang: Str): Str {
+	if lang == "pt" { return "O compilador não pôde ser iniciado neste servidor." }
+	return "The compiler could not be started on this server."
 }
 
 func featuresCount(lang: Str, n: Int): Str {

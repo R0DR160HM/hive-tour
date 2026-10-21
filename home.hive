@@ -505,8 +505,8 @@ func proof(): Point {
 	return Point(
 		title: "This site is a Hive program",
 		titlePt: "Este site é um programa Hive",
-		text: "Every page here is served by an HTTP server written in Hive and laid out with Hive's own UI library — no web framework, and no JavaScript. The whole site is one executable, deployed in a container.",
-		textPt: "Toda página aqui é servida por um servidor HTTP escrito em Hive e montada com a própria biblioteca de UI do Hive — sem framework web, e sem JavaScript. O site inteiro é um único executável, publicado em um contêiner.",
+		text: "Every page here is served by an HTTP server written in Hive and laid out with Hive's own UI library — no web framework, and no JavaScript but the one script that runs the tour's examples in your browser. The whole site is one executable, deployed in a container.",
+		textPt: "Toda página aqui é servida por um servidor HTTP escrito em Hive e montada com a própria biblioteca de UI do Hive — sem framework web, e sem JavaScript além do único script que roda os exemplos do tour no seu navegador. O site inteiro é um único executável, publicado em um contêiner.",
 		reads: ["HTTP servers", "Views", "Containers"],
 		examples: [],
 	)

@@ -59,6 +59,7 @@ func symbols(): Symbol[dyn] {
 		Symbol(title: "Matching with is", symbol: "is"),
 		Symbol(title: "Matching vectors and strings", symbol: "..."),
 		Symbol(title: "Chains that cover a type", symbol: "else if"),
+		Symbol(title: "Matching with switch", symbol: "switch"),
 		Symbol(title: "Named arguments", symbol: "x:"),
 		Symbol(title: "First-class functions", symbol: "_"),
 		Symbol(title: "Mutability and value semantics", symbol: "mut"),

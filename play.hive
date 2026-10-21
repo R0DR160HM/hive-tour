@@ -1,0 +1,493 @@
+// The tour's playground: what lets a reader edit one of its programs and run
+// it, on the page, without installing anything. It is also the one place this
+// site ships a script, and the reason is worth saying once.
+//
+// A program can only run where something runs it. Running it here, on the
+// server, would mean running a stranger's code on the machine that serves the
+// tour, sandbox or no sandbox, and that is not a trade this site makes. So the
+// server only ever *compiles* — `hive build --target js/wasm`, the same command
+// a reader would type, run by ./compile.go — and the program runs in the
+// reader's own browser, which is built to run code nobody vouched for. Getting
+// the compiled program from the response into a WebAssembly instance, and its
+// output back onto the page, is the part HTML cannot do. That is the whole of
+// what the script is for, and every page still reads in full without it: the
+// controls are written into the page hidden, and only the script uncovers them.
+//
+// Two halves follow. The first decides which programs can run in a browser at
+// all, and what to say about one that cannot; main.hive asks it both before it
+// puts a Run button under a sample and before it hands a program to the
+// compiler. The second is the script.
+
+// ---------------------------------------------------------------------------
+// What a browser cannot give a program
+
+// One thing a program can ask for that a page in a browser does not have: the
+// text that asks for it, the name to call it by, and what it would need.
+type Missing {
+	needle:   Str
+	name:     Str
+	reason:   Str
+	reasonPt: Str
+}
+
+// Everything on the list, found by running every program on the tour both
+// ways — natively and as WebAssembly in a browser's loader — and keeping what
+// came out different. Each needle is matched where a name could start, so
+// `file.` is found as `hive.file.read`, as the short `file.read`, and under
+// whatever name an import gives the module; a program that happens to name a
+// variable `file` and reach into it loses its button, which is the safe way
+// round to be wrong.
+//
+// The last four are not a module. A `Secret` lives in memory locked against
+// being swapped to disk, and a browser has no such memory to lock: `bypass`
+// makes one in ordinary memory and works, and everything that makes one the
+// careful way answers `Unsupported`. Of those, `readSecret` and `writeSecret`
+// are already gone with the terminal and the files.
+//
+// What is not here works: arithmetic, strings, vectors, types, matching,
+// generics, `async` and `await`, services within one program, JSON, hashing,
+// the clock — which reads the reader's own time zone — and `ui.page`, which
+// renders a view to text without opening anything.
+func missing(): Missing[17] {
+	return [
+		Missing("file.", "hive.file", "files", "arquivos"),
+		Missing("sql.", "hive.sql", "a database", "um banco de dados"),
+		Missing("net.http", "hive.net", "connections of its own", "conexões próprias"),
+		Missing("net.ws", "hive.net", "connections of its own", "conexões próprias"),
+		Missing("net.socket", "hive.net", "connections of its own", "conexões próprias"),
+		Missing("net.resolve", "hive.net", "connections of its own", "conexões próprias"),
+		Missing("syslink.", "hive.syslink", "connections of its own", "conexões próprias"),
+		Missing("term.read", "hive.term.read", "a terminal to read from", "um terminal de onde ler"),
+		Missing("term.exec", "hive.term.exec", "other programs to start", "outros programas para iniciar"),
+		Missing("term.attach", "hive.term.attach", "other programs to start", "outros programas para iniciar"),
+		Missing("ui.window", "hive.ui.window", "a window of its own", "uma janela própria"),
+		Missing("ui.scene", "hive.ui.scene", "a window of its own", "uma janela própria"),
+		Missing("audio.", "hive.audio", "a window of its own", "uma janela própria"),
+		Missing("hide(", "hide", "memory that is never swapped to disk", "memória que nunca vai para o disco"),
+		Missing("randomSecret(", "hive.crypto.randomSecret", "memory that is never swapped to disk", "memória que nunca vai para o disco"),
+		Missing("getSecret(", "hive.env.getSecret", "memory that is never swapped to disk", "memória que nunca vai para o disco"),
+		Missing("decrypt(", "hive.crypto.decrypt", "memory that is never swapped to disk", "memória que nunca vai para o disco"),
+	]
+}
+
+// Whether a sample gets a Run button: it is a program, rather than a terminal
+// session or a Go file, and nothing in it is something a browser lacks.
+func runnable(code: Str): Bool {
+	if startsWith(code, "$ ") {
+		return false
+	}
+	if indexOf(code, "proc main(") is Result.Error(_) {
+		return false
+	}
+	if refusal(code, "en") is Result.Ok(_) {
+		return false
+	}
+	return true
+}
+
+// Why the server will not build a program, in the reader's language, or an
+// Error when it will. An import is refused first, and for a different reason
+// from the rest: the compiler would go looking on this server's disk for a
+// relative path, and out to the network for a repository, and neither is
+// anything a reader's program should be able to make it do. The library is
+// built into the compiler, so `import hive.ui` is the one kind that passes.
+func refusal(code: Str, lang: Str): Result<Str, Bool> {
+	if foreignImport(code) is Result.Ok(path) {
+		if lang == "pt" {
+			return Result.Ok("Aqui só a biblioteca padrão pode ser importada, e {path} não faz parte dela. Salve o programa em um arquivo .hive e rode-o com hive run.")
+		}
+		return Result.Ok("Only the standard library can be imported here, and {path} is not part of it. Save the program as a .hive file and run it with hive run instead.")
+	}
+	for each m in missing() {
+		if reaches(code, m.needle) {
+			if lang == "pt" {
+				return Result.Ok("{m.name} precisa de {m.reasonPt}, e um programa rodando no navegador não tem. Salve-o em um arquivo .hive e rode-o com hive run.")
+			}
+			return Result.Ok("{m.name} needs {m.reason}, which a program running in a browser does not have. Save it as a .hive file and run it with hive run instead.")
+		}
+	}
+	return Result.Error(false)
+}
+
+// The first path a program imports that is not the library's.
+func foreignImport(code: Str): Result<Str, Bool> {
+	for each said in imports(code) {
+		mut path := ""
+		if said bounds 0 {
+			path = said[0]
+		}
+		if startsWith(path, "hive.") == false {
+			return Result.Ok(path)
+		}
+	}
+	return Result.Error(false)
+}
+
+// Every import a program writes, as the words after `import`: the path first
+// and, where the module is renamed, `as` and the new name after it. After
+// `import` the lexer reads a path rather than tokens — everything up to the
+// next whitespace — so this reads it the same way, with every kind of
+// whitespace made a space first.
+func imports(code: Str): Str[dyn][dyn] {
+	flat := replaceAll(replaceAll(replaceAll(code, "\t", " "), "\r", " "), "\n", " ")
+	pieces := split(flat, "import ")
+	mut Str[dyn][dyn] found = []
+	for i := 0; i + 1 < len(pieces); i++ {
+		next := i + 1
+		if pieces bounds i && pieces bounds next {
+			if endsInName(pieces[i]) == false {
+				append(found, filter(split(pieces[next], " "), isWord))
+			}
+		}
+	}
+	return found
+}
+
+func isWord(text: Str): Bool {
+	return text != ""
+}
+
+// Whether a program reaches for `needle` by the name the library gives it or
+// by the one an import gave it instead: after `import hive.net as web`,
+// `web.resolve` is the very call `net.resolve` is.
+func reaches(code: Str, needle: Str): Bool {
+	if mentions(code, needle) {
+		return true
+	}
+	for each said in imports(code) {
+		if said bounds 0 && said bounds 1 && said bounds 2 {
+			module := replaceFirst(said[0], "hive.", "") + "."
+			if said[1] == "as" && startsWith(needle, module) {
+				if mentions(code, said[2] + "." + replaceFirst(needle, module, "")) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// Whether `needle` turns up anywhere a name could start: not straight after a
+// letter, a digit or an underscore, which would make it the tail of some other
+// name — `profile.` is not `file.`.
+func mentions(code: Str, needle: Str): Bool {
+	pieces := split(code, needle)
+	for i := 0; i + 1 < len(pieces); i++ {
+		if pieces bounds i {
+			if endsInName(pieces[i]) == false {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func endsInName(text: Str): Bool {
+	if text == "" {
+		return false
+	}
+	cs := split(text, "")
+	end := len(cs) - 1
+	if cs bounds end {
+		return indexOf("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_", cs[end]) is Result.Ok(_)
+	}
+	return false
+}
+
+func startsWith(text: Str, prefix: Str): Bool {
+	if indexOf(text, prefix) is Result.Ok(at) {
+		return at == 0
+	}
+	return false
+}
+
+// ---------------------------------------------------------------------------
+// The script
+//
+// One file, served at /play/play.js, that is two programs depending on where
+// it finds itself. On a page it wires up every sample main.hive marked as
+// runnable; inside a Web Worker it is what runs a compiled program. The worker
+// is what lets Stop mean stop: a program spinning in a loop never hands the
+// thread back, so it is run on a thread of its own that can be thrown away,
+// and the page stays a page while it runs.
+//
+// Like ./theme's stylesheet, it is held in raw strings, where a brace is only
+// a brace if it is written `\{` — and a script has a great many of them.
+
+// The three things the script asks this server for, named here and nowhere
+// else: main.hive routes each of them, and the script is written with them.
+// All three sit under one prefix, which is the prefix robots.txt keeps a
+// crawler out of.
+func scriptPath(): Str {
+	return "/play/play.js"
+}
+
+func loaderPath(): Str {
+	return "/play/wasm_exec.js"
+}
+
+func compilePath(): Str {
+	return "/play/compile"
+}
+
+func script(): Str {
+	return "(function () \{\n\"use strict\";\n\n" + worker() + "\n\n" + page() + "\n})();\n"
+}
+
+// The worker's half. Go's own loader, served beside this script from the
+// toolchain that compiled the program, stands a stub in for the file system a
+// browser does not have; the stub's one working call is the write a program's
+// output arrives through, and this takes that over and sends each write to
+// the page as it happens. The page decides what to make of a program's exit.
+func worker(): Str {
+	return `
+	if (typeof document === "undefined") \{
+		self.onmessage = function (event) \{
+			importScripts("{loaderPath()}");
+			var decoder = new TextDecoder("utf-8");
+			globalThis.fs.writeSync = function (fd, buf) \{
+				self.postMessage(\{ out: decoder.decode(buf, \{ stream: true }) });
+				return buf.length;
+			};
+			var go = new Go();
+			go.exit = function (code) \{
+				self.postMessage(\{ exit: code });
+			};
+			WebAssembly.instantiate(event.data, go.importObject).then(function (made) \{
+				return go.run(made.instance);
+			}).catch(function (err) \{
+				self.postMessage(\{ crash: String(err) });
+			});
+		};
+		return;
+	}
+	`
+}
+
+// The page's half: every runnable sample made editable in place, with its Run
+// button, its output under it, and the words for every state of it read off
+// the controls main.hive wrote, so the script holds no language of its own.
+//
+// The sample stays highlighted until its first edit and turns plain ink from
+// then on, because a highlighter that ran on every keystroke would be a second
+// copy of ./highlight written in a second language, and the first one is the
+// one the tour vouches for. Tab indents, as it would in an editor; Escape
+// hands the keyboard back to the page, and Ctrl+Enter runs the program.
+//
+// A program gets ten seconds and two hundred thousand characters of output,
+// and is stopped, and says so, at whichever comes first.
+func page(): Str {
+	return `
+	var LIMIT = 200000;
+	var PATIENCE = 10000;
+
+	document.querySelectorAll(".tour-play").forEach(function (block) \{
+		var code = block.querySelector(".tour-code code");
+		var controls = block.querySelector(".tour-run");
+		var run = controls.querySelector(".tour-run-go");
+		var reset = controls.querySelector(".tour-run-reset");
+		var state = controls.querySelector(".tour-run-state");
+		var output = block.querySelector(".tour-output");
+		var heading = output.querySelector(".tour-caption");
+		var screen = output.querySelector("pre");
+		var says = controls.dataset;
+		var original = code.innerHTML;
+		var edited = false;
+		var job = null;
+
+		code.setAttribute("contenteditable", "plaintext-only");
+		if (code.contentEditable !== "plaintext-only") \{
+			code.setAttribute("contenteditable", "true");
+		}
+		code.setAttribute("spellcheck", "false");
+		code.setAttribute("autocapitalize", "off");
+		code.setAttribute("autocorrect", "off");
+		code.setAttribute("role", "textbox");
+		code.setAttribute("aria-multiline", "true");
+		code.setAttribute("aria-label", says.label);
+		code.setAttribute("aria-describedby", controls.querySelector(".tour-run-keys").id);
+		controls.hidden = false;
+
+		code.addEventListener("input", function () \{
+			if (!edited) \{
+				edited = true;
+				flatten();
+				reset.hidden = false;
+			}
+		});
+		code.addEventListener("paste", function (event) \{
+			event.preventDefault();
+			insert(event.clipboardData.getData("text/plain"));
+		});
+		code.addEventListener("keydown", function (event) \{
+			if (event.isComposing) \{
+				return;
+			}
+			if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) \{
+				event.preventDefault();
+				start();
+			} else if (event.key === "Enter") \{
+				event.preventDefault();
+				insert("\n");
+			} else if (event.key === "Tab" && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey) \{
+				event.preventDefault();
+				insert("\t");
+			} else if (event.key === "Escape") \{
+				run.focus();
+			}
+		});
+		run.addEventListener("click", function () \{
+			if (job) \{
+				job.stop(says.stopped);
+			} else \{
+				start();
+			}
+		});
+		reset.addEventListener("click", function () \{
+			code.innerHTML = original;
+			edited = false;
+			reset.hidden = true;
+			code.focus();
+		});
+
+		function insert(text) \{
+			if (!document.execCommand("insertText", false, text)) \{
+				var selection = window.getSelection();
+				if (selection.rangeCount) \{
+					var range = selection.getRangeAt(0);
+					range.deleteContents();
+					range.insertNode(document.createTextNode(text));
+					range.collapse(false);
+				}
+			}
+		}
+
+		function flatten() \{
+			var at = -1;
+			var selection = window.getSelection();
+			if (selection.rangeCount && code.contains(selection.anchorNode)) \{
+				var before = document.createRange();
+				before.selectNodeContents(code);
+				before.setEnd(selection.anchorNode, selection.anchorOffset);
+				at = before.toString().length;
+			}
+			code.textContent = code.textContent;
+			if (at >= 0 && code.firstChild) \{
+				var range = document.createRange();
+				range.setStart(code.firstChild, Math.min(at, code.firstChild.length));
+				range.collapse(true);
+				selection.removeAllRanges();
+				selection.addRange(range);
+			}
+		}
+
+		function start() \{
+			var mine = \{};
+			var asking = new AbortController();
+			mine.stop = function (note) \{
+				asking.abort();
+				finish(note);
+			};
+			job = mine;
+			run.textContent = says.stop;
+			state.textContent = says.compiling;
+			fetch("{compilePath()}?lang=" + says.lang, \{
+				method: "POST",
+				body: code.textContent,
+				signal: asking.signal,
+				headers: \{ "Content-Type": "text/plain; charset=utf-8", "X-Hive-Tour": "play" }
+			}).then(function (response) \{
+				if (job !== mine) \{
+					return;
+				}
+				if (response.ok) \{
+					return response.arrayBuffer().then(function (wasm) \{
+						if (job === mine) \{
+							execute(mine, wasm);
+						}
+					});
+				}
+				return response.text().then(function (text) \{
+					if (job === mine) \{
+						show(response.status === 422 ? says.problems : says.refused, text);
+						finish("");
+					}
+				});
+			}).catch(function () \{
+				if (job === mine) \{
+					show(says.refused, says.unreachable);
+					finish("");
+				}
+			});
+		}
+
+		function execute(mine, wasm) \{
+			var printed = "";
+			var pending = false;
+			var worker = new Worker("{scriptPath()}");
+			var timer = setTimeout(function () \{
+				mine.stop(says.slow);
+			}, PATIENCE);
+			function paint() \{
+				pending = false;
+				screen.textContent = printed;
+			}
+			mine.stop = function (note) \{
+				clearTimeout(timer);
+				worker.terminate();
+				paint();
+				finish(note);
+			};
+			worker.onmessage = function (event) \{
+				if (job !== mine) \{
+					return;
+				}
+				var said = event.data;
+				if (said.out !== undefined) \{
+					printed += said.out;
+					if (printed.length > LIMIT) \{
+						printed = printed.slice(0, LIMIT);
+						mine.stop(says.long);
+					} else if (!pending) \{
+						pending = true;
+						requestAnimationFrame(paint);
+					}
+				} else if (said.exit !== undefined) \{
+					if (said.exit !== 0) \{
+						mine.stop(says.status + " " + said.exit + ".");
+					} else if (printed === "") \{
+						mine.stop(says.silent);
+					} else \{
+						mine.stop("");
+					}
+				} else if (said.crash !== undefined) \{
+					printed += said.crash;
+					mine.stop("");
+				}
+			};
+			worker.onerror = function (event) \{
+				event.preventDefault();
+				if (job === mine) \{
+					printed += event.message;
+					mine.stop("");
+				}
+			};
+			state.textContent = says.running;
+			show(says.output, "");
+			worker.postMessage(wasm, [wasm]);
+		}
+
+		function show(title, text) \{
+			output.hidden = false;
+			heading.textContent = title;
+			screen.textContent = text;
+		}
+
+		function finish(note) \{
+			job = null;
+			run.textContent = says.run;
+			state.textContent = note;
+		}
+	});
+	`
+}
