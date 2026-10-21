@@ -26,6 +26,13 @@ test "a module a browser does not have is found under either of its names" {
 	assert play.runnable("proc main(): void \{\n\t_ := hive.crypto.randomSecret(16)\n}") == false
 }
 
+test "a secret kept in ordinary memory runs, and its locked twin does not" {
+	assert play.runnable("proc main(): void \{\n\t_ := hive.crypto.decryptBypass(\"x\", bypass(\"pw\"))\n}")
+	assert play.runnable("proc main(): void \{\n\t_ := hive.crypto.decrypt(\"x\", bypass(\"pw\"))\n}") == false
+	// Ordinary memory or not, there is no terminal to read it from.
+	assert play.runnable("proc main(): void \{\n\t_ := hive.term.readSecretBypass()\n}") == false
+}
+
 test "a module renamed by its import is still that module" {
 	assert play.runnable("import hive.net as web\n\nproc main(): void \{\n\t_ := web.resolve(\"localhost\")\n}") == false
 	assert play.runnable("import hive.file as disk\n\nproc main(): void \{\n\t_ := disk.read(\"x\")\n}") == false

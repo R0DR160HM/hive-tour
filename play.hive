@@ -39,9 +39,9 @@ type Missing {
 // round to be wrong.
 //
 // The last four are not a module. A `Secret` lives in memory locked against
-// being swapped to disk, and a browser has no such memory to lock: `bypass`
-// makes one in ordinary memory and works, and everything that makes one the
-// careful way answers `Unsupported`. Of those, `readSecret` and `writeSecret`
+// being swapped to disk, and a browser has no such memory to lock: `bypass` and
+// `decryptBypass` make one in ordinary memory and work, and everything that
+// makes one the careful way answers `Unsupported`. Of those, `readSecret` and `writeSecret`
 // are already gone with the terminal and the files.
 //
 // What is not here works: arithmetic, strings, vectors, types, matching,

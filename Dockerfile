@@ -56,7 +56,7 @@ ENV PATH="/usr/local/go/bin:${PATH}"
 #
 # `docker build --build-arg HIVEC_VERSION=v9.9.9 .` builds with another one,
 # and running `hive container` from that compiler writes it in here.
-ARG HIVEC_VERSION=v0.2.15
+ARG HIVEC_VERSION=v0.2.16
 RUN curl -fsSL \
       "https://github.com/R0DR160HM/hive-lang/releases/download/${HIVEC_VERSION}/hivec-linux-${TARGETARCH}" \
       -o /usr/local/bin/hivec \
