@@ -75,7 +75,7 @@ Hive is a compiled, garbage-collected language with **no runtime exceptions**. I
 ## Evidence on Hand
 
 - The site itself, as a working Hive program (the front page's "The proof" section).
-- 75 slides of bilingual explanation and runnable examples (`slides.hive`).
+- 77 slides of bilingual explanation and runnable examples (`slides.hive`).
 - Front-page samples in `home.hive`: a web service with shared state, a `Result` lookup, and the same service called locally and across machines.
 - Factual tables: six platform targets with their build commands, 12 standard-library modules, 5 `hive` commands.
 - One real screenshot: a `hive.ui.scene` window running a slide's own code (`/shot/three-dimensions.png`, embedded in `shots.hive`).

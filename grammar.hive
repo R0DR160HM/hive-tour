@@ -391,22 +391,33 @@ func andExpr(): Rule {
 
 func isExpr(): Rule {
 	return spec("is-expr", "2.6",
-		"is-expr = cmp-expr [ \"is\" pattern ] | cmp-expr \"bounds\" add-expr ;",
+		"is-expr = cmp-expr [ \"is\" pattern ] | cmp-expr \"bounds\" bit-expr ;",
 		[either([
 			seq([rule("cmp-expr"), opt(seq([sign("is"), rule("pattern")]))]),
-			seq([rule("cmp-expr"), sign("bounds"), rule("add-expr")]),
+			seq([rule("cmp-expr"), sign("bounds"), rule("bit-expr")]),
 		])])
 }
 
 func cmpExpr(): Rule {
 	return spec("cmp-expr", "2.6",
-		"cmp-expr = add-expr [ ( \">\" | \"<\" | \">=\" | \"<=\" | \"==\" | \"!=\" ) add-expr ] ;",
+		"cmp-expr = bit-expr [ ( \">\" | \"<\" | \">=\" | \"<=\" | \"==\" | \"!=\" ) bit-expr ] ;",
 		[seq([
-			rule("add-expr"),
+			rule("bit-expr"),
 			opt(seq([
 				either([sign(">"), sign("<"), sign(">="), sign("<="), sign("=="), sign("!=")]),
-				rule("add-expr"),
+				rule("bit-expr"),
 			])),
+		])])
+}
+
+// One operator throughout, and no bare arithmetic beside it: the parentheses say
+// which goes first.
+func bitExpr(): Rule {
+	return spec("bit-expr", "2.6",
+		"bit-expr = add-expr \{ ( \"&\" | \"|\" | \"^\" | \"<<\" | \">>\" ) add-expr } ;",
+		[seq([
+			rule("add-expr"),
+			many(seq([either([sign("&"), sign("|"), sign("^"), sign("<<"), sign(">>")]), rule("add-expr")])),
 		])])
 }
 
@@ -424,16 +435,17 @@ func mulExpr(): Rule {
 
 func pipeExpr(): Rule {
 	return spec("pipe-expr", "2.6",
-		"pipe-expr = unary-expr \{ \"|\" unary-expr } ;",
-		[seq([rule("unary-expr"), many(seq([sign("|"), rule("unary-expr")]))])])
+		"pipe-expr = unary-expr \{ \"|>\" unary-expr } ;",
+		[seq([rule("unary-expr"), many(seq([sign("|>"), rule("unary-expr")]))])])
 }
 
 func unaryExpr(): Rule {
 	return spec("unary-expr", "2.6",
-		"unary-expr = \"-\" unary-expr | \"!\" unary-expr | pow-expr ;",
+		"unary-expr = \"-\" unary-expr | \"!\" unary-expr | \"~\" unary-expr | pow-expr ;",
 		[either([
 			seq([sign("-"), rule("unary-expr")]),
 			seq([sign("!"), rule("unary-expr")]),
+			seq([sign("~"), rule("unary-expr")]),
 			rule("pow-expr"),
 		])])
 }
@@ -501,8 +513,8 @@ func awaitAll(): Rule {
 
 func pattern(): Rule {
 	return spec("pattern", "2.7",
-		"pattern = ctor-pattern | vector-pattern | string-pattern ;",
-		[either([rule("ctor-pattern"), rule("vector-pattern"), rule("string-pattern")])])
+		"pattern = ctor-pattern | vector-pattern | string-pattern | bits-pattern ;",
+		[either([rule("ctor-pattern"), rule("vector-pattern"), rule("string-pattern"), rule("bits-pattern")])])
 }
 
 func ctorPattern(): Rule {
@@ -539,6 +551,46 @@ func element(): Rule {
 	return parsed("element", "2.7",
 		"element = binding | literal | pattern ;",
 		[either([rule("binding"), rule("literal"), rule("pattern")])])
+}
+
+func bitsPattern(): Rule {
+	return parsed("bits-pattern", "2.7",
+		"bits-pattern = \"<<\" \{ bit-field \",\" } [ bit-field | \"...\" IDENT ] \">>\" ;",
+		[seq([
+			sign("<<"),
+			many(seq([rule("bit-field"), sign(",")])),
+			opt(either([rule("bit-field"), seq([sign("..."), rule("IDENT")])])),
+			sign(">>"),
+		])])
+}
+
+func bitField(): Rule {
+	return parsed("bit-field", "2.7",
+		"bit-field = ( binding | literal ) [ \":\" ( type | IDENT \"[\" expression \"]\" ) ] [ \"little\" ] ;",
+		[seq([
+			either([rule("binding"), rule("literal")]),
+			opt(seq([
+				sign(":"),
+				either([rule("type"), seq([rule("IDENT"), sign("["), rule("expression"), sign("]")])]),
+			])),
+			opt(sign("little")),
+		])])
+}
+
+func bitsLit(): Rule {
+	return parsed("bits-lit", "2.6",
+		"bits-lit = \"<<\" [ bit-part \{ \",\" bit-part } ] \">>\" ;",
+		[seq([
+			sign("<<"),
+			opt(seq([rule("bit-part"), many(seq([sign(","), rule("bit-part")]))])),
+			sign(">>"),
+		])])
+}
+
+func bitPart(): Rule {
+	return parsed("bit-part", "2.6",
+		"bit-part = expression [ \":\" type ] [ \"little\" ] ;",
+		[seq([rule("expression"), opt(seq([sign(":"), rule("type")])), opt(sign("little"))])])
 }
 
 func stringPattern(): Rule {
@@ -602,7 +654,7 @@ func slideRules(): SlideRules[dyn] {
 		SlideRules(title: "Hello, World", rules: [file(), echoStmt()]),
 		SlideRules(title: "Variables", rules: [varDecl(), typedDecl(), assign(), lvalue()]),
 		SlideRules(title: "Operators", rules: [
-			orExpr(), andExpr(), isExpr(), cmpExpr(), addExpr(), mulExpr(), pipeExpr(), unaryExpr(), powExpr(),
+			orExpr(), andExpr(), isExpr(), cmpExpr(), bitExpr(), addExpr(), mulExpr(), pipeExpr(), unaryExpr(), powExpr(),
 		]),
 		SlideRules(title: "if and else", rules: [ifStmt(), block()]),
 		SlideRules(title: "Loops", rules: [forStmt(), step()]),
@@ -617,6 +669,7 @@ func slideRules(): SlideRules[dyn] {
 		SlideRules(title: "A length is a promise", rules: [typedDecl(), dim()]),
 		SlideRules(title: "Matching with is", rules: [isExpr(), pattern(), ctorPattern(), part()]),
 		SlideRules(title: "Matching vectors and strings", rules: [vectorPattern(), element(), stringPattern()]),
+		SlideRules(title: "Bits and bytes", rules: [bitExpr(), bitsLit(), bitPart(), bitsPattern(), bitField()]),
 		SlideRules(title: "Chains that cover a type", rules: [ifStmt()]),
 		SlideRules(title: "Matching with switch", rules: [switchStmt(), arm(), position()]),
 		SlideRules(title: "Named arguments", rules: [callSuffix(), args(), arg()]),

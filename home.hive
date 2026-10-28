@@ -105,7 +105,7 @@ proc counter(count: mut Int, tick: Tick): Tick \{
 
 proc handle(req: hive.net.HttpRequest): hive.net.HttpResponse \{
 	plain := [["Content-Type", "text/plain"]]
-	service := at(#Hits)
+	Address<Tick> service = at(#Hits)
 	// Asking a service answers a Result: it may be down.
 	if service(Tick.Hit()) is Result.Ok(Tick.Seen(n)) \{
 		return hive.net.HttpResponse(200, plain, "visitor \{n}\n")
@@ -131,7 +131,7 @@ proc counter(count: mut Int, tick: Tick): Tick \{
 
 proc handle(req: hive.net.HttpRequest): hive.net.HttpResponse \{
 	plain := [["Content-Type", "text/plain"]]
-	service := at(#Hits)
+	Address<Tick> service = at(#Hits)
 	// Perguntar a um serviço dá um Result: ele pode estar fora.
 	if service(Tick.Hit()) is Result.Ok(Tick.Seen(n)) \{
 		return hive.net.HttpResponse(200, plain, "visita \{n}\n")
@@ -381,8 +381,8 @@ proc main(): void \{
 		panic e
 	}
 
-	here := at(#Inbox)                     // on this machine
-	there := at("10.0.0.2:9100", #Inbox)   // on another one
+	Address<Note> here = at(#Inbox)                     // on this machine
+	Address<Note> there = at("10.0.0.2:9100", #Inbox)   // on another one
 
 	// The same call either way. The second one crosses the
 	// network, encrypted and authenticated.
@@ -407,8 +407,8 @@ proc main(): void \{
 		panic e
 	}
 
-	here := at(#Inbox)                     // nesta máquina
-	there := at("10.0.0.2:9100", #Inbox)   // em outra
+	Address<Note> here = at(#Inbox)                     // nesta máquina
+	Address<Note> there = at("10.0.0.2:9100", #Inbox)   // em outra
 
 	// A mesma chamada nos dois casos. A segunda atravessa a
 	// rede, criptografada e autenticada.
