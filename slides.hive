@@ -5,7 +5,7 @@
 // than this file's.
 //
 // It lives apart from the server for the reason the drawing in ./logo does.
-// The tour is 77 slides of prose in two languages, and a server is about
+// The tour is 78 slides of prose in two languages, and a server is about
 // two hundred lines; kept in one file, the second is a footnote to the first.
 //
 // Every code example below is a complete program: copy it into a `.hive` file
@@ -40,7 +40,7 @@ type Slide {
 	shot:          Str
 }
 
-func all(): Slide[77] {
+func all(): Slide[78] {
 	return start()
 		+ flow()
 		+ collections()
@@ -1220,7 +1220,7 @@ proc main(): void \{
 }
 
 // Types, patterns and values
-func types(): Slide[14] {
+func types(): Slide[15] {
 	return [
 		Slide(
 			title: "Declared types",
@@ -1956,6 +1956,108 @@ proc main(): void \{
 			Result.Ok(i)    \{ echo "\{wanted} está na posição \{i}" }
 			Result.Error(_) \{ echo "nenhum \{wanted}" }
 		}
+	}
+}`),
+			],
+		),
+		Slide(
+			title: "Binding with a pattern",
+			titlePt: "Vinculando com um padrão",
+			download: false,
+			shot: "",
+			explanation: "A pattern on the left of `:=` binds what it takes from the value on the right **for the rest of the block**, and the `else` after it holds an arm for every value the pattern does not take. The arms are a `switch`'s, with one position each — a pattern, a literal or `_` — and the first that matches runs.\n\n**Every arm has to leave the block**: it ends in `return`, `panic`, `break` or `continue`, or in an `if` or a `switch` whose every branch does, and an arm that could reach its end is a compile error. So nothing after the binding runs without what it bound, and an error is dealt with on the spot, in the arms beside the call that made it — there is no shorter way to the value that puts it off.\n\nIt is held to everything a `switch` is:\n\n- the value is evaluated once, so a call is as good as a variable;\n- the pattern and the arms together take every value there can be, and the message names one they miss — `Result.Ok(Shape.Rectangle(_, _))`;\n- an arm that can never run, because the pattern or the arms above it already take what it would, is an error too.\n\nWhat the pattern binds is immutable and belongs to the block it is written in, so a name the block already has is an error, as it is for a plain `:=`.",
+			explanationPt: "Um padrão à esquerda de `:=` vincula o que aceita do valor à direita **pelo resto do bloco**, e o `else` depois dele traz um braço para cada valor que o padrão não aceita. Os braços são os de um `switch`, com uma posição cada — um padrão, um literal ou `_` — e o primeiro que casa é executado.\n\n**Todo braço precisa sair do bloco**: ele termina em `return`, `panic`, `break` ou `continue`, ou num `if` ou num `switch` cujos ramos todos terminam assim, e um braço que pudesse chegar ao fim é um erro de compilação. Então nada depois do vínculo é executado sem o que ele vinculou, e um erro é tratado ali mesmo, nos braços ao lado da chamada que o produziu — não existe caminho mais curto até o valor que o adie.\n\nEle obedece a tudo que um `switch` obedece:\n\n- o valor é avaliado uma vez, então uma chamada serve tão bem quanto uma variável;\n- o padrão e os braços, juntos, aceitam todo valor possível, e a mensagem nomeia um que eles deixam de fora — `Result.Ok(Shape.Rectangle(_, _))`;\n- um braço que nunca pode ser executado, porque o padrão ou os braços acima dele já aceitam o que ele aceitaria, também é um erro.\n\nO que o padrão vincula é imutável e pertence ao bloco em que está escrito, então um nome que o bloco já tem é um erro, como é para um `:=` simples.",
+			examples: [
+				Example(caption: "Handling the error where it happens", captionPt: "Tratando o erro onde ele acontece", code: `type Order \{
+	Placed \{ item: Str, quantity: Int }
+	Cancelled
+}
+
+func find(orders: Order[], index: Int): Result<Order, Str> \{
+	if orders bounds index \{
+		return Result.Ok(orders[index])
+	}
+	return Result.Error("there is no order \{index}")
+}
+
+// Past each else the pattern has matched, since every arm leaves first.
+func describe(orders: Order[], index: Int): Str \{
+	Result.Ok(order) := find(orders, index) else \{
+		Result.Error(why) \{ return why }
+	}
+	Order.Placed(item, quantity) := order else \{
+		Order.Cancelled \{ return "order \{index} was cancelled" }
+	}
+	return "\{quantity} of \{item}"
+}
+
+proc main(): void \{
+	orders := [Order.Placed("bees", 3), Order.Cancelled()]
+	echo describe(orders, 0)   // 3 of bees
+	echo describe(orders, 1)   // order 1 was cancelled
+	echo describe(orders, 7)   // there is no order 7
+}`, codePt: `type Order \{
+	Placed \{ item: Str, quantity: Int }
+	Cancelled
+}
+
+func find(orders: Order[], index: Int): Result<Order, Str> \{
+	if orders bounds index \{
+		return Result.Ok(orders[index])
+	}
+	return Result.Error("não há pedido \{index}")
+}
+
+// Depois de cada else o padrão casou, já que todo braço sai antes.
+func describe(orders: Order[], index: Int): Str \{
+	Result.Ok(order) := find(orders, index) else \{
+		Result.Error(why) \{ return why }
+	}
+	Order.Placed(item, quantity) := order else \{
+		Order.Cancelled \{ return "o pedido \{index} foi cancelado" }
+	}
+	return "\{quantity} de \{item}"
+}
+
+proc main(): void \{
+	orders := [Order.Placed("abelhas", 3), Order.Cancelled()]
+	echo describe(orders, 0)   // 3 de abelhas
+	echo describe(orders, 1)   // o pedido 1 foi cancelado
+	echo describe(orders, 7)   // não há pedido 7
+}`),
+				Example(caption: "Any pattern, and leaving a loop", captionPt: "Qualquer padrão, e saindo de um laço", code: `// A vector pattern, with the empty vector as the one other case.
+func total(prices: Int[]): Int \{
+	[first, ...rest] := prices else \{
+		[] \{ return 0 }
+	}
+	return first + total(rest)
+}
+
+proc main(): void \{
+	echo total([3, 4, 5])   // 12
+	for each line in ["move 3", "", "turn left"] \{
+		// continue leaves the block as surely as return does.
+		"\{verb} \{argument}" := line else \{
+			_ \{ continue }
+		}
+		echo "\{verb}: \{argument}"
+	}
+}`, codePt: `// Um padrão de vetor, com o vetor vazio como o único outro caso.
+func total(prices: Int[]): Int \{
+	[first, ...rest] := prices else \{
+		[] \{ return 0 }
+	}
+	return first + total(rest)
+}
+
+proc main(): void \{
+	echo total([3, 4, 5])   // 12
+	for each line in ["andar 3", "", "virar esquerda"] \{
+		// continue sai do bloco tão certamente quanto return.
+		"\{verb} \{argument}" := line else \{
+			_ \{ continue }
+		}
+		echo "\{verb}: \{argument}"
 	}
 }`),
 			],

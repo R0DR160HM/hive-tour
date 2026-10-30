@@ -314,6 +314,15 @@ func switchStmt(): Rule {
 		])])
 }
 
+func patternDecl(): Rule {
+	return spec("pattern-decl", "2.5",
+		"pattern-decl = pattern \":=\" expression \"else\" \"\{\" arm \{ arm } \"}\" ;",
+		[seq([
+			rule("pattern"), sign(":="), rule("expression"), sign("else"),
+			sign("\{"), rule("arm"), many(rule("arm")), sign("}"),
+		])])
+}
+
 func arm(): Rule {
 	return spec("arm", "2.5",
 		"arm = position \{ \",\" position } block ;",
@@ -672,6 +681,7 @@ func slideRules(): SlideRules[dyn] {
 		SlideRules(title: "Bits and bytes", rules: [bitExpr(), bitsLit(), bitPart(), bitsPattern(), bitField()]),
 		SlideRules(title: "Chains that cover a type", rules: [ifStmt()]),
 		SlideRules(title: "Matching with switch", rules: [switchStmt(), arm(), position()]),
+		SlideRules(title: "Binding with a pattern", rules: [patternDecl(), arm(), position()]),
 		SlideRules(title: "Named arguments", rules: [callSuffix(), args(), arg()]),
 		SlideRules(title: "First-class functions", rules: [fnType(), fnParams(), fnParam()]),
 		SlideRules(title: "Mutability and value semantics", rules: [param(), assign()]),

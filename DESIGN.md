@@ -160,7 +160,7 @@ components:
 
 **Creative North Star: "The Language Set Out as a Book and a Chart"**
 
-The site is a language's home page done properly and a tour that teaches the whole language, and it is set the way a good technical book is set: a cool white paper, one ink, a book serif for everything that is read and its sibling monospace for everything that is run. Two devices belong to teaching a language and nothing else, and they are the system's signature: the grammar drawn as railroad diagrams (in the tour only), and the whole language laid out as one periodic-table chart of 77 tiles in nine chapter colours. Every slide carries its own tile beside its title, so a chapter has a colour and 77 slides stop looking like one.
+The site is a language's home page done properly and a tour that teaches the whole language, and it is set the way a good technical book is set: a cool white paper, one ink, a book serif for everything that is read and its sibling monospace for everything that is run. Two devices belong to teaching a language and nothing else, and they are the system's signature: the grammar drawn as railroad diagrams (in the tour only), and the whole language laid out as one periodic-table chart of 78 tiles in nine chapter colours. Every slide carries its own tile beside its title, so a chapter has a colour and 78 slides stop looking like one.
 
 Density is a book's: an 18px body at a 66ch measure, generous paper between sections (128px on the front page), two columns where the explanation sits beside the programs it explains. Colour is rationed hard. Chapter colours only ever fill a tile; amber is the way on and where the reader is, and nothing else. Nothing moves: no entrance animation, no positional motion, only a 160ms colour change on the button, pills and tiles. The site ships no JavaScript beyond the playground's one script, so every state the design has (the reader's scheme, read slides, the current station) is drawn by CSS from what HTML and the server already know; only running an example needs the script.
 
@@ -234,7 +234,7 @@ The dark scheme (`#121315` paper, `#e9e7e1` ink, darkened chapter fills `#3d3220
 One centred column of 1280px max (`measure`) with 40px gutters (20px under 640px), with the running head aligned to the same column. Pages end with 112px of paper.
 
 - **Front page:** the hero is a 5:7 split, text left (name, lede, intro at 58ch, then the ways in on two lines) and a whole program right, starting level with the name. Sections follow at 128px intervals (88px on phones), separated by paper alone; reasoned sections repeat the 5:7 split of argument and program/table. The page ends on the chart.
-- **Slide:** track across the full width with chapter and "Slide n of 75" under it; then the slide tile (136px square) beside the headline; then the grammar fold, closed, under which the railroad figures sit in a wrapping row (36px / 72px gaps); then two columns that start level: prose (flex, min 340px) and examples (up to 700px, sized for ~80-column programs), 56px apart. A slide whose widest program exceeds 84 columns is marked wide and stacks prose above full-width programs. Pager at the foot.
+- **Slide:** track across the full width with chapter and "Slide n of 78" under it; then the slide tile (136px square) beside the headline; then the grammar fold, closed, under which the railroad figures sit in a wrapping row (36px / 72px gaps); then two columns that start level: prose (flex, min 340px) and examples (up to 700px, sized for ~80-column programs), 56px apart. A slide whose widest program exceeds 84 columns is marked wide and stacks prose above full-width programs. Pager at the foot.
 - **Contents:** headline, one line of explanation (60ch), then the chart.
 - **Chart:** chapters stand side by side as grid blocks one or two 82×108px tiles wide with 5px gaps and 9px between chapters, aligned on one baseline so their lengths read as a skyline. The long standard-library chapter is detached into rows below, right-aligned like a periodic table's lanthanides, with a dashed placeholder tile in the skyline.
 
@@ -280,7 +280,7 @@ Confident and singular: there is one button on the site.
 
 ### Navigation
 - **Running head:** mark (30px), "The Hive Tour" and Contents in serif 600 16.5px; at the right, the scheme switch (a drawn half-filled circle plus "Dark"/"Light", only the scheme not on screen shown) and EN/PT in label type, muted at rest, ink on hover, the current language underlined 2px in amber.
-- **Track:** a full-width canvas line of 75 stations in nine chapter segments divided by ticks, ending in a buffer stop: stations behind the reader solid ink, those ahead punched out in paper, the current station a larger amber dot ringed in ink. Under it, chapter name left and "Slide n of 75" right in tabular figures.
+- **Track:** a full-width canvas line of 78 stations in nine chapter segments divided by ticks, ending in a buffer stop: stations behind the reader solid ink, those ahead punched out in paper, the current station a larger amber dot ringed in ink. Under it, chapter name left and "Slide n of 78" right in tabular figures.
 - **Pager:** outline pills with drawn chevrons either side of a 2px ink line carrying the amber station; a visited pager pill rests on wash.
 
 ### Wall Chart (signature)

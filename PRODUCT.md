@@ -21,7 +21,7 @@ The Hive Tour is the public home of the Hive programming language at https://hiv
 It does two jobs on two surfaces:
 
 - **Front page (`/`)**: makes the case for Hive to someone choosing a language. In order: what Hive is, why someone would pick it, whether it suits this project (caveats included), each reason at length with a program that shows it, what comes in the box, and proof that it is real.
-- **Tour (`/1` … `/75`, plus `/contents`)**: teaches the whole language, one feature per slide, in an order where nothing is used before the slide that teaches it.
+- **Tour (`/1` … `/78`, plus `/contents`)**: teaches the whole language, one feature per slide, in an order where nothing is used before the slide that teaches it.
 
 Success means:
 
@@ -59,7 +59,7 @@ Hive is a compiled, garbage-collected language with **no runtime exceptions**. I
 
 - Every code example is a complete program that compiles. Where a comment says what a line prints, that is what it prints. Front-page samples are kept to about 64 columns.
 - Front-page points link to slides by English title, and `home.test.hive` fails the build on a title the tour does not have.
-- Slide count is part of the type (`Slide[75]`). The pager, the contents page and the sitemap are all built from `slides.all()`.
+- Slide count is part of the type (`Slide[78]`). The pager, the contents page and the sitemap are all built from `slides.all()`.
 
 **Modules:** `main.hive` (server, routing, views, head, SEO), `home.hive` (front-page copy and samples), `slides.hive` (the tour, about 80% of the program), `theme.hive` (the stylesheet and the syntax-highlighting class names), `highlight.hive` (a Hive lexer that paints samples server-side), `logo.hive` / `icon.hive` (the mark as SVG and as PNG/ICO), `shots.hive` (an embedded screenshot for the 3D-scene slide, which a page cannot render), `play.hive` (the playground: which examples a browser can run, and its one script), `compile.go` (the playground's build: one at a time, with a deadline that kills it, in a scrubbed environment).
 
@@ -75,7 +75,7 @@ Hive is a compiled, garbage-collected language with **no runtime exceptions**. I
 ## Evidence on Hand
 
 - The site itself, as a working Hive program (the front page's "The proof" section).
-- 77 slides of bilingual explanation and runnable examples (`slides.hive`).
+- 78 slides of bilingual explanation and runnable examples (`slides.hive`).
 - Front-page samples in `home.hive`: a web service with shared state, a `Result` lookup, and the same service called locally and across machines.
 - Factual tables: six platform targets with their build commands, 12 standard-library modules, 5 `hive` commands.
 - One real screenshot: a `hive.ui.scene` window running a slide's own code (`/shot/three-dimensions.png`, embedded in `shots.hive`).
