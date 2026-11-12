@@ -5,7 +5,7 @@
 // than this file's.
 //
 // It lives apart from the server for the reason the drawing in ./logo does.
-// The tour is 78 slides of prose in two languages, and a server is about
+// The tour is 79 slides of prose in two languages, and a server is about
 // two hundred lines; kept in one file, the second is a footnote to the first.
 //
 // Every code example below is a complete program: copy it into a `.hive` file
@@ -40,7 +40,7 @@ type Slide {
 	shot:          Str
 }
 
-func all(): Slide[78] {
+func all(): Slide[79] {
 	return start()
 		+ flow()
 		+ collections()
@@ -79,7 +79,7 @@ func chapters(): Chapter[9] {
 }
 
 // Getting started
-func start(): Slide[11] {
+func start(): Slide[12] {
 	return [
 		Slide(
 			title: "Hello, World",
@@ -130,10 +130,34 @@ Compiled hello.hive -> hello (0s)`),
 			titlePt: "Todos os comandos",
 			download: false,
 			shot: "",
-			explanation: "Seven commands take an entrypoint, and each is taught later where it belongs:\n\n- `hive check`, `hive run` and `hive build` — the three above. `build` also takes `--target <goos>/<goarch>` to build for another platform.\n- `hive test` runs every `test` block the program reaches, and reports coverage.\n- `hive emit` prints the Go a program compiles to, and needs no Go toolchain.\n- `hive analyze` scores what each `proc` and `func` will cost to run, lists what the program declares and never reaches, and writes a page of findings beside the entrypoint.\n- `hive container` writes a Dockerfile that builds the program and runs it.\n- `hive export --target android/arm64` packages a windowed program as an installable Android app.\n\nTwo take nothing: `hive version` prints which release this is, and `hive agents` writes `.hivedocs/` — a page per feature for a coding agent to read — into the current folder. `hive` alone lists all of them.\n\nA command refuses anything it does not take, rather than ignoring it: a flag it has no use for, a second file, a command that does not exist. Those mistakes are in what was typed rather than in any source, so their messages say who is complaining — `hive:` — and exit non-zero.",
-			explanationPt: "Sete comandos recebem um ponto de entrada, e cada um é ensinado mais adiante, onde pertence:\n\n- `hive check`, `hive run` e `hive build` — os três de antes. `build` também aceita `--target <goos>/<goarch>` para construir para outra plataforma.\n- `hive test` roda todo bloco `test` que o programa alcança, e reporta a cobertura.\n- `hive emit` imprime o Go para o qual um programa compila, e não precisa do Go instalado.\n- `hive analyze` dá uma nota ao custo de rodar cada `proc` e `func`, lista o que o programa declara e nunca alcança, e escreve uma página de achados ao lado do ponto de entrada.\n- `hive container` escreve um Dockerfile que constrói o programa e o roda.\n- `hive export --target android/arm64` empacota um programa com janela como um app Android instalável.\n\nDois não recebem nada: `hive version` imprime qual versão é esta, e `hive agents` escreve `.hivedocs/` — uma página por recurso, para um agente de programação ler — na pasta atual. `hive` sozinho lista todos eles.\n\nUm comando recusa qualquer coisa que não aceita, em vez de ignorá-la: uma flag que ele não usa, um segundo arquivo, um comando que não existe. Esses erros estão no que foi digitado e não em código-fonte algum, então as mensagens deles dizem quem está reclamando — `hive:` — e terminam com código diferente de zero.",
+			explanation: "Seven commands take an entrypoint, and each is taught later where it belongs:\n\n- `hive check`, `hive run` and `hive build` — the three above. `build` also takes `--target <goos>/<goarch>` to build for another platform.\n- `hive test` runs every `test` block the program reaches, and reports coverage.\n- `hive emit` prints the Go a program compiles to, and needs no Go toolchain.\n- `hive analyze` scores what each `proc` and `func` will cost to run, lists what the program declares and never reaches, and writes a page of findings beside the entrypoint.\n- `hive container` writes a Dockerfile that builds the program and runs it.\n- `hive export --target android/arm64` packages a windowed program as an installable Android app.\n\nThree take nothing: `hive version` prints which release this is, `hive agents` writes `.hivedocs/` — a page per feature for a coding agent to read — into the current folder, and `hive lsp` is the language server an editor starts, which the next slide sets up. `hive` alone lists all of them.\n\nA command refuses anything it does not take, rather than ignoring it: a flag it has no use for, a second file, a command that does not exist. Those mistakes are in what was typed rather than in any source, so their messages say who is complaining — `hive:` — and exit non-zero.",
+			explanationPt: "Sete comandos recebem um ponto de entrada, e cada um é ensinado mais adiante, onde pertence:\n\n- `hive check`, `hive run` e `hive build` — os três de antes. `build` também aceita `--target <goos>/<goarch>` para construir para outra plataforma.\n- `hive test` roda todo bloco `test` que o programa alcança, e reporta a cobertura.\n- `hive emit` imprime o Go para o qual um programa compila, e não precisa do Go instalado.\n- `hive analyze` dá uma nota ao custo de rodar cada `proc` e `func`, lista o que o programa declara e nunca alcança, e escreve uma página de achados ao lado do ponto de entrada.\n- `hive container` escreve um Dockerfile que constrói o programa e o roda.\n- `hive export --target android/arm64` empacota um programa com janela como um app Android instalável.\n\nTrês não recebem nada: `hive version` imprime qual versão é esta, `hive agents` escreve `.hivedocs/` — uma página por recurso, para um agente de programação ler — na pasta atual, e `hive lsp` é o servidor de linguagem que um editor inicia, e que o próximo slide configura. `hive` sozinho lista todos eles.\n\nUm comando recusa qualquer coisa que não aceita, em vez de ignorá-la: uma flag que ele não usa, um segundo arquivo, um comando que não existe. Esses erros estão no que foi digitado e não em código-fonte algum, então as mensagens deles dizem quem está reclamando — `hive:` — e terminam com código diferente de zero.",
 			examples: [
 				Example(caption: "", captionPt: "", code: "$ hive emit hello.hive > main.go\n\n$ hive check hello.hive --verbose\nhive: `hive check` takes an entrypoint and nothing else. `--verbose` was given to it.\n\n$ hive chekc hello.hive\nhive: `chekc` is not a command. `hive` alone lists the ones there are.\n\n$ hive build\nhive: `hive build` needs an entrypoint: `hive build <entrypoint.hive>`.", codePt: "$ hive emit hello.hive > main.go\n\n$ hive check hello.hive --verbose\nhive: `hive check` takes an entrypoint and nothing else. `--verbose` was given to it.\n\n$ hive chekc hello.hive\nhive: `chekc` is not a command. `hive` alone lists the ones there are.\n\n$ hive build\nhive: `hive build` needs an entrypoint: `hive build <entrypoint.hive>`."),
+			],
+		),
+		Slide(
+			title: "Hive in your editor",
+			titlePt: "Hive no seu editor",
+			download: false,
+			shot: "",
+			explanation: "`hive lsp` is a language server: an editor starts it, and from then on the editor knows what the compiler knows. A mistake is underlined a moment after it is typed, a name says what it is and where it was declared, and after a `.` come a value's fields, a module's calls or a type's variants. It reads a file as the editor holds it, saved or not, so there is nothing to configure beyond telling the editor the command. It is in the compiler from v0.3.6 on.\n\n- **Neovim** 0.11 or newer needs three lines in `init.lua`, below, and no plugin. `K` then says what the name under the cursor is, `CTRL-]` goes to where it was declared, `gO` lists what the file declares, and `CTRL-X CTRL-O` offers what could come next.\n- **VS Code** starts a language server only through an extension, and Hive's is in the compiler's repository, under `editors/vscode`: package it and install the file, as the second example does.\n- **Any other editor** that speaks the Language Server Protocol runs the same command, `hive lsp`, for files ending in `.hive`.\n\n`LSP.md`, in the compiler's repository, has every step, and what to look at when nothing happens. The tour needs none of it: every example still runs with `hive run`.",
+			explanationPt: "`hive lsp` é um servidor de linguagem: um editor o inicia, e daí em diante o editor sabe o que o compilador sabe. Um erro é sublinhado um instante depois de digitado, um nome diz o que é e onde foi declarado, e depois de um `.` vêm os campos de um valor, as chamadas de um módulo ou as variantes de um tipo. Ele lê o arquivo como o editor o tem, salvo ou não, então não há nada a configurar além de dizer ao editor qual é o comando. Está no compilador a partir da v0.3.6.\n\n- O **Neovim** 0.11 ou mais novo precisa de três linhas no `init.lua`, abaixo, e de nenhum plugin. `K` então diz o que é o nome sob o cursor, `CTRL-]` vai para onde ele foi declarado, `gO` lista o que o arquivo declara, e `CTRL-X CTRL-O` oferece o que pode vir a seguir.\n- O **VS Code** só inicia um servidor de linguagem através de uma extensão, e a do Hive está no repositório do compilador, em `editors/vscode`: empacote-a e instale o arquivo, como faz o segundo exemplo.\n- **Qualquer outro editor** que fale o Language Server Protocol roda o mesmo comando, `hive lsp`, para arquivos terminados em `.hive`.\n\nO `LSP.md`, no repositório do compilador, tem cada passo, e o que olhar quando nada acontece. O tour não precisa de nada disso: todo exemplo continua rodando com `hive run`.",
+			examples: [
+				Example(caption: "Neovim: init.lua", captionPt: "Neovim: init.lua", code: `vim.filetype.add(\{ extension = \{ hive = "hive" } })
+vim.lsp.config("hive", \{ cmd = \{ "hive", "lsp" }, filetypes = \{ "hive" } })
+vim.lsp.enable("hive")`, codePt: `vim.filetype.add(\{ extension = \{ hive = "hive" } })
+vim.lsp.config("hive", \{ cmd = \{ "hive", "lsp" }, filetypes = \{ "hive" } })
+vim.lsp.enable("hive")`),
+				Example(caption: "VS Code: package the extension, and install the file", captionPt: "VS Code: empacote a extensão, e instale o arquivo", code: `$ git clone https://github.com/R0DR160HM/hive-lang
+$ cd hive-lang/editors/vscode
+$ npm install
+$ npx @vscode/vsce package
+$ code --install-extension hive-lang-0.1.0.vsix`, codePt: `$ git clone https://github.com/R0DR160HM/hive-lang
+$ cd hive-lang/editors/vscode
+$ npm install
+$ npx @vscode/vsce package
+$ code --install-extension hive-lang-0.1.0.vsix`),
 			],
 		),
 		Slide(

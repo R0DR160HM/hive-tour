@@ -33,6 +33,7 @@ func symbols(): Symbol[dyn] {
 		Symbol(title: "Hello, World", symbol: "main"),
 		Symbol(title: "Running these examples", symbol: "run"),
 		Symbol(title: "Every command", symbol: "hive"),
+		Symbol(title: "Hive in your editor", symbol: "lsp"),
 		Symbol(title: "Comments", symbol: "//"),
 		Symbol(title: "Names have shapes", symbol: "Name"),
 		Symbol(title: "Variables", symbol: ":="),
