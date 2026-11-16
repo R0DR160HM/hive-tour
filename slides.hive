@@ -5,7 +5,7 @@
 // than this file's.
 //
 // It lives apart from the server for the reason the drawing in ./logo does.
-// The tour is 79 slides of prose in two languages, and a server is about
+// The tour is 81 slides of prose in two languages, and a server is about
 // two hundred lines; kept in one file, the second is a footnote to the first.
 //
 // Every code example below is a complete program: copy it into a `.hive` file
@@ -40,7 +40,7 @@ type Slide {
 	shot:          Str
 }
 
-func all(): Slide[79] {
+func all(): Slide[81] {
 	return start()
 		+ flow()
 		+ collections()
@@ -4229,7 +4229,7 @@ proc main(): void \{
 }
 
 // Windows, canvases and scenes
-func interfaces(): Slide[6] {
+func interfaces(): Slide[8] {
 	return [
 		Slide(
 			title: "Views",
@@ -4409,12 +4409,69 @@ proc main(): void \{
 			],
 		),
 		Slide(
+			title: "Layout, widgets and the pointer",
+			titlePt: "Layout, widgets e o ponteiro",
+			download: false,
+			shot: "",
+			explanation: "Past `row` and `column`, three containers lay things out:\n\n- `grid(attrs, views)` puts its children in columns that line up — `columns([0, 1])` is one as wide as its widest label and one taking the rest — and a child may `span(n)` of them.\n- `stack(attrs, views)` lays its children one over another, each `place(across, down)` in it: a caption over a picture, a badge on a corner.\n- `paragraph(attrs, views)` wraps `text`s, `link`s and `icon`s as one run of words, each in its own `weight`, `italic` or colour.\n\nA row with `wrap(true)` runs on to the next line, and `minWidth`, `maxWidth`, `minHeight`, `maxHeight` and `aspect(wide, tall)` hold any box to a size. Text takes `weight`, `italic`, `mono` and `lines(n)`, which ends the last line in an ellipsis; a box takes `gradient`, `opacity`, `shadow`, and `ease(ms)` to bring a change in over time.\n\nThe widgets that choose take what is chosen as their payload and say what changed through `onChoose`: `select`, `radio` and `tabs` hold one, `choices` any number. `tree` holds `branch`es, opened with `onToggle` and picked with `on`; `progress(attrs, done)` is a bar; `icon` draws any of 320.\n\n**Any widget hears the pointer**: `onEnter` and `onLeave`; `onPress`, `onPoint` and `onRelease` with where it is — in pixels, or a canvas's own units; `onWheel`, `onFocus`, `onBlur`, `onScroll` and `onSize`. `carry(word)` lets a widget be dragged onto one with `onDrop`, and `onFile` hears a file chosen or dropped from the desktop: its name and its bytes.",
+			explanationPt: "Além de `row` e `column`, três contêineres organizam as coisas:\n\n- `grid(attrs, views)` põe os filhos em colunas que se alinham — `columns([0, 1])` é uma tão larga quanto o rótulo mais largo e outra que ocupa o resto — e um filho pode ocupar `span(n)` delas.\n- `stack(attrs, views)` empilha os filhos um sobre o outro, cada um posto com `place(across, down)`: uma legenda sobre uma imagem, um selo num canto.\n- `paragraph(attrs, views)` quebra `text`s, `link`s e `icon`s como uma só sequência de palavras, cada uma com seu `weight`, `italic` ou cor.\n\nUma linha com `wrap(true)` continua na linha seguinte, e `minWidth`, `maxWidth`, `minHeight`, `maxHeight` e `aspect(wide, tall)` prendem qualquer caixa a um tamanho. O texto recebe `weight`, `italic`, `mono` e `lines(n)`, que termina a última linha com reticências; uma caixa recebe `gradient`, `opacity`, `shadow`, e `ease(ms)` para que uma mudança chegue aos poucos.\n\nOs widgets de escolha recebem o que está escolhido como carga e dizem o que mudou por `onChoose`: `select`, `radio` e `tabs` guardam um, `choices` quantos forem. `tree` guarda `branch`es, abertos com `onToggle` e escolhidos com `on`; `progress(attrs, done)` é uma barra; `icon` desenha qualquer um de 320.\n\n**Qualquer widget ouve o ponteiro**: `onEnter` e `onLeave`; `onPress`, `onPoint` e `onRelease` com onde ele está — em pixels, ou nas unidades de um canvas; `onWheel`, `onFocus`, `onBlur`, `onScroll` e `onSize`. `carry(word)` deixa um widget ser arrastado até outro com `onDrop`, e `onFile` ouve um arquivo escolhido ou solto da área de trabalho: o nome e os bytes dele.",
+			examples: [
+				Example(caption: "A form, a choice and something to drag", captionPt: "Um formulário, uma escolha e algo para arrastar", code: `import hive.ui
+
+type Model \{ page: Str, name: Str, plan: Str }
+
+type Msg \{
+	Page \{ name: Str }
+	Name \{ text: Str }
+	Plan \{ name: Str }
+	Dropped \{ card: Str }
+}
+
+func view(model: Model): ui.View \{
+	return ui.column([ui.pad(16), ui.gap(12)], [
+		ui.tabs([ui.onChoose(Msg.Page(_))], ["Profile", "Team"], model.page),
+		ui.grid([ui.columns([0, 1]), ui.gap(8), ui.align(ui.Align.Center())], [
+			ui.text([], "Name"), ui.input([ui.onInput(Msg.Name(_))], model.name),
+			ui.text([], "Plan"), ui.radio([ui.wrap(true), ui.onChoose(Msg.Plan(_))], ["Free", "Team"], model.plan)
+		]),
+		ui.paragraph([], [ui.text([], "Saved "), ui.text([ui.weight(700)], "a minute ago "),
+			ui.icon([ui.tone(ui.Tone.Good())], ui.Icon.CircleCheck())]),
+		ui.text([ui.carry("card-7"), ui.border(1), ui.pad(8)], "drag me"),
+		ui.column([ui.onDrop(Msg.Dropped(_)), ui.minHeight(80), ui.background(ui.Tone.Muted())], [])
+	])
+}`, codePt: `import hive.ui
+
+type Model \{ page: Str, name: Str, plan: Str }
+
+type Msg \{
+	Page \{ name: Str }
+	Name \{ text: Str }
+	Plan \{ name: Str }
+	Dropped \{ card: Str }
+}
+
+func view(model: Model): ui.View \{
+	return ui.column([ui.pad(16), ui.gap(12)], [
+		ui.tabs([ui.onChoose(Msg.Page(_))], ["Perfil", "Equipe"], model.page),
+		ui.grid([ui.columns([0, 1]), ui.gap(8), ui.align(ui.Align.Center())], [
+			ui.text([], "Nome"), ui.input([ui.onInput(Msg.Name(_))], model.name),
+			ui.text([], "Plano"), ui.radio([ui.wrap(true), ui.onChoose(Msg.Plan(_))], ["Grátis", "Equipe"], model.plan)
+		]),
+		ui.paragraph([], [ui.text([], "Salvo "), ui.text([ui.weight(700)], "há um minuto "),
+			ui.icon([ui.tone(ui.Tone.Good())], ui.Icon.CircleCheck())]),
+		ui.text([ui.carry("card-7"), ui.border(1), ui.pad(8)], "arraste-me"),
+		ui.column([ui.onDrop(Msg.Dropped(_)), ui.minHeight(80), ui.background(ui.Tone.Muted())], [])
+	])
+}`)
+			]
+		),
+		Slide(
 			title: "Drawing on a canvas",
 			titlePt: "Desenhando em um canvas",
 			download: false,
 			shot: "",
-			explanation: "`canvas(attrs, marks)` is a widget like any other and a `Mark` is a value like any other, so what a canvas holds is what is on it right now. There is no drawing context, no frame to schedule and nothing to clear: a chart is rebuilt from the state exactly as the rest of the page is, and a served page draws one exactly as a window does.\n\nThere are five marks, each here because it cannot be made out of the others:\n\n- `dot(attrs, x, y, radius)`, a filled circle;\n- `bar(attrs, x, y, width, height)`, a rectangle;\n- `path(attrs, points)`, a line through a run of points written `x, y, x, y`, and `patch(attrs, points)`, the same numbers filled;\n- `words(attrs, x, y, height, text)`, text placed on the plane.\n\nA ring is a path round a circle, a grid is a vector of paths and an arrow is a path; a `dot` is always filled.\n\nEverything is said in the program's own units. `region(x, y, width, height)` says which part of the plane the box shows, so a circuit mapped in metres draws a car nine metres long nine long; `paint(Tone)` is a mark's colour and `thick(Float)` a path's width, in the region's units too — so zooming in thickens the roads, which is what zooming in means. The box may be any shape, and what is drawn keeps its own, centred. Every mark is placed by its middle — a bar included — and words are centred on their place with their height in the region's units. `y` grows downward, as on a page, so a chart's floor is its largest `y`.",
-			explanationPt: "`canvas(attrs, marks)` é um widget como qualquer outro e um `Mark` é um valor como qualquer outro, então o que um canvas guarda é o que está nele agora. Não existe contexto de desenho, nem quadro para agendar, nem nada para limpar: um gráfico é reconstruído a partir do estado exatamente como o resto da página, e uma página servida desenha um exatamente como uma janela desenha.\n\nExistem cinco marcas, cada uma aqui porque não dá para fazê-la com as outras:\n\n- `dot(attrs, x, y, radius)`, um círculo preenchido;\n- `bar(attrs, x, y, width, height)`, um retângulo;\n- `path(attrs, points)`, uma linha por uma sequência de pontos escrita `x, y, x, y`, e `patch(attrs, points)`, os mesmos números preenchidos;\n- `words(attrs, x, y, height, text)`, texto posicionado no plano.\n\nUm anel é um path em volta de um círculo, uma grade é um vetor de paths e uma seta é um path; um `dot` é sempre preenchido.\n\nTudo é dito nas unidades do próprio programa. `region(x, y, width, height)` diz qual parte do plano a caixa mostra, então um circuito mapeado em metros desenha um carro de nove metros com nove de comprimento; `paint(Tone)` é a cor de uma marca e `thick(Float)` a largura de um path, também nas unidades da região — então dar zoom engrossa as estradas, que é o que dar zoom significa. A caixa pode ter qualquer formato, e o que é desenhado mantém o seu, centralizado. Toda marca é posicionada pelo meio — uma barra incluída — e as palavras ficam centralizadas no seu lugar com a altura nas unidades da região. O `y` cresce para baixo, como numa página, então o chão de um gráfico é o seu maior `y`.",
+			explanation: "`canvas(attrs, marks)` is a widget like any other and a `Mark` is a value like any other, so what a canvas holds is what is on it right now. There is no drawing context, no frame to schedule and nothing to clear: a chart is rebuilt from the state exactly as the rest of the page is, and a served page draws one exactly as a window does.\n\nThe marks:\n\n- `dot(attrs, x, y, radius)`, a circle, and `oval(attrs, x, y, width, height)`;\n- `bar(attrs, x, y, width, height)`, a rectangle;\n- `path(attrs, points)`, a line through a run of points written `x, y, x, y`, and `patch(attrs, points)`, the same numbers filled; `curve(attrs, points)`, Bézier pieces;\n- `arc` and `wedge`, part of a circle's edge and the slice it bounds, for gauges and pies;\n- `cutout(attrs, outer, holes)`, a shape with holes in it, and `symbol(attrs, x, y, angle, size, marks)`, marks moved, turned and sized as one;\n- `picture(attrs, src, x, y, width, height)` and `words(attrs, x, y, height, text)`.\n\nA closed mark is filled with its `paint` and outlined by its `edge`, so a ring is a `dot` with an edge and no paint; `dash(on, off)` breaks a line, and `gradient` fills from one tone to another. Words are as wide on every window as `measure(words, height)` says, so the program can lay out what goes round them.\n\nEverything is said in the program's own units. `region(x, y, width, height)` says which part of the plane the box shows, so a circuit mapped in metres draws a car nine metres long nine long; `paint(Tone)` is a mark's colour and `thick(Float)` a path's width, in the region's units too — so zooming in thickens the roads, which is what zooming in means. The box may be any shape, and what is drawn keeps its own, centred. Every mark is placed by its middle — a bar included — and words are centred on their place with their height in the region's units. `y` grows downward, as on a page, so a chart's floor is its largest `y`.",
+			explanationPt: "`canvas(attrs, marks)` é um widget como qualquer outro e um `Mark` é um valor como qualquer outro, então o que um canvas guarda é o que está nele agora. Não existe contexto de desenho, nem quadro para agendar, nem nada para limpar: um gráfico é reconstruído a partir do estado exatamente como o resto da página, e uma página servida desenha um exatamente como uma janela desenha.\n\nAs marcas:\n\n- `dot(attrs, x, y, radius)`, um círculo, e `oval(attrs, x, y, width, height)`;\n- `bar(attrs, x, y, width, height)`, um retângulo;\n- `path(attrs, points)`, uma linha por uma sequência de pontos escrita `x, y, x, y`, e `patch(attrs, points)`, os mesmos números preenchidos; `curve(attrs, points)`, trechos de Bézier;\n- `arc` e `wedge`, parte da borda de um círculo e a fatia que ela delimita, para mostradores e pizzas;\n- `cutout(attrs, outer, holes)`, uma forma com furos, e `symbol(attrs, x, y, angle, size, marks)`, marcas movidas, giradas e dimensionadas como uma só;\n- `picture(attrs, src, x, y, width, height)` e `words(attrs, x, y, height, text)`.\n\nUma marca fechada é preenchida com seu `paint` e contornada pela sua `edge`, então um anel é um `dot` com borda e sem tinta; `dash(on, off)` quebra uma linha, e `gradient` preenche de um tom a outro. As palavras têm em toda janela a largura que `measure(words, height)` diz, então o programa pode organizar o que fica em volta delas.\n\nTudo é dito nas unidades do próprio programa. `region(x, y, width, height)` diz qual parte do plano a caixa mostra, então um circuito mapeado em metros desenha um carro de nove metros com nove de comprimento; `paint(Tone)` é a cor de uma marca e `thick(Float)` a largura de um path, também nas unidades da região — então dar zoom engrossa as estradas, que é o que dar zoom significa. A caixa pode ter qualquer formato, e o que é desenhado mantém o seu, centralizado. Toda marca é posicionada pelo meio — uma barra incluída — e as palavras ficam centralizadas no seu lugar com a altura nas unidades da região. O `y` cresce para baixo, como numa página, então o chão de um gráfico é o seu maior `y`.",
 			examples: [
 				Example(caption: "A chart, in the program's own units", captionPt: "Um gráfico, nas unidades do próprio programa", code: `// Twelve across and a hundred down, so a month of 68 kilos is drawn 68
 // long and nothing has to be turned into pixels first.
@@ -4503,8 +4560,8 @@ proc main(): void \{
 			titlePt: "Três dimensões",
 			download: false,
 			shot: "/shot/three-dimensions.png",
-			explanation: "`hive.ui.scene(attrs, shapes)` is the one widget only a window can draw: a camera, a sky and a vector of shapes, rebuilt from the state by an ordinary `func` as often as there are frames. Nothing is a handle — no mesh to keep, no material to allocate — so a program says what is there now, never what changed. Its shapes are `hive.ui` calls like every other widget, and it is the one part of the library that carries a download: a pinned three.js, fetched on the first build that draws a scene and cached after that.\n\nThe shapes take their dimensions as their payload, in metres, because a sphere without a radius is not a sphere with a default one:\n\n- `box(attrs, width, height, depth)`, `sphere(attrs, radius)`, `cylinder(attrs, radius, height)`, and `cone(attrs, top, bottom, height)` — a top of `0` is the pointed one, and a top equal to the bottom a cylinder.\n- `roof(attrs, wide, tall, long)`, a ridge down its length and a gable at each end; `ground(attrs, width, depth)`, already lying flat.\n- `label(attrs, words)`, always facing the viewer; `sprite(attrs, image, wide, tall)`, a picture from the program's `assets/` that does the same, stands on its foot rather than its middle, is drawn unfiltered, and is left untinted unless painted.\n- `line(attrs, fromX, fromY, fromZ, toX, toY, toZ)`, which has no position of its own.\n\n`at(x, y, z)` is where a shape's middle is. `turn(x, y, z)` is its rotation in radians as a heading: the yaw, `y`, first, then the pitch, `x`, about the shape's own side-to-side axis, then the roll, `z`, about its own length — so a thing turned to face somewhere and then pitched tips nose-up the way it faces. `paint(Tone)` is its colour, and a colour with an alpha — `Tone.RGBA`, or a four- or eight-digit `Tone.HEX` — is see-through.\n\n`surface(Surface)` is what a shape is made of, drawn over its colour, from the ground up: `Turf`, `Gravel`, `Tarmac`, `Kerb`; `Concrete`, `Brick`, `Panes`, `Planks`, `Staves`; `Bark`, `Leaves`, `Crowd`; `Mesh`; and `Speckle`, `Metal`, `Carbon`, `Rubber`, `Glass`, `Gloss`. A finish repeats about every two metres, a box face by face; each has relief except `Gloss`, `Glass` and `Mesh`, which has real holes and shows from both sides; and `Panes` paints its own glass. Where a shape says nothing its kind decides — a ground is `Turf`, a cylinder or a cone `Staves`, a sphere `Speckle`, anything else `Planks`. A photograph at `assets/textures/<surface>.jpg` replaces a finish's drawing, with `-normal.jpg` beside it as its relief; it should average mid-grey, since it is laid over the colour, and a missing one falls back to the drawing.",
-			explanationPt: "`hive.ui.scene(attrs, shapes)` é o único widget que só uma janela consegue desenhar: uma câmera, um céu e um vetor de formas, reconstruído a partir do estado por um `func` comum a cada quadro. Nada é um handle — nenhuma malha para guardar, nenhum material para alocar — então um programa diz o que existe agora, nunca o que mudou. Suas formas são chamadas `hive.ui` como qualquer outro widget, e é a única parte da biblioteca que carrega um download: um three.js fixado, buscado na primeira build que desenha uma cena e guardado em cache depois disso.\n\nAs formas recebem as dimensões como carga, em metros, porque uma esfera sem raio não é uma esfera com um raio padrão:\n\n- `box(attrs, width, height, depth)`, `sphere(attrs, radius)`, `cylinder(attrs, radius, height)`, e `cone(attrs, top, bottom, height)` — um topo `0` é o pontudo, e um topo igual à base, um cilindro.\n- `roof(attrs, wide, tall, long)`, uma cumeeira ao longo do comprimento e uma empena em cada ponta; `ground(attrs, width, depth)`, já deitado.\n- `label(attrs, words)`, sempre de frente para quem olha; `sprite(attrs, image, wide, tall)`, uma imagem dos `assets/` do programa que faz o mesmo, fica de pé sobre a base e não pelo meio, é desenhada sem filtro, e fica sem tingir a menos que pintada.\n- `line(attrs, fromX, fromY, fromZ, toX, toY, toZ)`, que não tem posição própria.\n\n`at(x, y, z)` é onde fica o meio de uma forma. `turn(x, y, z)` é a rotação dela em radianos como um rumo: a guinada, `y`, primeiro, depois a inclinação, `x`, em torno do eixo lateral da própria forma, depois a rolagem, `z`, em torno do próprio comprimento — então uma coisa virada para algum lugar e depois inclinada levanta o nariz na direção em que olha. `paint(Tone)` é a cor dela, e uma cor com alfa — `Tone.RGBA`, ou um `Tone.HEX` de quatro ou oito dígitos — é translúcida.\n\n`surface(Surface)` é do que uma forma é feita, desenhado sobre a cor dela, do chão para cima: `Turf`, `Gravel`, `Tarmac`, `Kerb`; `Concrete`, `Brick`, `Panes`, `Planks`, `Staves`; `Bark`, `Leaves`, `Crowd`; `Mesh`; e `Speckle`, `Metal`, `Carbon`, `Rubber`, `Glass`, `Gloss`. Um acabamento se repete a cada dois metros mais ou menos, uma caixa face a face; todos têm relevo exceto `Gloss`, `Glass` e `Mesh`, que tem furos de verdade e aparece dos dois lados; e `Panes` pinta o próprio vidro. Onde uma forma não diz nada, o tipo dela decide — um chão é `Turf`, um cilindro ou cone `Staves`, uma esfera `Speckle`, qualquer outra coisa `Planks`. Uma fotografia em `assets/textures/<surface>.jpg` substitui o desenho de um acabamento, com `-normal.jpg` ao lado como relevo; ela deve ter média cinza, já que é aplicada sobre a cor, e uma que falta volta ao desenho.",
+			explanation: "`hive.ui.scene(attrs, shapes)` is the one widget only a window can draw: a camera, a sky and a vector of shapes, rebuilt from the state by an ordinary `func` as often as there are frames. Nothing is a handle — no mesh to keep, no material to allocate — so a program says what is there now, never what changed. Its shapes are `hive.ui` calls like every other widget, and it is the one part of the library that carries a download: the engine that draws it, fetched against a pinned digest on the first build that draws a scene and cached after that.\n\nThe shapes take their dimensions as their payload, in metres, because a sphere without a radius is not a sphere with a default one:\n\n- `box(attrs, width, height, depth)`, `sphere(attrs, radius)`, `cylinder(attrs, radius, height)`, and `cone(attrs, top, bottom, height)` — a top of `0` is the pointed one, and a top equal to the bottom a cylinder.\n- `roof(attrs, wide, tall, long)`, a ridge down its length and a gable at each end; `ground(attrs, width, depth)`, already lying flat.\n- `label(attrs, words)`, always facing the viewer; `sprite(attrs, image, wide, tall)`, a picture from the program's `assets/` that does the same, stands on its foot rather than its middle, is drawn unfiltered, and is left untinted unless painted.\n- `line(attrs, fromX, fromY, fromZ, toX, toY, toZ)`, which has no position of its own.\n\n`at(x, y, z)` is where a shape's middle is. `turn(x, y, z)` is its rotation in radians as a heading: the yaw, `y`, first, then the pitch, `x`, about the shape's own side-to-side axis, then the roll, `z`, about its own length — so a thing turned to face somewhere and then pitched tips nose-up the way it faces. `paint(Tone)` is its colour, and a colour with an alpha — `Tone.RGBA`, or a four- or eight-digit `Tone.HEX` — is see-through.\n\n`surface(Surface)` is what a shape is made of, drawn over its colour, from the ground up: `Turf`, `Gravel`, `Tarmac`, `Kerb`; `Concrete`, `Brick`, `Panes`, `Planks`, `Staves`; `Bark`, `Leaves`, `Crowd`; `Mesh`; and `Speckle`, `Metal`, `Carbon`, `Rubber`, `Glass`, `Gloss`. A finish repeats about every two metres, a box face by face; each has relief except `Gloss`, `Glass` and `Mesh`, which has real holes and shows from both sides; and `Panes` paints its own glass. Where a shape says nothing its kind decides — a ground is `Turf`, a cylinder or a cone `Staves`, a sphere `Speckle`, anything else `Planks`. A photograph at `assets/textures/<surface>.jpg` replaces a finish's drawing, with `-normal.jpg` beside it as its relief; it should average mid-grey, since it is laid over the colour, and a missing one falls back to the drawing.",
+			explanationPt: "`hive.ui.scene(attrs, shapes)` é o único widget que só uma janela consegue desenhar: uma câmera, um céu e um vetor de formas, reconstruído a partir do estado por um `func` comum a cada quadro. Nada é um handle — nenhuma malha para guardar, nenhum material para alocar — então um programa diz o que existe agora, nunca o que mudou. Suas formas são chamadas `hive.ui` como qualquer outro widget, e é a única parte da biblioteca que carrega um download: o motor que a desenha, buscado contra um digest fixado na primeira build que desenha uma cena e guardado em cache depois disso.\n\nAs formas recebem as dimensões como carga, em metros, porque uma esfera sem raio não é uma esfera com um raio padrão:\n\n- `box(attrs, width, height, depth)`, `sphere(attrs, radius)`, `cylinder(attrs, radius, height)`, e `cone(attrs, top, bottom, height)` — um topo `0` é o pontudo, e um topo igual à base, um cilindro.\n- `roof(attrs, wide, tall, long)`, uma cumeeira ao longo do comprimento e uma empena em cada ponta; `ground(attrs, width, depth)`, já deitado.\n- `label(attrs, words)`, sempre de frente para quem olha; `sprite(attrs, image, wide, tall)`, uma imagem dos `assets/` do programa que faz o mesmo, fica de pé sobre a base e não pelo meio, é desenhada sem filtro, e fica sem tingir a menos que pintada.\n- `line(attrs, fromX, fromY, fromZ, toX, toY, toZ)`, que não tem posição própria.\n\n`at(x, y, z)` é onde fica o meio de uma forma. `turn(x, y, z)` é a rotação dela em radianos como um rumo: a guinada, `y`, primeiro, depois a inclinação, `x`, em torno do eixo lateral da própria forma, depois a rolagem, `z`, em torno do próprio comprimento — então uma coisa virada para algum lugar e depois inclinada levanta o nariz na direção em que olha. `paint(Tone)` é a cor dela, e uma cor com alfa — `Tone.RGBA`, ou um `Tone.HEX` de quatro ou oito dígitos — é translúcida.\n\n`surface(Surface)` é do que uma forma é feita, desenhado sobre a cor dela, do chão para cima: `Turf`, `Gravel`, `Tarmac`, `Kerb`; `Concrete`, `Brick`, `Panes`, `Planks`, `Staves`; `Bark`, `Leaves`, `Crowd`; `Mesh`; e `Speckle`, `Metal`, `Carbon`, `Rubber`, `Glass`, `Gloss`. Um acabamento se repete a cada dois metros mais ou menos, uma caixa face a face; todos têm relevo exceto `Gloss`, `Glass` e `Mesh`, que tem furos de verdade e aparece dos dois lados; e `Panes` pinta o próprio vidro. Onde uma forma não diz nada, o tipo dela decide — um chão é `Turf`, um cilindro ou cone `Staves`, uma esfera `Speckle`, qualquer outra coisa `Planks`. Uma fotografia em `assets/textures/<surface>.jpg` substitui o desenho de um acabamento, com `-normal.jpg` ao lado como relevo; ela deve ter média cinza, já que é aplicada sobre a cor, e uma que falta volta ao desenho.",
 			examples: [
 				Example(caption: "A 3D scene, in a window", captionPt: "Uma cena 3D, numa janela", code: `type Msg \{ Tick }
 
@@ -4784,6 +4841,53 @@ proc main(): void \{
 	spawn(hive.ui.window("Um controle", view, drive), Kart(0.0, 0.0, 0.0, 0.0))
 }`),
 			],
+		),
+		Slide(
+			title: "Shapes you build, light and picking",
+			titlePt: "Formas que você constrói, luz e escolha",
+			download: false,
+			shot: "",
+			explanation: "A scene has more than the solids, and every one is still a value:\n\n- `torus`, `capsule` and `disc` are round where a stretch would squash them.\n- `mesh(attrs, points, triangles, colours)` is any shape the program can list: three numbers a point, three a triangle, a colour a point. `tube` along a path, `extrude` raising an outline off the ground, `lathe` turning a profile round, and `cloud` putting a point at each place are meshes worked out for you.\n- `model(attrs, file)` is a glTF from `assets/` as it stands in its file, and `play(clip, at, loop)` plays one of its animations at the time the program gives.\n- `sign(attrs, words, height)` is words standing in the world, and `group(attrs, shapes)` moves, turns and scales what it holds together.\n\nA shape says how it shines with `rough`, `metal`, `glow`, `unlit` and `wire`, takes a `texture` and a `relief` of its own, and `scale` sizes any shape. **The light is the program's**: `lamp` and `spot` are shapes, and the scene takes `sunlight`, `ambient` and a `panorama` all round. The camera can `orbit` a place, look `toward` one, `roll`, or go `ortho` — lit then by the sun and the sky alone — and a `background` with no alpha lets the page show through.\n\n`tag(Int)` names a shape. `onHit` hands the program the tag of what a press landed on and where in the world it landed — `-1` for the sky — and `onOver` says the same as the pointer moves. It is worked out on the program's side, so a window and a page agree. `snapshot(n)` and `onSnapshot` hand over a picture of the scene as a PNG.",
+			explanationPt: "Uma cena tem mais que os sólidos, e todos continuam sendo valores:\n\n- `torus`, `capsule` e `disc` são redondos onde um esticão os achataria.\n- `mesh(attrs, points, triangles, colours)` é qualquer forma que o programa saiba listar: três números por ponto, três por triângulo, uma cor por ponto. `tube` ao longo de um caminho, `extrude` erguendo um contorno do chão, `lathe` girando um perfil, e `cloud` pondo um ponto em cada lugar são malhas calculadas para você.\n- `model(attrs, file)` é um glTF dos `assets/` como está no arquivo, e `play(clip, at, loop)` toca uma das animações dele no tempo que o programa dá.\n- `sign(attrs, words, height)` são palavras de pé no mundo, e `group(attrs, shapes)` move, gira e escala junto o que guarda.\n\nUma forma diz como brilha com `rough`, `metal`, `glow`, `unlit` e `wire`, recebe uma `texture` e um `relief` próprios, e `scale` dimensiona qualquer forma. **A luz é do programa**: `lamp` e `spot` são formas, e a cena recebe `sunlight`, `ambient` e um `panorama` em volta. A câmera pode orbitar um lugar com `orbit`, olhar para um com `toward`, girar com `roll`, ou ficar `ortho` — iluminada então só pelo sol e pelo céu — e um `background` sem alfa deixa a página aparecer por trás.\n\n`tag(Int)` dá nome a uma forma. `onHit` entrega ao programa a tag do que um clique atingiu e onde no mundo — `-1` para o céu — e `onOver` diz o mesmo conforme o ponteiro se move. Isso é calculado do lado do programa, então uma janela e uma página concordam. `snapshot(n)` e `onSnapshot` entregam uma imagem da cena como PNG.",
+			examples: [
+				Example(caption: "A vase and a ring, lit by a lamp, that answer a click", captionPt: "Um vaso e um anel, iluminados por uma lâmpada, que respondem a um clique", code: `import hive.ui
+
+type Model \{ yaw: Float, picked: Int }
+
+type Msg \{
+	Turn \{ x: Int, y: Int, done: Bool }
+	Hit \{ tag: Int, x: Float, y: Float, z: Float }
+}
+
+func view(model: Model): ui.View \{
+	return ui.scene([ui.height(400), ui.orbit(0.0, 0.5, 0.0, model.yaw, -0.4, 6.0),
+		ui.onDrag(Msg.Turn(_, _, _)), ui.onHit(Msg.Hit(_, _, _, _))], [
+		ui.ground([], 10.0, 10.0),
+		ui.lathe([ui.tag(1), ui.paint(ui.Tone.HEX("#d0a060")), ui.rough(0.3)],
+			[0.0, 0.0, 0.5, 0.0, 0.6, 0.3, 0.3, 1.0, 0.35, 1.4], 32),
+		ui.torus([ui.at(1.5, 0.3, 0.0), ui.tag(2), ui.metal(1.0)], 0.4, 0.1),
+		ui.lamp([ui.at(0.0, 2.0, 1.0), ui.paint(ui.Tone.HEX("#ffd9a0"))], 1.5, 6.0)
+	])
+}`, codePt: `import hive.ui
+
+type Model \{ yaw: Float, picked: Int }
+
+type Msg \{
+	Turn \{ x: Int, y: Int, done: Bool }
+	Hit \{ tag: Int, x: Float, y: Float, z: Float }
+}
+
+func view(model: Model): ui.View \{
+	return ui.scene([ui.height(400), ui.orbit(0.0, 0.5, 0.0, model.yaw, -0.4, 6.0),
+		ui.onDrag(Msg.Turn(_, _, _)), ui.onHit(Msg.Hit(_, _, _, _))], [
+		ui.ground([], 10.0, 10.0),
+		ui.lathe([ui.tag(1), ui.paint(ui.Tone.HEX("#d0a060")), ui.rough(0.3)],
+			[0.0, 0.0, 0.5, 0.0, 0.6, 0.3, 0.3, 1.0, 0.35, 1.4], 32),
+		ui.torus([ui.at(1.5, 0.3, 0.0), ui.tag(2), ui.metal(1.0)], 0.4, 0.1),
+		ui.lamp([ui.at(0.0, 2.0, 1.0), ui.paint(ui.Tone.HEX("#ffd9a0"))], 1.5, 6.0)
+	])
+}`)
+			]
 		),
 		Slide(
 			title: "A sound is a shape",
