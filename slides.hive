@@ -40,7 +40,7 @@ type Slide {
 	shot:          Str
 }
 
-func all(): Slide[79] {
+func all(): Slide[83] {
 	return start()
 		+ flow()
 		+ collections()
@@ -130,8 +130,8 @@ Compiled hello.hive -> hello (0s)`),
 			titlePt: "Todos os comandos",
 			download: false,
 			shot: "",
-			explanation: "Seven commands take an entrypoint, and each is taught later where it belongs:\n\n- `hive check`, `hive run` and `hive build` — the three above. `build` also takes `--target <goos>/<goarch>` to build for another platform.\n- `hive test` runs every `test` block the program reaches, and reports coverage.\n- `hive emit` prints the Go a program compiles to, and needs no Go toolchain.\n- `hive analyze` scores what each `proc` and `func` will cost to run, lists what the program declares and never reaches, and writes a page of findings beside the entrypoint.\n- `hive container` writes a Dockerfile that builds the program and runs it.\n- `hive export --target android/arm64` packages a windowed program as an installable Android app.\n\nThree take nothing: `hive version` prints which release this is, `hive agents` writes `.hivedocs/` — a page per feature for a coding agent to read — into the current folder, and `hive lsp` is the language server an editor starts, which the next slide sets up. `hive` alone lists all of them.\n\nA command refuses anything it does not take, rather than ignoring it: a flag it has no use for, a second file, a command that does not exist. Those mistakes are in what was typed rather than in any source, so their messages say who is complaining — `hive:` — and exit non-zero.",
-			explanationPt: "Sete comandos recebem um ponto de entrada, e cada um é ensinado mais adiante, onde pertence:\n\n- `hive check`, `hive run` e `hive build` — os três de antes. `build` também aceita `--target <goos>/<goarch>` para construir para outra plataforma.\n- `hive test` roda todo bloco `test` que o programa alcança, e reporta a cobertura.\n- `hive emit` imprime o Go para o qual um programa compila, e não precisa do Go instalado.\n- `hive analyze` dá uma nota ao custo de rodar cada `proc` e `func`, lista o que o programa declara e nunca alcança, e escreve uma página de achados ao lado do ponto de entrada.\n- `hive container` escreve um Dockerfile que constrói o programa e o roda.\n- `hive export --target android/arm64` empacota um programa com janela como um app Android instalável.\n\nTrês não recebem nada: `hive version` imprime qual versão é esta, `hive agents` escreve `.hivedocs/` — uma página por recurso, para um agente de programação ler — na pasta atual, e `hive lsp` é o servidor de linguagem que um editor inicia, e que o próximo slide configura. `hive` sozinho lista todos eles.\n\nUm comando recusa qualquer coisa que não aceita, em vez de ignorá-la: uma flag que ele não usa, um segundo arquivo, um comando que não existe. Esses erros estão no que foi digitado e não em código-fonte algum, então as mensagens deles dizem quem está reclamando — `hive:` — e terminam com código diferente de zero.",
+			explanation: "Eight commands take an entrypoint, and each is taught later where it belongs:\n\n- `hive check`, `hive run` and `hive build` — the three above. `build` also takes `--target <goos>/<goarch>` to build for another platform.\n- `hive test` runs every `test` block the program reaches, and reports coverage.\n- `hive emit` prints the Go a program compiles to, and needs no Go toolchain.\n- `hive analyze` scores what each `proc` and `func` will cost to run, lists what the program declares and never reaches, and writes a page of findings beside the entrypoint.\n- `hive container` writes a Dockerfile that builds the program and runs it.\n- `hive install` builds the program and moves it where a shell finds commands, so it runs by name — under `--name` where one is given.\n- `hive export --target android/arm64` packages a windowed program as an installable Android app.\n\nThree take nothing: `hive version` prints which release this is, `hive agents` writes `.hivedocs/` — a page per feature for a coding agent to read — into the current folder, and `hive lsp` is the language server an editor starts, which the next slide sets up. `hive` alone lists all of them.\n\nA command refuses anything it does not take, rather than ignoring it: a flag it has no use for, a second file, a command that does not exist. Those mistakes are in what was typed rather than in any source, so their messages say who is complaining — `hive:` — and exit non-zero.",
+			explanationPt: "Oito comandos recebem um ponto de entrada, e cada um é ensinado mais adiante, onde pertence:\n\n- `hive check`, `hive run` e `hive build` — os três de antes. `build` também aceita `--target <goos>/<goarch>` para construir para outra plataforma.\n- `hive test` roda todo bloco `test` que o programa alcança, e reporta a cobertura.\n- `hive emit` imprime o Go para o qual um programa compila, e não precisa do Go instalado.\n- `hive analyze` dá uma nota ao custo de rodar cada `proc` e `func`, lista o que o programa declara e nunca alcança, e escreve uma página de achados ao lado do ponto de entrada.\n- `hive container` escreve um Dockerfile que constrói o programa e o roda.\n- `hive install` constrói o programa e o move para onde um shell encontra comandos, para que rode pelo nome — com o nome de `--name`, se houver um.\n- `hive export --target android/arm64` empacota um programa com janela como um app Android instalável.\n\nTrês não recebem nada: `hive version` imprime qual versão é esta, `hive agents` escreve `.hivedocs/` — uma página por recurso, para um agente de programação ler — na pasta atual, e `hive lsp` é o servidor de linguagem que um editor inicia, e que o próximo slide configura. `hive` sozinho lista todos eles.\n\nUm comando recusa qualquer coisa que não aceita, em vez de ignorá-la: uma flag que ele não usa, um segundo arquivo, um comando que não existe. Esses erros estão no que foi digitado e não em código-fonte algum, então as mensagens deles dizem quem está reclamando — `hive:` — e terminam com código diferente de zero.",
 			examples: [
 				Example(caption: "", captionPt: "", code: "$ hive emit hello.hive > main.go\n\n$ hive check hello.hive --verbose\nhive: `hive check` takes an entrypoint and nothing else. `--verbose` was given to it.\n\n$ hive chekc hello.hive\nhive: `chekc` is not a command. `hive` alone lists the ones there are.\n\n$ hive build\nhive: `hive build` needs an entrypoint: `hive build <entrypoint.hive>`.", codePt: "$ hive emit hello.hive > main.go\n\n$ hive check hello.hive --verbose\nhive: `hive check` takes an entrypoint and nothing else. `--verbose` was given to it.\n\n$ hive chekc hello.hive\nhive: `chekc` is not a command. `hive` alone lists the ones there are.\n\n$ hive build\nhive: `hive build` needs an entrypoint: `hive build <entrypoint.hive>`."),
 			],
@@ -3004,7 +3004,7 @@ test "este está errado de propósito" \{
 }
 
 // The standard library
-func library(): Slide[22] {
+func library(): Slide[26] {
 	return [
 		Slide(
 			title: "Maps",
@@ -3207,8 +3207,8 @@ proc main(): void \{
 			titlePt: "Anotações de campo",
 			download: false,
 			shot: "",
-			explanation: "A field may be annotated after a `--`, each clause ending at its `;`, in any order. Every annotation is about the codecs — what the field is called on the wire, and what to read where the wire has nothing — and none changes the field on the Hive side:\n\n- `JSON as <key>;` is the key the field is read from and written as, in both directions, so a round trip agrees with itself. A key is somebody else's name, held to none of Hive's shapes: `user_name` and `user-name` are keys, and anything else is quoted, `\"user name\"`. It is also how a field whose key is a keyword gets a name of its own: `kind: Str -- JSON as type;`.\n- `URL as <key>;` and `Flag as <name>;` say the same for a query string and for a command-line flag, a flag without its dashes — `Flag as dry-run;` is `--dry-run`.\n- `Default as <literal>;` is what to read where the key is absent or `null`: an `Int`, `Float`, `Str`, `Bool` or `Atom` literal the field can hold, negative numbers included. It covers only what was never said: a value of the wrong type is still an error.\n\nTwo fields answering to one key in any format are a compile error, since the decoder would read the member twice. A shared field is annotated once for every variant it joins.",
-			explanationPt: "Um campo pode ser anotado depois de um `--`, cada cláusula terminando no seu `;`, em qualquer ordem. Toda anotação é sobre os codecs — como o campo se chama no fio, e o que ler onde o fio não tem nada — e nenhuma muda o campo do lado do Hive:\n\n- `JSON as <chave>;` é a chave de onde o campo é lido e com que é escrito, nas duas direções, então uma ida e volta concorda consigo mesma. Uma chave é o nome de outra pessoa, que não segue nenhuma das formas do Hive: `user_name` e `user-name` são chaves, e qualquer outra coisa vai entre aspas, `\"user name\"`. É também como um campo cuja chave é uma palavra-chave ganha um nome próprio: `kind: Str -- JSON as type;`.\n- `URL as <chave>;` e `Flag as <nome>;` dizem o mesmo para uma query string e para uma flag de linha de comando, uma flag sem os traços — `Flag as dry-run;` é `--dry-run`.\n- `Default as <literal>;` é o que ler onde a chave está ausente ou é `null`: um literal `Int`, `Float`, `Str`, `Bool` ou `Atom` que o campo possa guardar, números negativos incluídos. Ele cobre só o que nunca foi dito: um valor do tipo errado continua sendo um erro.\n\nDois campos atendendo a uma mesma chave em qualquer formato são um erro de compilação, já que o decodificador leria o membro duas vezes. Um campo compartilhado é anotado uma vez para toda variante a que se junta.",
+			explanation: "A field may be annotated after a `--`, each clause ending at its `;`, in any order. Every annotation is about the codecs — what the field is called on the wire, and what to read where the wire has nothing — and none changes the field on the Hive side:\n\n- `JSON as <key>;` is the key the field is read from and written as, in both directions, so a round trip agrees with itself. A key is somebody else's name, held to none of Hive's shapes: `user_name` and `user-name` are keys, and anything else is quoted, `\"user name\"`. It is also how a field whose key is a keyword gets a name of its own: `kind: Str -- JSON as type;`.\n- `URL as <key>;` and `Flag as <name>;` say the same for a query string and for a command-line flag, a flag without its dashes — `Flag as dry-run;` is `--dry-run`, and `Flag as dry-run n;` adds `-n`, the shorter of two names being the short one.\n- `Default as <literal>;` is what to read where the key is absent or `null`: an `Int`, `Float`, `Str`, `Bool` or `Atom` literal the field can hold, negative numbers included. It covers only what was never said: a value of the wrong type is still an error.\n\nTwo fields answering to one key in any format are a compile error, since the decoder would read the member twice. A shared field is annotated once for every variant it joins.",
+			explanationPt: "Um campo pode ser anotado depois de um `--`, cada cláusula terminando no seu `;`, em qualquer ordem. Toda anotação é sobre os codecs — como o campo se chama no fio, e o que ler onde o fio não tem nada — e nenhuma muda o campo do lado do Hive:\n\n- `JSON as <chave>;` é a chave de onde o campo é lido e com que é escrito, nas duas direções, então uma ida e volta concorda consigo mesma. Uma chave é o nome de outra pessoa, que não segue nenhuma das formas do Hive: `user_name` e `user-name` são chaves, e qualquer outra coisa vai entre aspas, `\"user name\"`. É também como um campo cuja chave é uma palavra-chave ganha um nome próprio: `kind: Str -- JSON as type;`.\n- `URL as <chave>;` e `Flag as <nome>;` dizem o mesmo para uma query string e para uma flag de linha de comando, uma flag sem os traços — `Flag as dry-run;` é `--dry-run`, e `Flag as dry-run n;` acrescenta `-n`, o mais curto dos dois nomes sendo o curto.\n- `Default as <literal>;` é o que ler onde a chave está ausente ou é `null`: um literal `Int`, `Float`, `Str`, `Bool` ou `Atom` que o campo possa guardar, números negativos incluídos. Ele cobre só o que nunca foi dito: um valor do tipo errado continua sendo um erro.\n\nDois campos atendendo a uma mesma chave em qualquer formato são um erro de compilação, já que o decodificador leria o membro duas vezes. Um campo compartilhado é anotado uma vez para toda variante a que se junta.",
 			examples: [
 				Example(caption: "The annotations steer both halves", captionPt: "As anotações guiam as duas metades", code: `type User \{
 	name: Str -- JSON as username;
@@ -3356,6 +3356,150 @@ proc main(): void \{
 			],
 		),
 		Slide(
+			title: "Where a program is",
+			titlePt: "Onde um programa está",
+			download: false,
+			shot: "",
+			explanation: "`hive.file` also says where the program is, each answer an absolute path with `/` between its parts on every platform — which every call in the module takes, Windows included:\n\n- `workingDirectory()` is the folder relative paths are read from; under `hive run`, the entrypoint's.\n- `home()` is the user's home folder.\n- `executable()` is the running program's own file — under `hive run`, the copy the compiler built.\n- `isDir(path)` is whether a path is a folder, where `exists` says yes to both.\n\nThe first three answer a `Result<Str, hive.file.FileError>`, `NotFound` where the system cannot say.\n\nA program can also carry files of its own. An `assets/` folder beside the entrypoint is built into the executable whenever the program reads from it, and `hive.file.asset(path)` reads a file back out by its path under `assets/` — so a program copied anywhere, with nothing beside it, still has them. A path the build put nothing at is `NotFound`, and so is every path in a program built with no `assets/` folder. Files whose names open with `.` or `_` are left out.",
+			explanationPt: "O `hive.file` também diz onde o programa está, cada resposta um caminho absoluto com `/` entre as partes em toda plataforma — que toda chamada do módulo aceita, Windows incluído:\n\n- `workingDirectory()` é a pasta de onde caminhos relativos são lidos; no `hive run`, a do ponto de entrada.\n- `home()` é a pasta pessoal do usuário.\n- `executable()` é o próprio arquivo do programa em execução — no `hive run`, a cópia que o compilador construiu.\n- `isDir(path)` diz se um caminho é uma pasta, onde o `exists` diz sim para os dois.\n\nAs três primeiras respondem com um `Result<Str, hive.file.FileError>`, `NotFound` quando o sistema não sabe dizer.\n\nUm programa também pode carregar arquivos próprios. Uma pasta `assets/` ao lado do ponto de entrada entra no executável sempre que o programa lê dela, e `hive.file.asset(path)` lê um arquivo de volta pelo caminho dentro de `assets/` — então um programa copiado para qualquer lugar, sem nada ao lado, continua com eles. Um caminho em que a construção não colocou nada é `NotFound`, e também todo caminho num programa construído sem pasta `assets/`. Arquivos cujo nome começa com `.` ou `_` ficam de fora.",
+			examples: [
+				Example(caption: "Where it is running", captionPt: "Onde ele está rodando", code: `proc main(): void \{
+	if hive.file.workingDirectory() is Result.Ok(here) \{
+		echo "running in \{here}"
+	}
+	if hive.file.home() is Result.Ok(home) \{
+		echo "home is \{home}"
+	}
+	if hive.file.executable() is Result.Ok(me) \{
+		echo "this program is \{me}"
+	}
+	echo hive.file.isDir(".")
+}`, codePt: `proc main(): void \{
+	if hive.file.workingDirectory() is Result.Ok(here) \{
+		echo "running in \{here}"
+	}
+	if hive.file.home() is Result.Ok(home) \{
+		echo "home is \{home}"
+	}
+	if hive.file.executable() is Result.Ok(me) \{
+		echo "this program is \{me}"
+	}
+	echo hive.file.isDir(".")
+}`),
+				Example(caption: "A file it carries", captionPt: "Um arquivo que ele carrega", code: `proc main(): void \{
+	// A file at assets/notes.txt, beside this one, is built into the program,
+	// and read from there wherever the program is copied to.
+	read := hive.file.asset("notes.txt")
+	if read is Result.Ok(notes) \{
+		echo notes
+	} else if read is Result.Error(why) \{
+		echo why.message
+	}
+}`, codePt: `proc main(): void \{
+	// Um arquivo em assets/notes.txt, ao lado deste, entra no programa e
+	// é lido de lá para onde quer que o programa seja copiado.
+	read := hive.file.asset("notes.txt")
+	if read is Result.Ok(notes) \{
+		echo notes
+	} else if read is Result.Error(why) \{
+		echo why.message
+	}
+}`),
+			],
+		),
+		Slide(
+			title: "Pictures",
+			titlePt: "Imagens",
+			download: false,
+			shot: "",
+			explanation: "`hive.image.decode(data)` reads the bytes of a PNG, JPEG, GIF or WebP file — from `hive.file.read`, `hive.file.asset` or a response's body — into a `Result<hive.image.Picture, hive.image.ImageError>`. A moving GIF or WebP is its first frame.\n\nA `Picture` is its `width`, its `height` and its `pixels`: a `UInt8[dyn]` of four bytes a pixel — red, green, blue and alpha, not multiplied by the alpha — row by row from the top left, so pixel `(x, y)` opens at `(y * width + x) * 4`. Whatever the file kept, that is what it reads into, and every index into it is proved in range like any other.\n\n`hive.image.scale(picture, width, height)` is the same picture at exactly that size. Each new pixel is the average of the ones it covers, weighted by how opaque each is; a grown picture repeats them. Keeping the proportions is the caller's arithmetic: `scale(p, 40, p.height * 40 / p.width)`.\n\nAn `ImageError` carries a `message`: for something that is no such file, one cut short, and one claiming more than 100 million pixels, which is refused before any of it is decoded.",
+			explanationPt: "O `hive.image.decode(data)` lê os bytes de um arquivo PNG, JPEG, GIF ou WebP — vindos do `hive.file.read`, do `hive.file.asset` ou do corpo de uma resposta — para um `Result<hive.image.Picture, hive.image.ImageError>`. Um GIF ou WebP animado é o seu primeiro quadro.\n\nUma `Picture` é a sua largura, `width`, a sua altura, `height`, e os seus `pixels`: um `UInt8[dyn]` de quatro bytes por pixel — vermelho, verde, azul e alfa, sem multiplicar pelo alfa — linha por linha a partir do canto de cima à esquerda, então o pixel `(x, y)` começa em `(y * width + x) * 4`. Seja o que for que o arquivo guardava, é nisso que ele é lido, e todo índice nele é provado dentro dos limites como qualquer outro.\n\nO `hive.image.scale(picture, width, height)` é a mesma imagem exatamente nesse tamanho. Cada pixel novo é a média dos que ele cobre, pesada pelo quanto cada um é opaco; uma imagem aumentada os repete. Manter as proporções é conta de quem chama: `scale(p, 40, p.height * 40 / p.width)`.\n\nUm `ImageError` carrega uma `message`: para algo que não é um arquivo desses, um cortado no meio, e um que diz ter mais de 100 milhões de pixels, recusado antes de qualquer parte dele ser decodificada.",
+			examples: [
+				Example(caption: "A picture made in code, scaled and drawn", captionPt: "Uma imagem feita no código, redimensionada e desenhada", code: `// A picture made here rather than read from a file: four by four, its pixels
+// four bytes each — red, green, blue, alpha — going from black to white.
+func gradient(): hive.image.Picture \{
+	mut UInt8[dyn] pixels = []
+	for i := 0; i < 16; i++ \{
+		grey := UInt8(i * 17)
+		append(pixels, grey)
+		append(pixels, grey)
+		append(pixels, grey)
+		append(pixels, UInt8(255))
+	}
+	return hive.image.Picture(4, 4, pixels)
+}
+
+proc main(): void \{
+	picture := hive.image.scale(gradient(), 8, 4)
+	shades := ["@", "%", "#", "*", "+", "=", "-", ":", "."]
+	pixels := picture.pixels
+	for y := 0; y < picture.height; y++ \{
+		mut line := ""
+		for x := 0; x < picture.width; x++ \{
+			red := (y * picture.width + x) * 4
+			if pixels bounds red \{
+				shade := Int(pixels[red]) * len(shades) / 256
+				if shades bounds shade \{
+					line += shades[shade]
+				}
+			}
+		}
+		echo line
+	}
+}`, codePt: `// Uma imagem feita aqui em vez de lida de um arquivo: quatro por quatro, os
+// pixels com quatro bytes cada — vermelho, verde, azul, alfa — do preto ao branco.
+func gradient(): hive.image.Picture \{
+	mut UInt8[dyn] pixels = []
+	for i := 0; i < 16; i++ \{
+		grey := UInt8(i * 17)
+		append(pixels, grey)
+		append(pixels, grey)
+		append(pixels, grey)
+		append(pixels, UInt8(255))
+	}
+	return hive.image.Picture(4, 4, pixels)
+}
+
+proc main(): void \{
+	picture := hive.image.scale(gradient(), 8, 4)
+	shades := ["@", "%", "#", "*", "+", "=", "-", ":", "."]
+	pixels := picture.pixels
+	for y := 0; y < picture.height; y++ \{
+		mut line := ""
+		for x := 0; x < picture.width; x++ \{
+			red := (y * picture.width + x) * 4
+			if pixels bounds red \{
+				shade := Int(pixels[red]) * len(shades) / 256
+				if shades bounds shade \{
+					line += shades[shade]
+				}
+			}
+		}
+		echo line
+	}
+}`),
+				Example(caption: "A picture the program carries", captionPt: "Uma imagem que o programa carrega", code: `proc main(): void \{
+	stored := hive.file.asset("logo.png")
+	if stored is Result.Ok(data) \{
+		if hive.image.decode(data) is Result.Ok(logo) \{
+			echo "\{logo.width} by \{logo.height}"
+		}
+	} else if stored is Result.Error(why) \{
+		echo why.message
+	}
+}`, codePt: `proc main(): void \{
+	stored := hive.file.asset("logo.png")
+	if stored is Result.Ok(data) \{
+		if hive.image.decode(data) is Result.Ok(logo) \{
+			echo "\{logo.width} by \{logo.height}"
+		}
+	} else if stored is Result.Error(why) \{
+		echo why.message
+	}
+}`),
+			],
+		),
+		Slide(
 			title: "Spreadsheets",
 			titlePt: "Planilhas",
 			download: false,
@@ -3389,8 +3533,8 @@ proc main(): void \{
 			titlePt: "O terminal",
 			download: false,
 			shot: "",
-			explanation: "`hive.term` is the terminal, one line at a time:\n\n- `print(text)` writes a `Str` and a newline to standard output, as `echo` does for a `Str`; `status(text)` writes one to standard error — what a program is doing, as against what it was asked for, so redirecting the answer never takes the progress with it.\n- `read()` waits for a line of input and answers without its newline. At the end of the input it answers with what was left, then `\"\"` for good, so an empty line and the end look alike.\n- `readSecret()` reads a line with the terminal's echo turned off, straight into a `Secret<Str>`, so it answers a `Result<Secret<Str>, SecretError>`. Interrupted at the prompt, it puts the echo back and ends the program with status 130; with no terminal to turn off, it reads the line as it comes.\n- `readSecretBypass()` is the same read into ordinary memory, as `bypass` is to `hide`, so it answers a plain `Secret<Str>` and cannot fail.\n- `isTerminal()` is whether standard error is a person rather than a pipe or a file.\n- `args()` is the command line, without the program's own name.\n- `exit(code)` ends the program there with that status — so a path ending in it counts as ended.",
-			explanationPt: "`hive.term` é o terminal, uma linha de cada vez:\n\n- `print(text)` escreve uma `Str` e uma quebra de linha na saída padrão, como o `echo` faz com uma `Str`; `status(text)` escreve uma na saída de erro — o que um programa está fazendo, em oposição ao que lhe pediram, então redirecionar a resposta nunca leva o progresso junto.\n- `read()` espera uma linha de entrada e responde sem a quebra de linha. No fim da entrada ele responde com o que sobrou, e depois `\"\"` para sempre, então uma linha vazia e o fim parecem iguais.\n- `readSecret()` lê uma linha com o eco do terminal desligado, direto para um `Secret<Str>`, então responde com um `Result<Secret<Str>, SecretError>`. Interrompido no prompt, ele religa o eco e encerra o programa com código 130; sem terminal para desligar, lê a linha como ela vier.\n- `readSecretBypass()` é a mesma leitura em memória comum, como o `bypass` é para o `hide`, então responde com um `Secret<Str>` simples e não falha.\n- `isTerminal()` diz se a saída de erro é uma pessoa e não um pipe ou um arquivo.\n- `args()` é a linha de comando, sem o nome do próprio programa.\n- `exit(code)` encerra o programa ali com aquele código — então um caminho que termina nele conta como encerrado.",
+			explanation: "`hive.term` is the terminal, a line or a key at a time:\n\n- `print(text)` writes a `Str` to standard output exactly as it is, ending no line — a prompt, or a line built in pieces; `println(text)` writes it and a newline, as `echo` does for a `Str`. `status(text)` writes a line to standard error — what a program is doing, as against what it was asked for, so redirecting the answer never takes the progress with it.\n- `read()` waits for a line of input and answers without its newline. At the end of the input it answers with what was left, then `\"\"` for good, so an empty line and the end look alike.\n- `readSecret()` reads a line with the terminal's echo turned off, straight into a `Secret<Str>`, so it answers a `Result<Secret<Str>, SecretError>`. Interrupted at the prompt, it puts the echo back and ends the program with status 130; with no terminal to turn off, it reads the line as it comes.\n- `readSecretBypass()` is the same read into ordinary memory, as `bypass` is to `hide`, so it answers a plain `Secret<Str>` and cannot fail.\n- `raw(on)` turns raw mode on or off: what is typed is neither shown nor held back for a whole line, and Ctrl+C is a key rather than the end of the program. However the program ends — a panic and `exit` included — the terminal is put back.\n- `readKey()` waits for one key and answers with a `hive.term.Key`: its `name`, the one `hive.ui` gives it — `\"a\"`, `\"A\"`, `\"Ctrl+C\"`, `\"ArrowUp\"`, `\"Enter\"` — and the `text` it types, `\"\"` for a key that edits or moves rather than types. A paste, in raw mode, is one key named `Paste` holding all of it, so a newline in it is never `Enter`.\n- `size()` is the window's `width` and `height`, in cells.\n- `isTerminal()` is whether standard error is a person rather than a pipe or a file.\n- `args()` is the command line, without the program's own name.\n- `exit(code)` ends the program there with that status — so a path ending in it counts as ended.\n\n`raw`, `readKey` and `size` answer a `Result` whose `hive.term.TermError` is `NotATerminal`, `Closed` once the input has ended, or `Io`.",
+			explanationPt: "`hive.term` é o terminal, uma linha ou uma tecla de cada vez:\n\n- `print(text)` escreve uma `Str` na saída padrão exatamente como ela é, sem terminar a linha — um prompt, ou uma linha montada aos pedaços; `println(text)` escreve a `Str` e uma quebra de linha, como o `echo` faz com uma `Str`. `status(text)` escreve uma linha na saída de erro — o que um programa está fazendo, em oposição ao que lhe pediram, então redirecionar a resposta nunca leva o progresso junto.\n- `read()` espera uma linha de entrada e responde sem a quebra de linha. No fim da entrada ele responde com o que sobrou, e depois `\"\"` para sempre, então uma linha vazia e o fim parecem iguais.\n- `readSecret()` lê uma linha com o eco do terminal desligado, direto para um `Secret<Str>`, então responde com um `Result<Secret<Str>, SecretError>`. Interrompido no prompt, ele religa o eco e encerra o programa com código 130; sem terminal para desligar, lê a linha como ela vier.\n- `readSecretBypass()` é a mesma leitura em memória comum, como o `bypass` é para o `hide`, então responde com um `Secret<Str>` simples e não falha.\n- `raw(on)` liga ou desliga o modo cru: o que é digitado não aparece nem fica esperando a linha inteira, e Ctrl+C vira uma tecla em vez de encerrar o programa. Do jeito que o programa terminar — com um panic ou com `exit` também — o terminal volta a ser o que era.\n- `readKey()` espera uma tecla e responde com uma `hive.term.Key`: o `name` dela, o mesmo que o `hive.ui` dá — `\"a\"`, `\"A\"`, `\"Ctrl+C\"`, `\"ArrowUp\"`, `\"Enter\"` — e o `text` que ela digita, `\"\"` para uma tecla que edita ou move em vez de digitar. Uma colagem, no modo cru, é uma tecla só, chamada `Paste`, com tudo o que foi colado, então uma quebra de linha nela nunca é `Enter`.\n- `size()` é a largura e a altura da janela, `width` e `height`, em células.\n- `isTerminal()` diz se a saída de erro é uma pessoa e não um pipe ou um arquivo.\n- `args()` é a linha de comando, sem o nome do próprio programa.\n- `exit(code)` encerra o programa ali com aquele código — então um caminho que termina nele conta como encerrado.\n\n`raw`, `readKey` e `size` respondem com um `Result` cujo `hive.term.TermError` é `NotATerminal`, `Closed` quando a entrada acabou, ou `Io`.",
 			examples: [
 				Example(caption: "A secret, read and then kept", captionPt: "Um segredo, lido e depois guardado", code: `proc main(): void \{
 	echo "API token:"
@@ -3424,6 +3568,37 @@ proc main(): void \{
 	echo hive.term.isTerminal()
 	echo hive.term.args()
 }`),
+				Example(caption: "Keys, one at a time", captionPt: "Teclas, uma de cada vez", code: `proc main(): void \{
+	if hive.term.raw(true) is Result.Error(why) \{
+		echo "no keys to read here: \{why.message}"
+		return
+	}
+	hive.term.println("Type away; Escape ends it.")
+	mut going := true
+	for ; going; \{
+		if hive.term.readKey() is Result.Ok(key) \{
+			hive.term.println("\{key.name} types [\{key.text}]")
+			going = key.name != "Escape"
+		} else \{
+			going = false
+		}
+	}
+}`, codePt: `proc main(): void \{
+	if hive.term.raw(true) is Result.Error(why) \{
+		echo "não há teclas para ler aqui: \{why.message}"
+		return
+	}
+	hive.term.println("Digite à vontade; Escape encerra.")
+	mut going := true
+	for ; going; \{
+		if hive.term.readKey() is Result.Ok(key) \{
+			hive.term.println("\{key.name} digita [\{key.text}]")
+			going = key.name != "Escape"
+		} else \{
+			going = false
+		}
+	}
+}`),
 			],
 		),
 		Slide(
@@ -3453,12 +3628,65 @@ proc main(): void \{
 			],
 		),
 		Slide(
+			title: "Programs alongside",
+			titlePt: "Programas lado a lado",
+			download: false,
+			shot: "",
+			explanation: "`exec` and `attach` wait for the program they run. `hive.term.start(command, arguments, directory)` starts one and answers at once with a `Result<hive.term.Process, hive.term.ExecError>`, and `startWith` adds an environment overlay, as `execWith` does. While it runs:\n\n- `processReceiveLine(process)` is the next line it wrote, as soon as it has written it, and `processReceive(process, bytes)` at most that many bytes of whatever has arrived. Its output and its errors are one stream, in the order written.\n- `processSend(process, text)` writes to its input, and `processCloseInput(process)` ends that input, for a program that reads until there is no more.\n- `processWait(process)` waits for it to end and answers its status; `with timeout` gives up the wait and loses nothing.\n- `processKill(process)` stops it and everything it started, and answers once it has ended. Its status is then `-1`.\n\nA call that fails answers a `hive.term.ProcessError`: `Closed` once its output has ended or it was stopped, `Send` or `Receive` otherwise. A started program belongs to the one that started it: whatever is left of it is stopped when that one ends — a panic, `exit` and an interrupt included.\n\nThe example starts itself again — `hive.file.executable()` is where it is — told by its first argument which part to play, so it needs nothing installed.",
+			explanationPt: "O `exec` e o `attach` esperam pelo programa que rodam. O `hive.term.start(command, arguments, directory)` inicia um e responde na hora com um `Result<hive.term.Process, hive.term.ExecError>`, e o `startWith` acrescenta uma camada de ambiente, como o `execWith` faz. Enquanto ele roda:\n\n- `processReceiveLine(process)` é a próxima linha que ele escreveu, assim que ele a escreve, e `processReceive(process, bytes)` no máximo essa quantidade de bytes do que já tiver chegado. A saída e os erros dele são um fluxo só, na ordem em que foram escritos.\n- `processSend(process, text)` escreve na entrada dele, e `processCloseInput(process)` encerra essa entrada, para um programa que lê até não haver mais nada.\n- `processWait(process)` espera ele terminar e responde com o código de saída; `with timeout` desiste da espera e não perde nada.\n- `processKill(process)` para ele e tudo o que ele iniciou, e responde quando ele tiver terminado. O código de saída então é `-1`.\n\nUma chamada que falha responde com um `hive.term.ProcessError`: `Closed` quando a saída dele acabou ou ele foi parado, `Send` ou `Receive` nos outros casos. Um programa iniciado pertence a quem o iniciou: o que restar dele é parado quando esse termina — com um panic, com `exit` e com uma interrupção também.\n\nO exemplo inicia a si mesmo de novo — `hive.file.executable()` diz onde ele está — avisado pelo primeiro argumento de qual papel fazer, então não precisa de nada instalado.",
+			examples: [
+				Example(caption: "A conversation with another program", captionPt: "Uma conversa com outro programa", code: `// The program started is this one again, told which part to play.
+proc main(): void \{
+	args := hive.term.args()
+	if args bounds 0 \{
+		if args[0] == "--echo" \{
+			for line := hive.term.read(); line != ""; line = hive.term.read() \{
+				echo "heard \{line}"
+			}
+		}
+		return
+	}
+	if hive.file.executable() is Result.Ok(me) \{
+		if hive.term.start(me, ["--echo"], "") is Result.Ok(other) \{
+			hive.term.processSend(other, "hello\n")
+			if hive.term.processReceiveLine(other) is Result.Ok(answer) \{
+				echo answer
+			}
+			hive.term.processCloseInput(other)
+			echo "it ended with status \{hive.term.processWait(other)}"
+		}
+	}
+}`, codePt: `// O programa iniciado é este mesmo de novo, avisado de qual papel fazer.
+proc main(): void \{
+	args := hive.term.args()
+	if args bounds 0 \{
+		if args[0] == "--echo" \{
+			for line := hive.term.read(); line != ""; line = hive.term.read() \{
+				echo "heard \{line}"
+			}
+		}
+		return
+	}
+	if hive.file.executable() is Result.Ok(me) \{
+		if hive.term.start(me, ["--echo"], "") is Result.Ok(other) \{
+			hive.term.processSend(other, "hello\n")
+			if hive.term.processReceiveLine(other) is Result.Ok(answer) \{
+				echo answer
+			}
+			hive.term.processCloseInput(other)
+			echo "it ended with status \{hive.term.processWait(other)}"
+		}
+	}
+}`),
+			],
+		),
+		Slide(
 			title: "Command-line flags",
 			titlePt: "Flags de linha de comando",
 			download: false,
 			shot: "",
-			explanation: "`hive.term.codec()` reads command-line flags into a type of your own through `T.decode`, and `encode` writes one back. A flag opens with `--`: a field is `--name value` or `--name=value`, named by the field itself or by `-- Flag as <name>;` without its dashes. A failure is a `hive.term.FlagError`, whose `path` is the flag as written.\n\n- `T.decode` reads one `Str`, split the way a shell splits a line, so a quoted value stays one word. `args()` hands the words over with the shell's quotes already gone, so join them and quote again any that holds a space, a quote or a backslash, or opens with `--`.\n- A `Bool` flag standing alone is `true` — but one followed by a word takes that word as its value, so `--dry-run file.txt` is an error about `file.txt`. `encode` writes one as `--dry-run true`.\n- A vector is its flag repeated, and an absent vector is empty. Any other flag given twice is an error.\n- A field with no `Default` has to be there, a `Bool` included. An `Atom` flag takes only atoms the program mentions.\n- A flag the type does not declare, and a short flag like `-n`, are ignored, and everything after a lone `--` is left alone.",
-			explanationPt: "`hive.term.codec()` lê flags de linha de comando para um tipo seu por meio de `T.decode`, e `encode` escreve um de volta. Uma flag começa com `--`: um campo é `--name value` ou `--name=value`, nomeado pelo próprio campo ou por `-- Flag as <nome>;` sem os traços. Uma falha é um `hive.term.FlagError`, cujo `path` é a flag como foi escrita.\n\n- `T.decode` lê uma `Str`, dividida do jeito que um shell divide uma linha, então um valor entre aspas continua sendo uma palavra só. `args()` entrega as palavras com as aspas do shell já removidas, então junte-as e ponha aspas de novo em qualquer uma que tenha espaço, aspas ou barra invertida, ou comece com `--`.\n- Uma flag `Bool` sozinha é `true` — mas uma seguida de uma palavra toma essa palavra como valor, então `--dry-run file.txt` é um erro sobre `file.txt`. `encode` escreve uma como `--dry-run true`.\n- Um vetor é a sua flag repetida, e um vetor ausente é vazio. Qualquer outra flag dada duas vezes é um erro.\n- Um campo sem `Default` precisa estar lá, um `Bool` incluído. Uma flag `Atom` aceita só átomos que o programa menciona.\n- Uma flag que o tipo não declara, e uma flag curta como `-n`, são ignoradas, e tudo depois de um `--` sozinho fica de lado.",
+			explanation: "`hive.term.codec()` reads command-line flags into a type of your own through `T.decode`, and `encode` writes one back. A field is `--name value` or `--name=value`, named by the field itself or by `-- Flag as <name>;` without its dashes — and a second, shorter name is read after one dash: `-- Flag as dry-run n;` is `--dry-run` and `-n` alike, `-n value` and `-n=value`. A failure is a `hive.term.FlagError`, whose `path` is the flag as written.\n\n- `T.decode` reads one `Str`, split the way a shell splits a line, so a quoted value stays one word. `hive.term.flags()` is the program's own arguments as that line, each word quoted again where it holds a space, a quote or a backslash: `args()` hands them over with the shell's quotes already gone, so joining it would split a quoted value a second time.\n- A `Bool` flag standing alone is `true`, and it takes the word after it only when that word is `true` or `false` — which is how `encode` writes one, `--dry-run true`.\n- A vector is its flag repeated, and an absent vector is empty. Any other flag given twice is an error.\n- A field with no `Default` has to be there, a `Bool` included. An `Atom` flag takes only atoms the program mentions.\n- The words before the first flag, and everything after a lone `--`, are the program's own, and `hive.term.positional(line)` answers with them. Between them is nothing but flags and their values: a flag the type does not declare is an error that lists the ones it does, and so is a word that is no flag's value — it goes before the flags or after `--`.",
+			explanationPt: "`hive.term.codec()` lê flags de linha de comando para um tipo seu por meio de `T.decode`, e `encode` escreve um de volta. Um campo é `--name value` ou `--name=value`, nomeado pelo próprio campo ou por `-- Flag as <nome>;` sem os traços — e um segundo nome, mais curto, é lido depois de um traço só: `-- Flag as dry-run n;` é `--dry-run` e `-n` igualmente, `-n valor` e `-n=valor`. Uma falha é um `hive.term.FlagError`, cujo `path` é a flag como foi escrita.\n\n- `T.decode` lê uma `Str`, dividida do jeito que um shell divide uma linha, então um valor entre aspas continua sendo uma palavra só. `hive.term.flags()` é a linha com os próprios argumentos do programa, com aspas de novo em cada palavra que tenha espaço, aspas ou barra invertida: `args()` entrega as palavras com as aspas do shell já removidas, então juntá-las dividiria de novo um valor entre aspas.\n- Uma flag `Bool` sozinha é `true`, e ela só toma a palavra seguinte quando essa palavra é `true` ou `false` — que é como o `encode` escreve uma, `--dry-run true`.\n- Um vetor é a sua flag repetida, e um vetor ausente é vazio. Qualquer outra flag dada duas vezes é um erro.\n- Um campo sem `Default` precisa estar lá, um `Bool` incluído. Uma flag `Atom` aceita só átomos que o programa menciona.\n- As palavras antes da primeira flag, e tudo depois de um `--` sozinho, são do próprio programa, e `hive.term.positional(line)` responde com elas. Entre elas só há flags e seus valores: uma flag que o tipo não declara é um erro que lista as que ele declara, e também uma palavra que não é valor de nenhuma flag — ela vai antes das flags ou depois do `--`.",
 			examples: [
 				Example(caption: "Flags into a type", captionPt: "Flags para um tipo", code: `type Options \{
 	name: Str
@@ -3467,7 +3695,7 @@ proc main(): void \{
 }
 
 proc main(): void \{
-	// hive.term.args() joined into one line, a value with a space quoted again.
+	// The line hive.term.flags() hands over for these arguments, the value with a space quoted again.
 	line := "--name 'Ada Lovelace' --dry-run --count=3"
 	if Options.decode(line, hive.term.codec()) is Result.Ok(o) \{
 		echo "\{o.name} \{o.dryRun} \{o.count}"
@@ -3486,7 +3714,7 @@ proc main(): void \{
 }
 
 proc main(): void \{
-	// hive.term.args() juntado em uma linha, com aspas de novo no valor que tem espaço.
+	// A linha que hive.term.flags() entrega para esses argumentos, com aspas de novo no valor que tem espaço.
 	line := "--name 'Ada Lovelace' --dry-run --count=3"
 	if Options.decode(line, hive.term.codec()) is Result.Ok(o) \{
 		echo "\{o.name} \{o.dryRun} \{o.count}"
@@ -3498,6 +3726,39 @@ proc main(): void \{
 	}
 
 	echo encode(Options("Ada Lovelace", true, 3), hive.term.codec())
+}`),
+				Example(caption: "Short names, and the program's own words", captionPt: "Nomes curtos, e as palavras do próprio programa", code: `type Options \{
+	model: Str -- Flag as model m; Default as "small";
+	verbose: Bool -- Flag as verbose v; Default as false;
+}
+
+proc main(): void \{
+	// What follows a lone -- is the program's own, as are any words before the flags.
+	line := "-m large -v -- what is this"
+	if Options.decode(line, hive.term.codec()) is Result.Ok(o) \{
+		echo "\{o.model} \{o.verbose}"
+	}
+	echo hive.term.positional(line)
+
+	if Options.decode("--modle large", hive.term.codec()) is Result.Error(why) \{
+		echo "\{why.path}: expected \{why.expected}, found \{why.found}"
+	}
+}`, codePt: `type Options \{
+	model: Str -- Flag as model m; Default as "small";
+	verbose: Bool -- Flag as verbose v; Default as false;
+}
+
+proc main(): void \{
+	// O que vem depois de um -- sozinho é do próprio programa, assim como palavras antes das flags.
+	line := "-m large -v -- what is this"
+	if Options.decode(line, hive.term.codec()) is Result.Ok(o) \{
+		echo "\{o.model} \{o.verbose}"
+	}
+	echo hive.term.positional(line)
+
+	if Options.decode("--modle large", hive.term.codec()) is Result.Error(why) \{
+		echo "\{why.path}: esperava \{why.expected}, encontrou \{why.found}"
+	}
 }`),
 			],
 		),
@@ -3662,6 +3923,101 @@ proc main(): void \{
 
 	if Search.decode("q=hive+lang&tag=web", hive.net.queryParamsCodec()) is Result.Ok(s) \{
 		echo "\{s.term}, página \{s.page}"
+	}
+}`),
+			],
+		),
+		Slide(
+			title: "Responses as they arrive",
+			titlePt: "Respostas enquanto chegam",
+			download: false,
+			shot: "",
+			explanation: "`httpRequest` answers when the whole body is in. A body written a piece at a time — a language model's answer, a log being followed, server-sent events — is read as it comes instead:\n\n- `hive.net.httpOpen(request)` sends the request and answers as soon as the status and headers are in, with a `Result<HttpStream, HttpError>`. An `HttpStream` has the `status` and `headers` of an `HttpResponse`, and a body still arriving. A 404 is still `Ok`, and its body reads the same way.\n- `httpReceiveLine(stream)` is the next line of the body, without its newline, as soon as it has arrived; `httpReceive(stream, bytes)` is at most that many bytes, whatever is there. Both wait on the calling thread alone.\n- `httpClose(stream)` drops the connection, which is how a server learns nobody is reading — and how a client stops a model that is going on. It may come from another thread while a receive waits, and that receive answers `Closed`.\n\nThe errors are a `hive.net.HttpStreamError`: `Closed` once the body has ended or the stream was closed, `Receive` when the connection breaks part-way. Nothing bounds the wait but connecting, since a model server answers only once its model has loaded, so a program with something else to do reads on a thread of its own.\n\nThe example's server is a stand-in, so the program needs nothing installed. `httpServe` answers with a whole body, so it writes just enough HTTP itself, over a socket.",
+			explanationPt: "O `httpRequest` responde quando o corpo inteiro chegou. Um corpo escrito aos pedaços — a resposta de um modelo de linguagem, um log sendo acompanhado, server-sent events — é lido conforme chega:\n\n- `hive.net.httpOpen(request)` envia a requisição e responde assim que o status e os cabeçalhos chegam, com um `Result<HttpStream, HttpError>`. Um `HttpStream` tem o `status` e os `headers` de um `HttpResponse`, e um corpo que ainda está chegando. Um 404 continua sendo `Ok`, e o corpo dele se lê do mesmo jeito.\n- `httpReceiveLine(stream)` é a próxima linha do corpo, sem a quebra de linha, assim que ela chega; `httpReceive(stream, bytes)` é no máximo essa quantidade de bytes, o que já tiver chegado. Os dois esperam só na thread que chamou.\n- `httpClose(stream)` derruba a conexão, que é como um servidor fica sabendo que ninguém está lendo — e como um cliente para um modelo que não para de falar. Pode vir de outra thread enquanto uma leitura espera, e essa leitura responde `Closed`.\n\nOs erros são um `hive.net.HttpStreamError`: `Closed` quando o corpo terminou ou o stream foi fechado, `Receive` quando a conexão cai no meio. Nada limita a espera além de conectar, já que um servidor de modelo só responde depois de carregar o modelo, então um programa com outra coisa para fazer lê numa thread própria.\n\nO servidor do exemplo é um substituto, para o programa não precisar de nada instalado. O `httpServe` responde com o corpo inteiro, então ele mesmo escreve o HTTP necessário, por um socket.",
+			examples: [
+				Example(caption: "A model's answer, word by word", captionPt: "A resposta de um modelo, palavra por palavra", code: `type Chunk \{
+	content: Str
+	done: Bool
+}
+
+// A stand-in for a model's server: one JSON line per word, a moment apart.
+proc model(conn: hive.net.SocketConnection): void \{
+	for ; true; \{
+		if hive.net.socketReceiveLine(conn) is Result.Ok(line) && line != "" \{
+			continue
+		}
+		break
+	}
+	hive.net.socketSend(conn, "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n")
+	for each word in ["Light", " scatters,", " and", " blue", " scatters", " most."] \{
+		hive.task.sleep(50)
+		hive.net.socketSend(conn, encode(Chunk(word, false), hive.json.codec()) + "\n")
+	}
+	hive.net.socketSend(conn, encode(Chunk("", true), hive.json.codec()) + "\n")
+}
+
+proc main(): void \{
+	async hive.net.socketServe(9025, model)
+	hive.task.sleep(200)
+
+	asked := hive.net.HttpRequest("GET", "http://127.0.0.1:9025/", [], "")
+	if hive.net.httpOpen(asked) is Result.Ok(stream) \{
+		mut going := true
+		for ; going; \{
+			going = false
+			if hive.net.httpReceiveLine(stream) is Result.Ok(line) \{
+				if Chunk.decode(line, hive.json.codec()) is Result.Ok(piece) \{
+					// hive.term.print ends no line: the words join up as they arrive.
+					hive.term.print(piece.content)
+					going = piece.done == false
+				}
+			}
+		}
+		hive.term.println("")
+		hive.net.httpClose(stream)
+	}
+}`, codePt: `type Chunk \{
+	content: Str
+	done: Bool
+}
+
+// Um substituto para o servidor de um modelo: uma linha JSON por palavra, uma
+// de cada vez.
+proc model(conn: hive.net.SocketConnection): void \{
+	for ; true; \{
+		if hive.net.socketReceiveLine(conn) is Result.Ok(line) && line != "" \{
+			continue
+		}
+		break
+	}
+	hive.net.socketSend(conn, "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n")
+	for each word in ["A luz", " se espalha,", " e o azul", " se espalha", " mais."] \{
+		hive.task.sleep(50)
+		hive.net.socketSend(conn, encode(Chunk(word, false), hive.json.codec()) + "\n")
+	}
+	hive.net.socketSend(conn, encode(Chunk("", true), hive.json.codec()) + "\n")
+}
+
+proc main(): void \{
+	async hive.net.socketServe(9025, model)
+	hive.task.sleep(200)
+
+	asked := hive.net.HttpRequest("GET", "http://127.0.0.1:9025/", [], "")
+	if hive.net.httpOpen(asked) is Result.Ok(stream) \{
+		mut going := true
+		for ; going; \{
+			going = false
+			if hive.net.httpReceiveLine(stream) is Result.Ok(line) \{
+				if Chunk.decode(line, hive.json.codec()) is Result.Ok(piece) \{
+					// hive.term.print não termina a linha: as palavras se juntam
+					// conforme chegam.
+					hive.term.print(piece.content)
+					going = piece.done == false
+				}
+			}
+		}
+		hive.term.println("")
+		hive.net.httpClose(stream)
 	}
 }`),
 			],
