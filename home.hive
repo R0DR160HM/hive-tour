@@ -74,16 +74,16 @@ type Target {
 
 func lede(lang: Str): Str {
 	if lang == "pt" {
-		return "Uma linguagem compilada sem exceções em tempo de execução, feita para sistemas distribuídos, que roda em qualquer lugar — e pequena o bastante para se aprender em um dia."
+		return "Uma linguagem compilada sem exceções durante a execução e com leis que o compilador prova, feita para sistemas distribuídos, que roda em qualquer lugar e é pequena o bastante para se aprender em um dia."
 	}
-	return "A compiled language with no runtime exceptions, built for distributed systems, that runs anywhere — and small enough to learn in a day."
+	return "A compiled language with no runtime exceptions and laws the compiler proves, built for distributed systems, that runs anywhere and is small enough to learn in a day."
 }
 
 func intro(lang: Str): Str {
 	if lang == "pt" {
-		return "O Hive pega na compilação os erros que outras linguagens deixam para a produção: não existe null, nada é lançado, e todo acesso a um vetor é verificado antes de o programa rodar. Ele já vem com o que um serviço precisa — HTTP, SQL, JSON, criptografia, uma UI e serviços que conversam entre máquinas — e o mesmo código roda no Windows, no Linux e no macOS, no navegador, em um contêiner e no Android."
+		return "No Hive, os erros que outras linguagens deixam para a produção viram erros de compilação: não existe null, nada é lançado, e todo índice é verificado. Você também escreve leis sobre o seu código, os seus tipos e as suas tabelas, e o compilador as prova para todo valor possível. HTTP, SQL, JSON, criptografia, UI e serviços entre máquinas já vêm com a linguagem, e o mesmo código roda no Windows, Linux, macOS, navegador e Android."
 	}
-	return "Hive catches at compile time the mistakes other languages leave for production: there is no null, nothing is thrown, and every array access is checked before the program runs. It comes with what a service needs — HTTP, SQL, JSON, cryptography, a UI, and services that talk across machines — and the same code runs on Windows, Linux and macOS, in a browser, in a container, and on Android."
+	return "In Hive, the mistakes other languages leave for production are compile errors: there is no null, nothing is thrown, and every index is checked. You can also write laws about your code, your types and your tables, and the compiler proves them for every possible value. HTTP, SQL, JSON, cryptography, a UI and services across machines come with the language, and the same code runs on Windows, Linux, macOS, the browser and Android."
 }
 
 // The figure beside the masthead: one short program that is most of the
