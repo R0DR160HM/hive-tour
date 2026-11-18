@@ -5,7 +5,7 @@
 // than this file's.
 //
 // It lives apart from the server for the reason the drawing in ./logo does.
-// The tour is 79 slides of prose in two languages, and a server is about
+// The tour is 85 slides of prose in two languages, and a server is about
 // two hundred lines; kept in one file, the second is a footnote to the first.
 //
 // Every code example below is a complete program: copy it into a `.hive` file
@@ -40,13 +40,13 @@ type Slide {
 	shot:          Str
 }
 
-func all(): Slide[83] {
+func all(): Slide[85] {
 	return start()
 		+ flow()
 		+ collections()
 		+ types()
-		+ concurrency()
 		+ modules()
+		+ concurrency()
 		+ library()
 		+ interfaces()
 		+ tools()
@@ -70,8 +70,8 @@ func chapters(): Chapter[9] {
 		Chapter(title: "Control flow and functions", titlePt: "Controle de fluxo e funções", length: len(flow())),
 		Chapter(title: "Vectors, bounds and tables", titlePt: "Vetores, limites e tabelas", length: len(collections())),
 		Chapter(title: "Types, patterns and values", titlePt: "Tipos, padrões e valores", length: len(types())),
+		Chapter(title: "Modules, tests and laws", titlePt: "Módulos, testes e leis", length: len(modules())),
 		Chapter(title: "Threads and services", titlePt: "Threads e serviços", length: len(concurrency())),
-		Chapter(title: "Modules and tests", titlePt: "Módulos e testes", length: len(modules())),
 		Chapter(title: "The standard library", titlePt: "A biblioteca padrão", length: len(library())),
 		Chapter(title: "Windows, canvases and scenes", titlePt: "Janelas, canvases e cenas", length: len(interfaces())),
 		Chapter(title: "Tools", titlePt: "Ferramentas", length: len(tools())),
@@ -176,8 +176,8 @@ vim.lsp.enable("hive")`),
 			titlePt: "Nomes têm formas",
 			download: false,
 			shot: "",
-			explanation: "A name's spelling says what it is, and each shape is enforced where the name is declared:\n\n- `camelCase` names variables, parameters, fields, every `proc`, `func` and `query`, and the name an import is reached through.\n- `PascalCase` names types, their variants, and atoms.\n- `UPPER_CASE` may name a variable nothing reassigns, the way a constant is usually spelled. It is only ever allowed, never required — `camelCase` is the default — and a `mut` variable, a parameter, a field, a loop counter or a name a pattern binds may not use it.\n\nA leading `_` is set aside before the shape is checked, so `_scratch` and `_MAX` are fine, and `_` on its own throws a value away. Names are ASCII letters, digits and `_`; `café` is not one.\n\nThe keywords are `import proc func query test type if else return is with void true false echo assert panic dyn mut async await for in each bounds break continue switch`. They are lower case, and only that spelling is reserved: `Proc`, `IF` and `proC` are ordinary names, so a variant called `Return` or a type called `Test` is fine, while a field called `type` is not. A field whose JSON key is a keyword takes another name and says the key in an annotation, shown on the JSON slide.",
-			explanationPt: "A grafia de um nome diz o que ele é, e cada forma é obrigatória no lugar onde o nome é declarado:\n\n- `camelCase` nomeia variáveis, parâmetros, campos, todo `proc`, `func` e `query`, e o nome pelo qual um import é alcançado.\n- `PascalCase` nomeia tipos, suas variantes e átomos.\n- `UPPER_CASE` pode nomear uma variável que nada reatribui, do jeito que uma constante costuma ser escrita. É sempre permitido, nunca obrigatório — `camelCase` é o padrão — e uma variável `mut`, um parâmetro, um campo, um contador de laço ou um nome vinculado por um padrão não podem usá-lo.\n\nUm `_` no início é posto de lado antes de a forma ser checada, então `_scratch` e `_MAX` valem, e `_` sozinho descarta um valor. Nomes são letras ASCII, dígitos e `_`; `café` não é um.\n\nAs palavras-chave são `import proc func query test type if else return is with void true false echo assert panic dyn mut async await for in each bounds break continue switch`. Elas são minúsculas, e só essa grafia é reservada: `Proc`, `IF` e `proC` são nomes comuns, então uma variante chamada `Return` ou um tipo chamado `Test` podem existir, mas um campo chamado `type` não. Um campo cuja chave JSON é uma palavra-chave recebe outro nome e diz a chave em uma anotação, mostrada no slide de JSON.",
+			explanation: "A name's spelling says what it is, and each shape is enforced where the name is declared:\n\n- `camelCase` names variables, parameters, fields, every `proc`, `func` and `query`, and the name an import is reached through.\n- `PascalCase` names types, their variants, and atoms.\n- `UPPER_CASE` may name a variable nothing reassigns, the way a constant is usually spelled. It is only ever allowed, never required — `camelCase` is the default — and a `mut` variable, a parameter, a field, a loop counter or a name a pattern binds may not use it.\n\nA leading `_` is set aside before the shape is checked, so `_scratch` and `_MAX` are fine, and `_` on its own throws a value away. Names are ASCII letters, digits and `_`; `café` is not one.\n\nThe keywords are `import proc func query test law type if else return is with void true false echo assert panic dyn mut async await for in each bounds break continue switch`, and `axiom` is reserved for a later version: it means nothing yet, and any use of it is an error. They are lower case, and only that spelling is reserved: `Proc`, `IF` and `proC` are ordinary names, so a variant called `Return` or a type called `Test` is fine, while a field called `type` is not. A field whose JSON key is a keyword takes another name and says the key in an annotation, shown on the JSON slide.",
+			explanationPt: "A grafia de um nome diz o que ele é, e cada forma é obrigatória no lugar onde o nome é declarado:\n\n- `camelCase` nomeia variáveis, parâmetros, campos, todo `proc`, `func` e `query`, e o nome pelo qual um import é alcançado.\n- `PascalCase` nomeia tipos, suas variantes e átomos.\n- `UPPER_CASE` pode nomear uma variável que nada reatribui, do jeito que uma constante costuma ser escrita. É sempre permitido, nunca obrigatório — `camelCase` é o padrão — e uma variável `mut`, um parâmetro, um campo, um contador de laço ou um nome vinculado por um padrão não podem usá-lo.\n\nUm `_` no início é posto de lado antes de a forma ser checada, então `_scratch` e `_MAX` valem, e `_` sozinho descarta um valor. Nomes são letras ASCII, dígitos e `_`; `café` não é um.\n\nAs palavras-chave são `import proc func query test law type if else return is with void true false echo assert panic dyn mut async await for in each bounds break continue switch`, e `axiom` fica reservada para uma versão futura: ainda não significa nada, e qualquer uso dela é um erro. Elas são minúsculas, e só essa grafia é reservada: `Proc`, `IF` e `proC` são nomes comuns, então uma variante chamada `Return` ou um tipo chamado `Test` podem existir, mas um campo chamado `type` não. Um campo cuja chave JSON é uma palavra-chave recebe outro nome e diz a chave em uma anotação, mostrada no slide de JSON.",
 			examples: [
 				Example(caption: "", captionPt: "", code: `type Shape \{                  // a declared type, met properly later on
 	Circle \{ radius: Int }
@@ -2399,291 +2399,8 @@ proc main(): void \{
 	]
 }
 
-// Threads and services
-func concurrency(): Slide[4] {
-	return [
-		Slide(
-			title: "Concurrency: async",
-			titlePt: "Concorrência: async",
-			download: false,
-			shot: "",
-			explanation: "Every call waits for its callee by default — there is no `async func` and no future type. What a call means is decided where it is written:\n\n- `f(x)` waits for it.\n- `async f(x)`, as a statement, starts it on a thread of its own and carries on without it.\n- `x := async f(x)` starts it too, and waits only where `x` is read — the first read waits, and every later one is free. A binding nobody reads still runs.\n\nWhichever starts it, a thread is handed a copy of every argument, worked out on the caller's side first — so `async save(build())` runs `build()` before it carries on, and nothing the caller does afterwards can change what the thread was given. `async` is only a statement or the value of a declaration; the binding cannot be `mut`, and what it starts has to be a call to a callable of your own or of the library — not a builtin, a constructor or a partial application, which do no work worth a thread. A call that answers with nothing cannot be bound this way, since there would be nothing for the name to hold.\n\nA panic on a thread started with a binding is raised where the binding is read; one on a thread nobody waits for stops the whole program. When `main` returns, the program ends, and any thread still running ends with it — except that a program with a window open waits for its windows. `hive.task.sleep(ms)` parks only the calling thread, and `hive.task.sleepForever()` parks it for good.",
-			explanationPt: "Toda chamada espera pelo chamado por padrão — não existe `async func` nem tipo futuro. O que uma chamada significa é decidido onde ela é escrita:\n\n- `f(x)` espera por ela.\n- `async f(x)`, como instrução, a inicia numa thread própria e segue sem ela.\n- `x := async f(x)` também a inicia, e só espera onde `x` é lido — a primeira leitura espera, e todas as seguintes são de graça. Uma ligação que ninguém lê ainda roda.\n\nQualquer que seja a forma que a inicia, uma thread recebe uma cópia de cada argumento, calculada antes do lado de quem chamou — então `async save(build())` roda `build()` antes de seguir, e nada que quem chamou fizer depois pode mudar o que a thread recebeu. `async` é só uma instrução ou o valor de uma declaração; a ligação não pode ser `mut`, e o que ela inicia precisa ser uma chamada a um chamável seu ou da biblioteca — não uma função nativa, um construtor ou uma aplicação parcial, que não fazem trabalho que mereça uma thread. Uma chamada que não responde nada não pode ser vinculada assim, já que não haveria nada para o nome guardar.\n\nUm panic numa thread iniciada com uma ligação é levantado onde a ligação é lida; um numa thread que ninguém espera para o programa inteiro. Quando `main` retorna, o programa termina, e qualquer thread ainda rodando termina junto — exceto que um programa com uma janela aberta espera por suas janelas. `hive.task.sleep(ms)` estaciona só a thread que chamou, e `hive.task.sleepForever()` a estaciona para sempre.",
-			examples: [
-				Example(caption: "Starting work and waiting for it", captionPt: "Iniciando um trabalho e esperando por ele", code: `proc slow(label: Str, ms: Int): Str \{
-	hive.task.sleep(ms)
-	return label
-}
-
-proc main(): void \{
-	a := async slow("a", 30)      // starts now
-	b := async slow("b", 30)      // starts now, alongside
-	echo "\{a} and \{b}"             // waits for both, right here: about 30ms, not 60
-}`, codePt: `proc slow(label: Str, ms: Int): Str \{
-	hive.task.sleep(ms)
-	return label
-}
-
-proc main(): void \{
-	a := async slow("a", 30)      // inicia agora
-	b := async slow("b", 30)      // inicia agora, em paralelo
-	echo "\{a} and \{b}"             // espera pelos dois, aqui: uns 30ms, não 60
-}`),
-				Example(caption: "Fire and forget", captionPt: "Dispare e esqueça", code: `proc note(text: Str): void \{
-	hive.task.sleep(20)
-	echo text
-}
-
-proc main(): void \{
-	async note("from another thread")
-	echo "main carries on"
-	hive.task.sleep(50)         // without this, main would return first
-}                               // and take the other thread with it`, codePt: `proc note(text: Str): void \{
-	hive.task.sleep(20)
-	echo text
-}
-
-proc main(): void \{
-	async note("de outra thread")
-	echo "main segue em frente"
-	hive.task.sleep(50)         // sem isto, main retornaria antes
-}                               // e levaria a outra thread junto`),
-			],
-		),
-		Slide(
-			title: "Concurrency: await",
-			titlePt: "Concorrência: await",
-			download: false,
-			shot: "",
-			explanation: "`await [f(a), g(b)]` starts every call in its list on a thread of its own and waits for all of them, as one barrier. It is the only `await` there is:\n\n- Every entry has to be a call; a value already in hand has nothing to wait for.\n- The calls answer with **one type**, since the barrier resolves to a vector of them — as long as the list, so its elements are indexed without a guard. Calls that answer differently are given names instead, with `x := async f()`.\n- Over calls that answer with nothing, there is nothing to resolve to, so it is a statement: these, all of them, then carry on.\n- An await of one call is allowed, and `await []` is a compile error.\n\nThe arguments of each call are copied before its thread starts, exactly as with `async`, and there is no way to cancel a call once it has started.",
-			explanationPt: "`await [f(a), g(b)]` inicia cada chamada da lista numa thread própria e espera por todas, como uma barreira só. É o único `await` que existe:\n\n- Toda entrada precisa ser uma chamada; um valor que já está em mãos não tem pelo que esperar.\n- As chamadas respondem com **um só tipo**, já que a barreira se resolve em um vetor delas — do tamanho da lista, então seus elementos são indexados sem guarda. Chamadas que respondem de formas diferentes recebem nomes em vez disso, com `x := async f()`.\n- Sobre chamadas que não respondem nada, não há em que se resolver, então é uma instrução: estas, todas elas, e então siga.\n- Um await de uma chamada só é permitido, e `await []` é um erro de compilação.\n\nOs argumentos de cada chamada são copiados antes de a thread dela começar, exatamente como com `async`, e não há como cancelar uma chamada depois que ela começou.",
-			examples: [
-				Example(caption: "Many at once, as a value", captionPt: "Vários de uma vez, como valor", code: `proc slow(label: Str, ms: Int): Str \{
-	hive.task.sleep(ms)
-	return label
-}
-
-proc main(): void \{
-	both := await [slow("a", 40), slow("b", 40)]   // one barrier, a Str[2]
-	echo both
-	echo both[1]                                    // a static length: no guard
-}`, codePt: `proc slow(label: Str, ms: Int): Str \{
-	hive.task.sleep(ms)
-	return label
-}
-
-proc main(): void \{
-	both := await [slow("a", 40), slow("b", 40)]   // uma barreira, um Str[2]
-	echo both
-	echo both[1]                                    // tamanho estático: sem guarda
-}`),
-				Example(caption: "Many at once, as a statement", captionPt: "Vários de uma vez, como instrução", code: `proc note(text: Str): void \{
-	hive.task.sleep(20)
-	echo text
-}
-
-proc main(): void \{
-	// Nothing to resolve to, so it is a statement: a batch of side effects
-	// finished before the next line, each on its own thread.
-	await [note("first"), note("second")]
-	echo "both notes are in"
-}`, codePt: `proc note(text: Str): void \{
-	hive.task.sleep(20)
-	echo text
-}
-
-proc main(): void \{
-	// Nada em que se resolver, então é uma instrução: um lote de efeitos
-	// concluído antes da próxima linha, cada um em sua própria thread.
-	await [note("primeiro"), note("segundo")]
-	echo "os dois avisos chegaram"
-}`),
-			],
-		),
-		Slide(
-			title: "Concurrency: with timeout",
-			titlePt: "Concorrência: with timeout",
-			download: false,
-			shot: "",
-			explanation: "A wait written where it happens may be bounded: `f(x) with timeout 500`, or `await […] with timeout 500`, in milliseconds. It changes what the wait answers with — a `Result<T, hive.task.TimeoutError>` instead of the value — so running out of patience is a value to handle rather than a crash. A `TimeoutError` carries `waited`, the milliseconds asked for, and a `message`.\n\n- It abandons the **waiting, not the work**: a thread cannot be stopped from outside, so the call runs on to its end, side effects and all, and only its answer is dropped.\n- On an await-all it is one deadline for the whole barrier, which fails together.\n- A call that answers with nothing has no value for the `Result` to carry, so bounding one is refused, and so is bounding an `async` binding: the binding's wait is wherever its name is read.\n- A request to a service is the exception to the shape: it already answers with a `Result`, so the deadline becomes that `Result`'s own error, `SyslinkError.Timeout`, as the services slide shows.",
-			explanationPt: "Uma espera escrita onde acontece pode ser limitada: `f(x) with timeout 500`, ou `await […] with timeout 500`, em milissegundos. Isso muda o que a espera responde — um `Result<T, hive.task.TimeoutError>` em vez do valor — então perder a paciência é um valor a tratar e não uma falha. Um `TimeoutError` carrega `waited`, os milissegundos pedidos, e uma `message`.\n\n- Ele abandona a **espera, não o trabalho**: uma thread não pode ser parada de fora, então a chamada roda até o fim, efeitos colaterais e tudo, e só a resposta dela é descartada.\n- Em um await-all é um prazo único para a barreira inteira, que falha junta.\n- Uma chamada que não responde nada não tem valor para o `Result` carregar, então limitar uma é recusado, e limitar uma ligação `async` também: a espera da ligação fica onde o nome dela é lido.\n- Um pedido a um serviço é a exceção à forma: ele já responde com um `Result`, então o prazo vira o próprio erro desse `Result`, `SyslinkError.Timeout`, como mostra o slide de serviços.",
-			examples: [
-				Example(caption: "", captionPt: "", code: `proc slow(label: Str, ms: Int): Str \{
-	hive.task.sleep(ms)
-	echo "\{label} finished anyway"
-	return label
-}
-
-proc main(): void \{
-	if slow("c", 100) with timeout 20 is Result.Error(err) \{
-		echo "gave up after \{err.waited}ms"
-	}
-	hive.task.sleep(150)      // long enough to see the work finish regardless
-
-	both := await [slow("a", 10), slow("b", 10)] with timeout 500
-	if both is Result.Ok(labels) \{
-		echo labels
-	}
-}`, codePt: `proc slow(label: Str, ms: Int): Str \{
-	hive.task.sleep(ms)
-	echo "\{label} terminou mesmo assim"
-	return label
-}
-
-proc main(): void \{
-	if slow("c", 100) with timeout 20 is Result.Error(err) \{
-		echo "desistiu depois de \{err.waited}ms"
-	}
-	hive.task.sleep(150)      // o bastante para ver o trabalho terminar de qualquer jeito
-
-	both := await [slow("a", 10), slow("b", 10)] with timeout 500
-	if both is Result.Ok(labels) \{
-		echo labels
-	}
-}`),
-			],
-		),
-		Slide(
-			title: "Services",
-			titlePt: "Serviços",
-			download: false,
-			shot: "",
-			explanation: "A service is a piece of state with a mailbox, reached by its `Address<M>` — `M` being the messages it takes — from this process or another machine by the same statement. Three builtins do the work:\n\n- `spawn(handler, state)` starts one and answers with a `Result<Address<M>, hive.syslink.SyslinkError>`, `M` read off the handler; `spawn(handler, state, #Name)` also registers it under an atom, and fails as `Taken` if another service holds the name.\n- `at(#Name)` is the service registered under that name here, and `at(endpoint, #Name)` the one on another node — building an address, looking nothing up. A name says nothing about what the service takes, so `at` takes its `M` from where it lands — `Address<Note> box = at(#Cache)` — or, bound with `:=`, from its first later send, and keeps it.\n- `kill(address)` stops one, on any node; killing one twice is harmless, and its name is free again before anybody hears it stopped.\n\nA handler is one turn, `proc(state: mut S, msg: M): M`: it writes the state in place and answers with a message of its own type, and it may take a third parameter, its own `Address<M>`, to hand to work it starts. Only the service's mailbox ever holds the state, one message at a time, so nothing needs a lock — and a test calls a handler directly with a `mut` variable of its own. A handler whose branches each return, in one chain covering the message type, turns a message added later into a compile error.\n\nCalling an address is a request: `box(msg)` waits for the answer, as a `Result<M, SyslinkError>`, up to five seconds unless `with timeout` says otherwise; `async box(msg)` sends and forgets, its answer dropped; `x := async box(msg)` and `await [a(m), b(m)]` send now and wait later. A request that times out still waits its turn in the mailbox, ahead of the ones behind it. An address carries its message type, so a message of the wrong type is a compile error; one sent to a name whose service takes something else fails when it arrives, as `Decode`. A `panic` in a handler kills only that service — the node says `hive: service Counter crashed: …` on stderr, its callers are told `Down`, and `hive.syslink.monitor(watcher, target, notice)` posts `notice` to a service on this node when `target` stops. A named address outlives its service: spawn a new one under the name, and the old address reaches it. An anonymous one dies with it.\n\nEvery failure says which it was, as a variant of `SyslinkError`: `Taken`, `Down`, `NoProc` for a name nothing holds, `Timeout`, `Unreachable`, `Decode`, and, across nodes, `NoPeer`, `NoListener` and `NoKey` — so a `switch` over one covers every way a request can fail.",
-			explanationPt: "Um serviço é um estado com uma caixa de correio, alcançado pelo seu `Address<M>` — `M` sendo as mensagens que ele recebe — a partir deste processo ou de outra máquina pela mesma instrução. Três funções nativas fazem o trabalho:\n\n- `spawn(handler, state)` inicia um e responde com um `Result<Address<M>, hive.syslink.SyslinkError>`, com o `M` lido do handler; `spawn(handler, state, #Name)` também o registra sob um átomo, e falha como `Taken` se outro serviço tiver o nome.\n- `at(#Name)` é o serviço registrado sob aquele nome aqui, e `at(endpoint, #Name)` o de outro nó — construindo um endereço, sem procurar nada. Um nome não diz nada sobre o que o serviço recebe, então o `at` tira o seu `M` de onde ele cai — `Address<Note> box = at(#Cache)` — ou, ligado com `:=`, do seu primeiro envio depois, e fica com ele.\n- `kill(address)` para um, em qualquer nó; matar um duas vezes é inofensivo, e o nome dele fica livre de novo antes de alguém saber que ele parou.\n\nUm handler é uma volta, `proc(state: mut S, msg: M): M`: ele escreve o estado no lugar e responde com uma mensagem do próprio tipo, e pode receber um terceiro parâmetro, o próprio `Address<M>`, para entregar ao trabalho que inicia. Só a caixa de correio do serviço guarda o estado, uma mensagem por vez, então nada precisa de trava — e um teste chama um handler diretamente com uma variável `mut` própria. Um handler cujos ramos retornam todos, numa cadeia que cobre o tipo da mensagem, transforma uma mensagem acrescentada depois em erro de compilação.\n\nChamar um endereço é um pedido: `box(msg)` espera a resposta, como um `Result<M, SyslinkError>`, por até cinco segundos a menos que `with timeout` diga outra coisa; `async box(msg)` envia e esquece, a resposta descartada; `x := async box(msg)` e `await [a(m), b(m)]` enviam agora e esperam depois. Um pedido que estoura o tempo ainda espera a vez dele na caixa, à frente dos que vêm atrás. Um endereço carrega o tipo da mensagem, então uma mensagem do tipo errado é erro de compilação; uma enviada a um nome cujo serviço recebe outra coisa falha quando chega, como `Decode`. Um `panic` num handler mata só aquele serviço — o nó escreve `hive: service Counter crashed: …` no stderr, quem chamou fica sabendo com `Down`, e `hive.syslink.monitor(watcher, target, notice)` envia `notice` a um serviço deste nó quando `target` para. Um endereço com nome sobrevive ao serviço: inicie um novo com o nome, e o endereço antigo o alcança. Um anônimo morre junto.\n\nToda falha diz qual foi, como uma variante de `SyslinkError`: `Taken`, `Down`, `NoProc` para um nome que ninguém tem, `Timeout`, `Unreachable`, `Decode`, e, entre nós, `NoPeer`, `NoListener` e `NoKey` — então um `switch` sobre uma cobre todo jeito de um pedido falhar.",
-			examples: [
-				Example(caption: "A service on this node", captionPt: "Um serviço neste nó", code: `type Note \{
-	Say   \{ text: Str }
-	Count
-	Total \{ count: Int }
-}
-
-proc tally(state: mut Int, msg: Note): Note \{
-	if msg is Note.Say(text) \{
-		echo text
-		return msg
-	} else if msg is Note.Count \{
-		state += 1
-		return Note.Total(state)
-	} else if msg is Note.Total(_) \{
-		return msg
-	}
-}
-
-proc main(): void \{
-	if spawn(tally, 0, #Cache) is Result.Error(err) \{
-		panic err
-	}
-	Address<Note> address = at(#Cache)
-
-	async address(Note.Say("hi"))                    // fire and forget
-	reply := address(Note.Count()) with timeout 250   // send and wait, bounded
-	if reply is Result.Ok(msg) \{
-		echo msg
-	}
-}`, codePt: `type Note \{
-	Say   \{ text: Str }
-	Count
-	Total \{ count: Int }
-}
-
-proc tally(state: mut Int, msg: Note): Note \{
-	if msg is Note.Say(text) \{
-		echo text
-		return msg
-	} else if msg is Note.Count \{
-		state += 1
-		return Note.Total(state)
-	} else if msg is Note.Total(_) \{
-		return msg
-	}
-}
-
-proc main(): void \{
-	if spawn(tally, 0, #Cache) is Result.Error(err) \{
-		panic err
-	}
-	Address<Note> address = at(#Cache)
-
-	async address(Note.Say("oi"))                     // dispara e esquece
-	reply := address(Note.Count()) with timeout 250   // envia e espera, limitado
-	if reply is Result.Ok(msg) \{
-		echo msg
-	}
-}`),
-				Example(caption: "Slow work, off the turn", captionPt: "Trabalho lento, fora do turno", code: `type Note \{
-	Fetch
-	Fetched \{ text: Str }
-	Latest
-	Answer  \{ text: Str }
-}
-
-proc desk(latest: mut Str, note: Note, me: Address<Note>): Note \{
-	if note is Note.Fetch \{
-		async fetch(me)                // the turn ends now
-		return Note.Answer("started")
-	} else if note is Note.Fetched(text) \{
-		latest = text                  // the result arrives as a message
-		return note
-	} else if note is Note.Latest \{
-		return Note.Answer(latest)
-	} else if note is Note.Answer(_) \{
-		return note
-	}
-}
-
-proc fetch(back: Address<Note>): void \{
-	hive.task.sleep(300)
-	async back(Note.Fetched("worth the wait"))
-}
-
-proc main(): void \{
-	if spawn(desk, "nothing yet") is Result.Ok(box) \{
-		if box(Note.Fetch()) with timeout 500 is Result.Ok(now) \{ echo now }
-		if box(Note.Latest()) with timeout 500 is Result.Ok(first) \{ echo first }
-		hive.task.sleep(500)
-		if box(Note.Latest()) with timeout 500 is Result.Ok(later) \{ echo later }
-	}
-}`, codePt: `type Note \{
-	Fetch
-	Fetched \{ text: Str }
-	Latest
-	Answer  \{ text: Str }
-}
-
-proc desk(latest: mut Str, note: Note, me: Address<Note>): Note \{
-	if note is Note.Fetch \{
-		async fetch(me)                // o turno termina agora
-		return Note.Answer("começou")
-	} else if note is Note.Fetched(text) \{
-		latest = text                  // o resultado chega como mensagem
-		return note
-	} else if note is Note.Latest \{
-		return Note.Answer(latest)
-	} else if note is Note.Answer(_) \{
-		return note
-	}
-}
-
-proc fetch(back: Address<Note>): void \{
-	hive.task.sleep(300)
-	async back(Note.Fetched("valeu a espera"))
-}
-
-proc main(): void \{
-	if spawn(desk, "nada ainda") is Result.Ok(box) \{
-		if box(Note.Fetch()) with timeout 500 is Result.Ok(now) \{ echo now }
-		if box(Note.Latest()) with timeout 500 is Result.Ok(first) \{ echo first }
-		hive.task.sleep(500)
-		if box(Note.Latest()) with timeout 500 is Result.Ok(later) \{ echo later }
-	}
-}`),
-			],
-		),
-	]
-}
-
-// Modules and tests
-func modules(): Slide[3] {
+// Modules, tests and laws
+func modules(): Slide[4] {
 	return [
 		Slide(
 			title: "Modules",
@@ -3000,11 +2717,432 @@ test "este está errado de propósito" \{
   never exercised: unused`),
 			],
 		),
+		Slide(
+			title: "Laws",
+			titlePt: "Leis",
+			download: false,
+			shot: "",
+			explanation: "A law is a claim the compiler proves while it compiles: `law name(params) \{ … }`. Its parameters take every value of their types, and every `assert` its body reaches has to hold for all of them. A law it cannot prove is a compile error, and nothing lets a program accept one anyway. A law is never emitted and never runs.\n\n- An `assert` under an `if` claims something only where the `if` holds, and nothing the law reaches may panic — so a law with no `assert` claims exactly that.\n- `Int` wraps round as it does at run time, so `a + 1 > a` is refused with `a = 9223372036854775807`.\n- A law may only reach code that ends and answers the same every time: no `hive.*` call, no `async`, no loop but `for each` and a counting loop the bounds pass trusts.\n\nOnly a law may call a law. Calling another one hands over its claim for those arguments; calling itself, on a part a pattern took from a parameter, is an induction. Most laws need neither: the compiler tries edge values first, then every value of a small type, then unknowns split into cases, and then an induction on each vector parameter, all before anything is written. A refusal names the values that break the law, or the goal it could not reach, the case it was in, and what it knew there.\n\nA law written inside a type, with one parameter of that type, is what every value of the type keeps. Each place that builds one or writes a field of one has to keep it, proved from what that function knows there: its guards, its early returns, and the laws of the values it holds. Wherever a value is read, its laws are known, so a function law can rely on them and an index they guarantee needs no guard. A decoder checks them as it runs, since nothing the compiler saw built what it read, and refuses a value that breaks one as `Broken`.\n\nA law can be about a database table too, and every query on it has to carry what the law says. That one comes once SQL has, in “Laws on a table”.",
+			explanationPt: "Uma lei é uma afirmação que o compilador prova enquanto compila: `law nome(parâmetros) \{ … }`. Os parâmetros assumem todo valor dos seus tipos, e todo `assert` que o corpo alcança tem de valer para todos eles. Uma lei que ele não consegue provar é um erro de compilação, e nada deixa um programa aceitá-la mesmo assim. Uma lei nunca é emitida e nunca roda.\n\n- Um `assert` dentro de um `if` afirma algo só onde o `if` vale, e nada que a lei alcança pode entrar em pânico — então uma lei sem `assert` afirma exatamente isso.\n- `Int` dá a volta como em tempo de execução, então `a + 1 > a` é recusada com `a = 9223372036854775807`.\n- Uma lei só pode alcançar código que termina e responde o mesmo toda vez: nenhuma chamada `hive.*`, nenhum `async`, nenhum laço além do `for each` e de um laço de contagem em que a checagem de limites confia.\n\nSó uma lei pode chamar uma lei. Chamar outra entrega o que ela afirma para aqueles argumentos; chamar a si mesma, sobre uma parte que um padrão tirou de um parâmetro, é uma indução. A maioria das leis não precisa de nenhuma das duas: o compilador tenta valores de borda primeiro, depois todo valor de um tipo pequeno, depois incógnitas divididas em casos, e então uma indução em cada parâmetro vetor, tudo antes de qualquer coisa ser escrita. Uma recusa nomeia os valores que quebram a lei, ou o objetivo que não alcançou, o caso em que estava e o que sabia ali.\n\nUma lei escrita dentro de um tipo, com um parâmetro desse tipo, é o que todo valor do tipo mantém. Cada lugar que constrói um ou escreve um campo de um tem de mantê-la, provado a partir do que aquela função sabe ali: suas guardas, seus retornos antecipados e as leis dos valores que ela tem. Onde quer que um valor seja lido, suas leis são conhecidas, então uma lei de função pode contar com elas e um índice que elas garantem não precisa de guarda. Um decodificador as verifica enquanto roda, já que nada que o compilador viu construiu o que ele leu, e recusa como `Broken` um valor que quebra uma delas.\n\nUma lei também pode ser sobre uma tabela de banco de dados, e toda query nela precisa carregar o que a lei diz. Essa vem depois do SQL, em “Leis sobre uma tabela”.",
+			examples: [
+				Example(caption: "A cancelled booking stays cancelled", captionPt: "Uma reserva cancelada continua cancelada", code: `type Status \{
+	Requested
+	Confirmed
+	Cancelled
+}
+
+type Event \{
+	Confirm
+	Cancel
+}
+
+func apply(status: Status, event: Event): Status \{
+	if status is Status.Cancelled \{
+		return status
+	}
+	if event is Event.Cancel \{
+		return Status.Cancelled()
+	}
+	return Status.Confirmed()
+}
+
+law cancelledIsFinal(status: Status, event: Event) \{
+	if status is Status.Cancelled \{
+		assert apply(status, event) == status
+	}
+}
+
+proc main(): void \{
+	echo apply(Status.Requested(), Event.Confirm()) == Status.Confirmed()
+}`, codePt: `type Status \{
+	Requested
+	Confirmed
+	Cancelled
+}
+
+type Event \{
+	Confirm
+	Cancel
+}
+
+func apply(status: Status, event: Event): Status \{
+	if status is Status.Cancelled \{
+		return status
+	}
+	if event is Event.Cancel \{
+		return Status.Cancelled()
+	}
+	return Status.Confirmed()
+}
+
+law cancelledIsFinal(status: Status, event: Event) \{
+	if status is Status.Cancelled \{
+		assert apply(status, event) == status
+	}
+}
+
+proc main(): void \{
+	echo apply(Status.Requested(), Event.Confirm()) == Status.Confirmed()
+}`),
+				Example(caption: "nights.hive, wrong on purpose", captionPt: "nights.hive, errado de propósito", code: `func nights(checkIn: Int, checkOut: Int): Int \{
+	return checkOut - checkIn
+}
+
+law aStayHasNights(checkIn: Int, checkOut: Int) \{
+	if checkIn < checkOut \{
+		assert nights(checkIn, checkOut) > 0
+	}
+}
+
+proc main(): void \{
+	echo nights(4, 6)
+}`, codePt: `func nights(checkIn: Int, checkOut: Int): Int \{
+	return checkOut - checkIn
+}
+
+law aStayHasNights(checkIn: Int, checkOut: Int) \{
+	if checkIn < checkOut \{
+		assert nights(checkIn, checkOut) > 0
+	}
+}
+
+proc main(): void \{
+	echo nights(4, 6)
+}`),
+				Example(caption: "A booking always has a night", captionPt: "Uma reserva sempre tem uma noite", code: `type Booking \{
+	room: Str
+	checkInDay: Int
+	checkOutDay: Int
+
+	law atLeastOneNight(b: Booking) \{
+		assert b.checkInDay >= 0 && b.checkInDay < b.checkOutDay
+	}
+
+}
+
+func book(room: Str, firstDay: Int, nights: Int): Result<Booking, Str> \{
+	if firstDay < 0 || firstDay > 100000 || nights < 1 || nights > 365 \{
+		return Result.Error("those dates are not a stay")
+	}
+	return Result.Ok(Booking(room, firstDay, firstDay + nights))
+}
+
+proc main(): void \{
+	echo book("12", 4, 3)
+	echo book("14", 9, 0)
+}`, codePt: `type Booking \{
+	room: Str
+	checkInDay: Int
+	checkOutDay: Int
+
+	law atLeastOneNight(b: Booking) \{
+		assert b.checkInDay >= 0 && b.checkInDay < b.checkOutDay
+	}
+
+}
+
+func book(room: Str, firstDay: Int, nights: Int): Result<Booking, Str> \{
+	if firstDay < 0 || firstDay > 100000 || nights < 1 || nights > 365 \{
+		return Result.Error("essas datas não são uma estadia")
+	}
+	return Result.Ok(Booking(room, firstDay, firstDay + nights))
+}
+
+proc main(): void \{
+	echo book("12", 4, 3)
+	echo book("14", 9, 0)
+}`),
+				Example(caption: "What a refusal looks like", captionPt: "Como uma recusa aparece", code: "$ hive check nights.hive\nnights.hive:7: in law `aStayHasNights`: it does not hold for checkIn = -9223372036854775808, checkOut = 0: `nights(checkIn, checkOut) > 0` is false", codePt: "$ hive check nights.hive\nnights.hive:7: in law `aStayHasNights`: it does not hold for checkIn = -9223372036854775808, checkOut = 0: `nights(checkIn, checkOut) > 0` is false"),
+			],
+		),
+	]
+}
+
+// Threads and services
+func concurrency(): Slide[4] {
+	return [
+		Slide(
+			title: "Concurrency: async",
+			titlePt: "Concorrência: async",
+			download: false,
+			shot: "",
+			explanation: "Every call waits for its callee by default — there is no `async func` and no future type. What a call means is decided where it is written:\n\n- `f(x)` waits for it.\n- `async f(x)`, as a statement, starts it on a thread of its own and carries on without it.\n- `x := async f(x)` starts it too, and waits only where `x` is read — the first read waits, and every later one is free. A binding nobody reads still runs.\n\nWhichever starts it, a thread is handed a copy of every argument, worked out on the caller's side first — so `async save(build())` runs `build()` before it carries on, and nothing the caller does afterwards can change what the thread was given. `async` is only a statement or the value of a declaration; the binding cannot be `mut`, and what it starts has to be a call to a callable of your own or of the library — not a builtin, a constructor or a partial application, which do no work worth a thread. A call that answers with nothing cannot be bound this way, since there would be nothing for the name to hold.\n\nA panic on a thread started with a binding is raised where the binding is read; one on a thread nobody waits for stops the whole program. When `main` returns, the program ends, and any thread still running ends with it — except that a program with a window open waits for its windows. `hive.task.sleep(ms)` parks only the calling thread, and `hive.task.sleepForever()` parks it for good.",
+			explanationPt: "Toda chamada espera pelo chamado por padrão — não existe `async func` nem tipo futuro. O que uma chamada significa é decidido onde ela é escrita:\n\n- `f(x)` espera por ela.\n- `async f(x)`, como instrução, a inicia numa thread própria e segue sem ela.\n- `x := async f(x)` também a inicia, e só espera onde `x` é lido — a primeira leitura espera, e todas as seguintes são de graça. Uma ligação que ninguém lê ainda roda.\n\nQualquer que seja a forma que a inicia, uma thread recebe uma cópia de cada argumento, calculada antes do lado de quem chamou — então `async save(build())` roda `build()` antes de seguir, e nada que quem chamou fizer depois pode mudar o que a thread recebeu. `async` é só uma instrução ou o valor de uma declaração; a ligação não pode ser `mut`, e o que ela inicia precisa ser uma chamada a um chamável seu ou da biblioteca — não uma função nativa, um construtor ou uma aplicação parcial, que não fazem trabalho que mereça uma thread. Uma chamada que não responde nada não pode ser vinculada assim, já que não haveria nada para o nome guardar.\n\nUm panic numa thread iniciada com uma ligação é levantado onde a ligação é lida; um numa thread que ninguém espera para o programa inteiro. Quando `main` retorna, o programa termina, e qualquer thread ainda rodando termina junto — exceto que um programa com uma janela aberta espera por suas janelas. `hive.task.sleep(ms)` estaciona só a thread que chamou, e `hive.task.sleepForever()` a estaciona para sempre.",
+			examples: [
+				Example(caption: "Starting work and waiting for it", captionPt: "Iniciando um trabalho e esperando por ele", code: `proc slow(label: Str, ms: Int): Str \{
+	hive.task.sleep(ms)
+	return label
+}
+
+proc main(): void \{
+	a := async slow("a", 30)      // starts now
+	b := async slow("b", 30)      // starts now, alongside
+	echo "\{a} and \{b}"             // waits for both, right here: about 30ms, not 60
+}`, codePt: `proc slow(label: Str, ms: Int): Str \{
+	hive.task.sleep(ms)
+	return label
+}
+
+proc main(): void \{
+	a := async slow("a", 30)      // inicia agora
+	b := async slow("b", 30)      // inicia agora, em paralelo
+	echo "\{a} and \{b}"             // espera pelos dois, aqui: uns 30ms, não 60
+}`),
+				Example(caption: "Fire and forget", captionPt: "Dispare e esqueça", code: `proc note(text: Str): void \{
+	hive.task.sleep(20)
+	echo text
+}
+
+proc main(): void \{
+	async note("from another thread")
+	echo "main carries on"
+	hive.task.sleep(50)         // without this, main would return first
+}                               // and take the other thread with it`, codePt: `proc note(text: Str): void \{
+	hive.task.sleep(20)
+	echo text
+}
+
+proc main(): void \{
+	async note("de outra thread")
+	echo "main segue em frente"
+	hive.task.sleep(50)         // sem isto, main retornaria antes
+}                               // e levaria a outra thread junto`),
+			],
+		),
+		Slide(
+			title: "Concurrency: await",
+			titlePt: "Concorrência: await",
+			download: false,
+			shot: "",
+			explanation: "`await [f(a), g(b)]` starts every call in its list on a thread of its own and waits for all of them, as one barrier. It is the only `await` there is:\n\n- Every entry has to be a call; a value already in hand has nothing to wait for.\n- The calls answer with **one type**, since the barrier resolves to a vector of them — as long as the list, so its elements are indexed without a guard. Calls that answer differently are given names instead, with `x := async f()`.\n- Over calls that answer with nothing, there is nothing to resolve to, so it is a statement: these, all of them, then carry on.\n- An await of one call is allowed, and `await []` is a compile error.\n\nThe arguments of each call are copied before its thread starts, exactly as with `async`, and there is no way to cancel a call once it has started.",
+			explanationPt: "`await [f(a), g(b)]` inicia cada chamada da lista numa thread própria e espera por todas, como uma barreira só. É o único `await` que existe:\n\n- Toda entrada precisa ser uma chamada; um valor que já está em mãos não tem pelo que esperar.\n- As chamadas respondem com **um só tipo**, já que a barreira se resolve em um vetor delas — do tamanho da lista, então seus elementos são indexados sem guarda. Chamadas que respondem de formas diferentes recebem nomes em vez disso, com `x := async f()`.\n- Sobre chamadas que não respondem nada, não há em que se resolver, então é uma instrução: estas, todas elas, e então siga.\n- Um await de uma chamada só é permitido, e `await []` é um erro de compilação.\n\nOs argumentos de cada chamada são copiados antes de a thread dela começar, exatamente como com `async`, e não há como cancelar uma chamada depois que ela começou.",
+			examples: [
+				Example(caption: "Many at once, as a value", captionPt: "Vários de uma vez, como valor", code: `proc slow(label: Str, ms: Int): Str \{
+	hive.task.sleep(ms)
+	return label
+}
+
+proc main(): void \{
+	both := await [slow("a", 40), slow("b", 40)]   // one barrier, a Str[2]
+	echo both
+	echo both[1]                                    // a static length: no guard
+}`, codePt: `proc slow(label: Str, ms: Int): Str \{
+	hive.task.sleep(ms)
+	return label
+}
+
+proc main(): void \{
+	both := await [slow("a", 40), slow("b", 40)]   // uma barreira, um Str[2]
+	echo both
+	echo both[1]                                    // tamanho estático: sem guarda
+}`),
+				Example(caption: "Many at once, as a statement", captionPt: "Vários de uma vez, como instrução", code: `proc note(text: Str): void \{
+	hive.task.sleep(20)
+	echo text
+}
+
+proc main(): void \{
+	// Nothing to resolve to, so it is a statement: a batch of side effects
+	// finished before the next line, each on its own thread.
+	await [note("first"), note("second")]
+	echo "both notes are in"
+}`, codePt: `proc note(text: Str): void \{
+	hive.task.sleep(20)
+	echo text
+}
+
+proc main(): void \{
+	// Nada em que se resolver, então é uma instrução: um lote de efeitos
+	// concluído antes da próxima linha, cada um em sua própria thread.
+	await [note("primeiro"), note("segundo")]
+	echo "os dois avisos chegaram"
+}`),
+			],
+		),
+		Slide(
+			title: "Concurrency: with timeout",
+			titlePt: "Concorrência: with timeout",
+			download: false,
+			shot: "",
+			explanation: "A wait written where it happens may be bounded: `f(x) with timeout 500`, or `await […] with timeout 500`, in milliseconds. It changes what the wait answers with — a `Result<T, hive.task.TimeoutError>` instead of the value — so running out of patience is a value to handle rather than a crash. A `TimeoutError` carries `waited`, the milliseconds asked for, and a `message`.\n\n- It abandons the **waiting, not the work**: a thread cannot be stopped from outside, so the call runs on to its end, side effects and all, and only its answer is dropped.\n- On an await-all it is one deadline for the whole barrier, which fails together.\n- A call that answers with nothing has no value for the `Result` to carry, so bounding one is refused, and so is bounding an `async` binding: the binding's wait is wherever its name is read.\n- A request to a service is the exception to the shape: it already answers with a `Result`, so the deadline becomes that `Result`'s own error, `SyslinkError.Timeout`, as the services slide shows.",
+			explanationPt: "Uma espera escrita onde acontece pode ser limitada: `f(x) with timeout 500`, ou `await […] with timeout 500`, em milissegundos. Isso muda o que a espera responde — um `Result<T, hive.task.TimeoutError>` em vez do valor — então perder a paciência é um valor a tratar e não uma falha. Um `TimeoutError` carrega `waited`, os milissegundos pedidos, e uma `message`.\n\n- Ele abandona a **espera, não o trabalho**: uma thread não pode ser parada de fora, então a chamada roda até o fim, efeitos colaterais e tudo, e só a resposta dela é descartada.\n- Em um await-all é um prazo único para a barreira inteira, que falha junta.\n- Uma chamada que não responde nada não tem valor para o `Result` carregar, então limitar uma é recusado, e limitar uma ligação `async` também: a espera da ligação fica onde o nome dela é lido.\n- Um pedido a um serviço é a exceção à forma: ele já responde com um `Result`, então o prazo vira o próprio erro desse `Result`, `SyslinkError.Timeout`, como mostra o slide de serviços.",
+			examples: [
+				Example(caption: "", captionPt: "", code: `proc slow(label: Str, ms: Int): Str \{
+	hive.task.sleep(ms)
+	echo "\{label} finished anyway"
+	return label
+}
+
+proc main(): void \{
+	if slow("c", 100) with timeout 20 is Result.Error(err) \{
+		echo "gave up after \{err.waited}ms"
+	}
+	hive.task.sleep(150)      // long enough to see the work finish regardless
+
+	both := await [slow("a", 10), slow("b", 10)] with timeout 500
+	if both is Result.Ok(labels) \{
+		echo labels
+	}
+}`, codePt: `proc slow(label: Str, ms: Int): Str \{
+	hive.task.sleep(ms)
+	echo "\{label} terminou mesmo assim"
+	return label
+}
+
+proc main(): void \{
+	if slow("c", 100) with timeout 20 is Result.Error(err) \{
+		echo "desistiu depois de \{err.waited}ms"
+	}
+	hive.task.sleep(150)      // o bastante para ver o trabalho terminar de qualquer jeito
+
+	both := await [slow("a", 10), slow("b", 10)] with timeout 500
+	if both is Result.Ok(labels) \{
+		echo labels
+	}
+}`),
+			],
+		),
+		Slide(
+			title: "Services",
+			titlePt: "Serviços",
+			download: false,
+			shot: "",
+			explanation: "A service is a piece of state with a mailbox, reached by its `Address<M>` — `M` being the messages it takes — from this process or another machine by the same statement. Three builtins do the work:\n\n- `spawn(handler, state)` starts one and answers with a `Result<Address<M>, hive.syslink.SyslinkError>`, `M` read off the handler; `spawn(handler, state, #Name)` also registers it under an atom, and fails as `Taken` if another service holds the name.\n- `at(#Name)` is the service registered under that name here, and `at(endpoint, #Name)` the one on another node — building an address, looking nothing up. A name says nothing about what the service takes, so `at` takes its `M` from where it lands — `Address<Note> box = at(#Cache)` — or, bound with `:=`, from its first later send, and keeps it.\n- `kill(address)` stops one, on any node; killing one twice is harmless, and its name is free again before anybody hears it stopped.\n\nA handler is one turn, `proc(state: mut S, msg: M): M`: it writes the state in place and answers with a message of its own type, and it may take a third parameter, its own `Address<M>`, to hand to work it starts. Only the service's mailbox ever holds the state, one message at a time, so nothing needs a lock — and a test calls a handler directly with a `mut` variable of its own. A handler whose branches each return, in one chain covering the message type, turns a message added later into a compile error.\n\nCalling an address is a request: `box(msg)` waits for the answer, as a `Result<M, SyslinkError>`, up to five seconds unless `with timeout` says otherwise; `async box(msg)` sends and forgets, its answer dropped; `x := async box(msg)` and `await [a(m), b(m)]` send now and wait later. A request that times out still waits its turn in the mailbox, ahead of the ones behind it. An address carries its message type, so a message of the wrong type is a compile error; one sent to a name whose service takes something else fails when it arrives, as `Decode`. A `panic` in a handler kills only that service — the node says `hive: service Counter crashed: …` on stderr, its callers are told `Down`, and `hive.syslink.monitor(watcher, target, notice)` posts `notice` to a service on this node when `target` stops. A named address outlives its service: spawn a new one under the name, and the old address reaches it. An anonymous one dies with it.\n\nEvery failure says which it was, as a variant of `SyslinkError`: `Taken`, `Down`, `NoProc` for a name nothing holds, `Timeout`, `Unreachable`, `Decode`, and, across nodes, `NoPeer`, `NoListener` and `NoKey` — so a `switch` over one covers every way a request can fail.",
+			explanationPt: "Um serviço é um estado com uma caixa de correio, alcançado pelo seu `Address<M>` — `M` sendo as mensagens que ele recebe — a partir deste processo ou de outra máquina pela mesma instrução. Três funções nativas fazem o trabalho:\n\n- `spawn(handler, state)` inicia um e responde com um `Result<Address<M>, hive.syslink.SyslinkError>`, com o `M` lido do handler; `spawn(handler, state, #Name)` também o registra sob um átomo, e falha como `Taken` se outro serviço tiver o nome.\n- `at(#Name)` é o serviço registrado sob aquele nome aqui, e `at(endpoint, #Name)` o de outro nó — construindo um endereço, sem procurar nada. Um nome não diz nada sobre o que o serviço recebe, então o `at` tira o seu `M` de onde ele cai — `Address<Note> box = at(#Cache)` — ou, ligado com `:=`, do seu primeiro envio depois, e fica com ele.\n- `kill(address)` para um, em qualquer nó; matar um duas vezes é inofensivo, e o nome dele fica livre de novo antes de alguém saber que ele parou.\n\nUm handler é uma volta, `proc(state: mut S, msg: M): M`: ele escreve o estado no lugar e responde com uma mensagem do próprio tipo, e pode receber um terceiro parâmetro, o próprio `Address<M>`, para entregar ao trabalho que inicia. Só a caixa de correio do serviço guarda o estado, uma mensagem por vez, então nada precisa de trava — e um teste chama um handler diretamente com uma variável `mut` própria. Um handler cujos ramos retornam todos, numa cadeia que cobre o tipo da mensagem, transforma uma mensagem acrescentada depois em erro de compilação.\n\nChamar um endereço é um pedido: `box(msg)` espera a resposta, como um `Result<M, SyslinkError>`, por até cinco segundos a menos que `with timeout` diga outra coisa; `async box(msg)` envia e esquece, a resposta descartada; `x := async box(msg)` e `await [a(m), b(m)]` enviam agora e esperam depois. Um pedido que estoura o tempo ainda espera a vez dele na caixa, à frente dos que vêm atrás. Um endereço carrega o tipo da mensagem, então uma mensagem do tipo errado é erro de compilação; uma enviada a um nome cujo serviço recebe outra coisa falha quando chega, como `Decode`. Um `panic` num handler mata só aquele serviço — o nó escreve `hive: service Counter crashed: …` no stderr, quem chamou fica sabendo com `Down`, e `hive.syslink.monitor(watcher, target, notice)` envia `notice` a um serviço deste nó quando `target` para. Um endereço com nome sobrevive ao serviço: inicie um novo com o nome, e o endereço antigo o alcança. Um anônimo morre junto.\n\nToda falha diz qual foi, como uma variante de `SyslinkError`: `Taken`, `Down`, `NoProc` para um nome que ninguém tem, `Timeout`, `Unreachable`, `Decode`, e, entre nós, `NoPeer`, `NoListener` e `NoKey` — então um `switch` sobre uma cobre todo jeito de um pedido falhar.",
+			examples: [
+				Example(caption: "A service on this node", captionPt: "Um serviço neste nó", code: `type Note \{
+	Say   \{ text: Str }
+	Count
+	Total \{ count: Int }
+}
+
+proc tally(state: mut Int, msg: Note): Note \{
+	if msg is Note.Say(text) \{
+		echo text
+		return msg
+	} else if msg is Note.Count \{
+		state += 1
+		return Note.Total(state)
+	} else if msg is Note.Total(_) \{
+		return msg
+	}
+}
+
+proc main(): void \{
+	if spawn(tally, 0, #Cache) is Result.Error(err) \{
+		panic err
+	}
+	Address<Note> address = at(#Cache)
+
+	async address(Note.Say("hi"))                    // fire and forget
+	reply := address(Note.Count()) with timeout 250   // send and wait, bounded
+	if reply is Result.Ok(msg) \{
+		echo msg
+	}
+}`, codePt: `type Note \{
+	Say   \{ text: Str }
+	Count
+	Total \{ count: Int }
+}
+
+proc tally(state: mut Int, msg: Note): Note \{
+	if msg is Note.Say(text) \{
+		echo text
+		return msg
+	} else if msg is Note.Count \{
+		state += 1
+		return Note.Total(state)
+	} else if msg is Note.Total(_) \{
+		return msg
+	}
+}
+
+proc main(): void \{
+	if spawn(tally, 0, #Cache) is Result.Error(err) \{
+		panic err
+	}
+	Address<Note> address = at(#Cache)
+
+	async address(Note.Say("oi"))                     // dispara e esquece
+	reply := address(Note.Count()) with timeout 250   // envia e espera, limitado
+	if reply is Result.Ok(msg) \{
+		echo msg
+	}
+}`),
+				Example(caption: "Slow work, off the turn", captionPt: "Trabalho lento, fora do turno", code: `type Note \{
+	Fetch
+	Fetched \{ text: Str }
+	Latest
+	Answer  \{ text: Str }
+}
+
+proc desk(latest: mut Str, note: Note, me: Address<Note>): Note \{
+	if note is Note.Fetch \{
+		async fetch(me)                // the turn ends now
+		return Note.Answer("started")
+	} else if note is Note.Fetched(text) \{
+		latest = text                  // the result arrives as a message
+		return note
+	} else if note is Note.Latest \{
+		return Note.Answer(latest)
+	} else if note is Note.Answer(_) \{
+		return note
+	}
+}
+
+proc fetch(back: Address<Note>): void \{
+	hive.task.sleep(300)
+	async back(Note.Fetched("worth the wait"))
+}
+
+proc main(): void \{
+	if spawn(desk, "nothing yet") is Result.Ok(box) \{
+		if box(Note.Fetch()) with timeout 500 is Result.Ok(now) \{ echo now }
+		if box(Note.Latest()) with timeout 500 is Result.Ok(first) \{ echo first }
+		hive.task.sleep(500)
+		if box(Note.Latest()) with timeout 500 is Result.Ok(later) \{ echo later }
+	}
+}`, codePt: `type Note \{
+	Fetch
+	Fetched \{ text: Str }
+	Latest
+	Answer  \{ text: Str }
+}
+
+proc desk(latest: mut Str, note: Note, me: Address<Note>): Note \{
+	if note is Note.Fetch \{
+		async fetch(me)                // o turno termina agora
+		return Note.Answer("começou")
+	} else if note is Note.Fetched(text) \{
+		latest = text                  // o resultado chega como mensagem
+		return note
+	} else if note is Note.Latest \{
+		return Note.Answer(latest)
+	} else if note is Note.Answer(_) \{
+		return note
+	}
+}
+
+proc fetch(back: Address<Note>): void \{
+	hive.task.sleep(300)
+	async back(Note.Fetched("valeu a espera"))
+}
+
+proc main(): void \{
+	if spawn(desk, "nada ainda") is Result.Ok(box) \{
+		if box(Note.Fetch()) with timeout 500 is Result.Ok(now) \{ echo now }
+		if box(Note.Latest()) with timeout 500 is Result.Ok(first) \{ echo first }
+		hive.task.sleep(500)
+		if box(Note.Latest()) with timeout 500 is Result.Ok(later) \{ echo later }
+	}
+}`),
+			],
+		),
 	]
 }
 
 // The standard library
-func library(): Slide[26] {
+func library(): Slide[27] {
 	return [
 		Slide(
 			title: "Maps",
@@ -4305,8 +4443,8 @@ proc main(): void \{
 			titlePt: "SQL",
 			download: false,
 			shot: "",
-			explanation: "A `query` is a `func` whose body is SQL and whose return type describes its rows. Calling one runs nothing: it answers with a `hive.sql.Fragment<rows>` — the text, and the values bound beside it — which can be bound, passed and held like any value, and `hive.sql.run(connection, fragment)` is what runs it. Values are always bound as parameters, never spliced into the text, so nothing a caller supplies can change what a statement means: an interpolated `\{name}` in the body becomes a placeholder, `?`, rewritten to `$1, $2, …` for PostgreSQL.\n\nThe return type decides the shape of the result:\n\n- a declared row type, `Row[dyn]`, comes back as `Result<Row[dyn], hive.sql.SqlError>`, its columns matched to fields **by name** — a column spelt differently needs an alias, `SELECT u.name AS author`, and a row type holds scalars only;\n- a single scalar vector, `Str[dyn]` or `Int[dyn]`, comes back as that column;\n- a `Table` comes back as a header row of column names, then every row as text — the one result `SELECT *` fills, since `SELECT *` against a row type is a compile error: it says neither how many columns come back nor what they are called;\n- `void` marks a statement, and comes back as the number of rows it touched.\n\n`hive.sql.connect(driver, connString)` and `hive.sql.pool(driver, connString, maxOpen, maxIdle)` both open a **pool** of connections — `pool` just sets its limits — answering with a `Result<SqlConnection, SqlError>`; hold one for the life of the program, and `close` it at the end. A driver is `hive.sql.DatabaseDriver.SQLite()`, `.PostgreSQL()` or `.Other(name)`; the first two are built in, and their drivers are fetched once, on the first build that uses the module. SQL assembled at run time goes through `hive.sql.raw(connection, text)`, which answers with a `Table` too. `run` prepares a statement the first time its text is run and runs that one from then on, so the database parses a query once per connection rather than on every call; `raw` is never prepared. A `SqlError` is `Connection`, `Statement` for one the database refused, `Shape` for a different number of columns, or `Convert` for a cell that does not fit its field, each with a `message`.",
-			explanationPt: "Uma `query` é um `func` cujo corpo é SQL e cujo tipo de retorno descreve suas linhas. Chamar uma não roda nada: ela responde com um `hive.sql.Fragment<linhas>` — o texto, e os valores vinculados ao lado — que pode ser vinculado, passado e guardado como qualquer valor, e `hive.sql.run(connection, fragment)` é o que o roda. Os valores são sempre vinculados como parâmetros, nunca emendados no texto, então nada que quem chama fornece pode mudar o que uma instrução significa: um `\{name}` interpolado no corpo vira um marcador, `?`, reescrito para `$1, $2, …` no PostgreSQL.\n\nO tipo de retorno decide a forma do resultado:\n\n- um tipo de linha declarado, `Row[dyn]`, volta como `Result<Row[dyn], hive.sql.SqlError>`, suas colunas casadas com os campos **pelo nome** — uma coluna escrita diferente precisa de um apelido, `SELECT u.name AS author`, e um tipo de linha só guarda escalares;\n- um único vetor escalar, `Str[dyn]` ou `Int[dyn]`, volta como aquela coluna;\n- uma `Table` volta como uma linha de cabeçalho com os nomes das colunas, e depois toda linha como texto — o único resultado que `SELECT *` preenche, já que `SELECT *` contra um tipo de linha é erro de compilação: ele não diz nem quantas colunas voltam nem como se chamam;\n- `void` marca uma instrução, e volta como o número de linhas que ela tocou.\n\n`hive.sql.connect(driver, connString)` e `hive.sql.pool(driver, connString, maxOpen, maxIdle)` abrem ambos um **pool** de conexões — `pool` só define os limites — respondendo com um `Result<SqlConnection, SqlError>`; guarde um pela vida do programa, e feche-o com `close` no final. Um driver é `hive.sql.DatabaseDriver.SQLite()`, `.PostgreSQL()` ou `.Other(name)`; os dois primeiros vêm embutidos, e seus drivers são buscados uma vez, na primeira build que usa o módulo. SQL montado em tempo de execução passa por `hive.sql.raw(connection, text)`, que também responde com uma `Table`. `run` prepara uma instrução na primeira vez que seu texto é executado e passa a rodar essa mesma, então o banco analisa uma query uma vez por conexão e não a cada chamada; `raw` nunca é preparado. Um `SqlError` é `Connection`, `Statement` para uma instrução que o banco recusou, `Shape` para um número diferente de colunas, ou `Convert` para uma célula que não cabe no campo, cada um com uma `message`.",
+			explanation: "A `query` is a `func` whose body is SQL and whose return type describes its rows. Calling one runs nothing: it answers with a `hive.sql.Fragment<rows>` — the text, and the values bound beside it — which can be bound, passed and held like any value, and `hive.sql.run(connection, fragment)` is what runs it. Values are always bound as parameters, never spliced into the text, so nothing a caller supplies can change what a statement means: an interpolated `\{name}` in the body becomes a placeholder, `?`, rewritten to `$1, $2, …` for PostgreSQL.\n\nThe return type decides the shape of the result:\n\n- a declared row type, `Row[dyn]`, comes back as `Result<Row[dyn], hive.sql.SqlError>`, its columns matched to fields **by name** — a column spelt differently needs an alias, `SELECT u.name AS author`, and a row type holds scalars only;\n- a single scalar vector, `Str[dyn]` or `Int[dyn]`, comes back as that column;\n- a `Table` comes back as a header row of column names, then every row as text — the one result `SELECT *` fills, since `SELECT *` against a row type is a compile error: it says neither how many columns come back nor what they are called;\n- `void` marks a statement, and comes back as the number of rows it touched.\n\n`hive.sql.connect(driver, connString)` and `hive.sql.pool(driver, connString, maxOpen, maxIdle)` both open a **pool** of connections — `pool` just sets its limits — answering with a `Result<SqlConnection, SqlError>`; hold one for the life of the program, and `close` it at the end. A driver is `hive.sql.DatabaseDriver.SQLite()`, `.PostgreSQL()` or `.Other(name)`; the first two are built in, and their drivers are fetched once, on the first build that uses the module. SQL assembled at run time goes through `hive.sql.unsafe(connection, text)`, which answers with a `Table` too. `run` prepares a statement the first time its text is run and runs that one from then on, so the database parses a query once per connection rather than on every call; `unsafe` is never prepared. A `SqlError` is `Connection`, `Statement` for one the database refused, `Shape` for a different number of columns, or `Convert` for a cell that does not fit its field, each with a `message`.",
+			explanationPt: "Uma `query` é um `func` cujo corpo é SQL e cujo tipo de retorno descreve suas linhas. Chamar uma não roda nada: ela responde com um `hive.sql.Fragment<linhas>` — o texto, e os valores vinculados ao lado — que pode ser vinculado, passado e guardado como qualquer valor, e `hive.sql.run(connection, fragment)` é o que o roda. Os valores são sempre vinculados como parâmetros, nunca emendados no texto, então nada que quem chama fornece pode mudar o que uma instrução significa: um `\{name}` interpolado no corpo vira um marcador, `?`, reescrito para `$1, $2, …` no PostgreSQL.\n\nO tipo de retorno decide a forma do resultado:\n\n- um tipo de linha declarado, `Row[dyn]`, volta como `Result<Row[dyn], hive.sql.SqlError>`, suas colunas casadas com os campos **pelo nome** — uma coluna escrita diferente precisa de um apelido, `SELECT u.name AS author`, e um tipo de linha só guarda escalares;\n- um único vetor escalar, `Str[dyn]` ou `Int[dyn]`, volta como aquela coluna;\n- uma `Table` volta como uma linha de cabeçalho com os nomes das colunas, e depois toda linha como texto — o único resultado que `SELECT *` preenche, já que `SELECT *` contra um tipo de linha é erro de compilação: ele não diz nem quantas colunas voltam nem como se chamam;\n- `void` marca uma instrução, e volta como o número de linhas que ela tocou.\n\n`hive.sql.connect(driver, connString)` e `hive.sql.pool(driver, connString, maxOpen, maxIdle)` abrem ambos um **pool** de conexões — `pool` só define os limites — respondendo com um `Result<SqlConnection, SqlError>`; guarde um pela vida do programa, e feche-o com `close` no final. Um driver é `hive.sql.DatabaseDriver.SQLite()`, `.PostgreSQL()` ou `.Other(name)`; os dois primeiros vêm embutidos, e seus drivers são buscados uma vez, na primeira build que usa o módulo. SQL montado em tempo de execução passa por `hive.sql.unsafe(connection, text)`, que também responde com uma `Table`. `run` prepara uma instrução na primeira vez que seu texto é executado e passa a rodar essa mesma, então o banco analisa uma query uma vez por conexão e não a cada chamada; `unsafe` nunca é preparado. Um `SqlError` é `Connection`, `Statement` para uma instrução que o banco recusou, `Shape` para um número diferente de colunas, ou `Convert` para uma célula que não cabe no campo, cada um com uma `message`.",
 			examples: [
 				Example(caption: "A row type", captionPt: "Um tipo de linha", code: `type User \{ id: Int, name: Str }
 
@@ -4317,8 +4455,8 @@ query findUser(name: Str): User[dyn] \{
 proc main(): void \{
 	pooled := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if pooled is Result.Ok(db) \{
-		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
-		hive.sql.raw(db, "INSERT INTO users (id, name) VALUES (1, 'ada')")
+		hive.sql.unsafe(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.unsafe(db, "INSERT INTO users (id, name) VALUES (1, 'ada')")
 
 		found := hive.sql.run(db, findUser("ada"))
 		if found is Result.Ok(users) \{
@@ -4337,8 +4475,8 @@ query findUser(name: Str): User[dyn] \{
 proc main(): void \{
 	pooled := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if pooled is Result.Ok(db) \{
-		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
-		hive.sql.raw(db, "INSERT INTO users (id, name) VALUES (1, 'ada')")
+		hive.sql.unsafe(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.unsafe(db, "INSERT INTO users (id, name) VALUES (1, 'ada')")
 
 		found := hive.sql.run(db, findUser("ada"))
 		if found is Result.Ok(users) \{
@@ -4364,7 +4502,7 @@ query deleteUser(id: Int): void \{
 proc main(): void \{
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if opened is Result.Ok(db) \{
-		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.unsafe(db, "CREATE TABLE users (id INTEGER, name TEXT)")
 		hive.sql.run(db, insertUser(1, "ada"))
 		hive.sql.run(db, insertUser(2, "grace"))
 
@@ -4391,7 +4529,7 @@ query deleteUser(id: Int): void \{
 proc main(): void \{
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if opened is Result.Ok(db) \{
-		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.unsafe(db, "CREATE TABLE users (id INTEGER, name TEXT)")
 		hive.sql.run(db, insertUser(1, "ada"))
 		hive.sql.run(db, insertUser(2, "grace"))
 
@@ -4411,8 +4549,8 @@ proc main(): void \{
 proc main(): void \{
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if opened is Result.Ok(db) \{
-		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
-		hive.sql.raw(db, "INSERT INTO users VALUES (1, 'ada'), (2, 'grace')")
+		hive.sql.unsafe(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.unsafe(db, "INSERT INTO users VALUES (1, 'ada'), (2, 'grace')")
 		echo hive.sql.run(db, everything())   // Ok([["id", "name"], ["1", "ada"], ["2", "grace"]])
 		hive.sql.close(db)
 	}
@@ -4423,8 +4561,8 @@ proc main(): void \{
 proc main(): void \{
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if opened is Result.Ok(db) \{
-		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
-		hive.sql.raw(db, "INSERT INTO users VALUES (1, 'ada'), (2, 'grace')")
+		hive.sql.unsafe(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.unsafe(db, "INSERT INTO users VALUES (1, 'ada'), (2, 'grace')")
 		echo hive.sql.run(db, everything())   // Ok([["id", "name"], ["1", "ada"], ["2", "grace"]])
 		hive.sql.close(db)
 	}
@@ -4436,8 +4574,8 @@ proc main(): void \{
 			titlePt: "Filtros opcionais: WHERE \{ }",
 			download: false,
 			shot: "",
-			explanation: "A search screen with four boxes on it is four optional predicates, and assembling that as text is where SQL injection and `WHERE 1 = 1` both come from. A `WHERE` block is the declaration that replaces it: it ANDs together the predicates whose conditions hold, and a nested `or \{ }` or `and \{ }` flips the connective for the group inside it.\n\nA group that contributes nothing disappears rather than leaving a dangling connective, a group contributing more than one predicate is parenthesised, and when no predicate holds there is no `WHERE` at all — no `1 = 1` to write, and none to read back in a log. Every branch's text is fixed when the program compiles; the only thing decided while it runs is which branches are taken, and the values still travel as bound parameters.\n\nTwo things a `WHERE` block deliberately cannot do. A column name or a sort direction can never be a parameter — `ORDER BY \{col}` would order every row by one constant string — so make that choice a variant type and pick one query per ordering, each answering with the same `hive.sql.Fragment<Row[dyn]>`. And SQL you genuinely assemble yourself goes through `hive.sql.raw`, untyped by construction and easy to find.",
-			explanationPt: "Uma tela de busca com quatro caixas é quatro predicados opcionais, e montar isso como texto é de onde vêm tanto a injeção de SQL quanto o `WHERE 1 = 1`. Um bloco `WHERE` é a declaração que substitui isso: ele junta com AND os predicados cujas condições valem, e um `or \{ }` ou `and \{ }` aninhado inverte o conectivo do grupo dentro dele.\n\nUm grupo que não contribui com nada desaparece em vez de deixar um conectivo solto, um grupo que contribui com mais de um predicado vai entre parênteses, e quando nenhum predicado vale não existe `WHERE` algum — nenhum `1 = 1` para escrever, e nenhum para ler de volta num log. O texto de cada ramo é fixado quando o programa compila; a única coisa decidida enquanto ele roda é quais ramos são tomados, e os valores continuam viajando como parâmetros vinculados.\n\nDuas coisas que um bloco `WHERE` deliberadamente não faz. Um nome de coluna ou uma direção de ordenação nunca podem ser parâmetro — `ORDER BY \{col}` ordenaria toda linha por uma string constante — então faça dessa escolha um tipo com variantes e escolha uma query por ordenação, cada uma respondendo com o mesmo `hive.sql.Fragment<Row[dyn]>`. E SQL que você realmente monta por conta própria passa por `hive.sql.raw`, sem tipo por construção e fácil de achar.",
+			explanation: "A search screen with four boxes on it is four optional predicates, and assembling that as text is where SQL injection and `WHERE 1 = 1` both come from. A `WHERE` block is the declaration that replaces it: it ANDs together the predicates whose conditions hold, and a nested `or \{ }` or `and \{ }` flips the connective for the group inside it.\n\nA group that contributes nothing disappears rather than leaving a dangling connective, a group contributing more than one predicate is parenthesised, and when no predicate holds there is no `WHERE` at all — no `1 = 1` to write, and none to read back in a log. Every branch's text is fixed when the program compiles; the only thing decided while it runs is which branches are taken, and the values still travel as bound parameters.\n\nTwo things a `WHERE` block deliberately cannot do. A column name or a sort direction can never be a parameter — `ORDER BY \{col}` would order every row by one constant string — so make that choice a variant type and pick one query per ordering, each answering with the same `hive.sql.Fragment<Row[dyn]>`. And SQL you genuinely assemble yourself goes through `hive.sql.unsafe`, untyped by construction and easy to find.",
+			explanationPt: "Uma tela de busca com quatro caixas é quatro predicados opcionais, e montar isso como texto é de onde vêm tanto a injeção de SQL quanto o `WHERE 1 = 1`. Um bloco `WHERE` é a declaração que substitui isso: ele junta com AND os predicados cujas condições valem, e um `or \{ }` ou `and \{ }` aninhado inverte o conectivo do grupo dentro dele.\n\nUm grupo que não contribui com nada desaparece em vez de deixar um conectivo solto, um grupo que contribui com mais de um predicado vai entre parênteses, e quando nenhum predicado vale não existe `WHERE` algum — nenhum `1 = 1` para escrever, e nenhum para ler de volta num log. O texto de cada ramo é fixado quando o programa compila; a única coisa decidida enquanto ele roda é quais ramos são tomados, e os valores continuam viajando como parâmetros vinculados.\n\nDuas coisas que um bloco `WHERE` deliberadamente não faz. Um nome de coluna ou uma direção de ordenação nunca podem ser parâmetro — `ORDER BY \{col}` ordenaria toda linha por uma string constante — então faça dessa escolha um tipo com variantes e escolha uma query por ordenação, cada uma respondendo com o mesmo `hive.sql.Fragment<Row[dyn]>`. E SQL que você realmente monta por conta própria passa por `hive.sql.unsafe`, sem tipo por construção e fácil de achar.",
 			examples: [
 				Example(caption: "", captionPt: "", code: `type Colony \{
 	name:   Str
@@ -4461,10 +4599,10 @@ query findColonies(apiary: Str, minFrames: Int, small: Bool, huge: Bool): Colony
 proc main(): void \{
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if opened is Result.Ok(db) \{
-		hive.sql.raw(db, "CREATE TABLE colonies (name TEXT, apiary TEXT, frames INTEGER)")
-		hive.sql.raw(db, "INSERT INTO colonies VALUES ('north', 'orchard', 12)")
-		hive.sql.raw(db, "INSERT INTO colonies VALUES ('south', 'orchard', 2)")
-		hive.sql.raw(db, "INSERT INTO colonies VALUES ('east', 'meadow', 7)")
+		hive.sql.unsafe(db, "CREATE TABLE colonies (name TEXT, apiary TEXT, frames INTEGER)")
+		hive.sql.unsafe(db, "INSERT INTO colonies VALUES ('north', 'orchard', 12)")
+		hive.sql.unsafe(db, "INSERT INTO colonies VALUES ('south', 'orchard', 2)")
+		hive.sql.unsafe(db, "INSERT INTO colonies VALUES ('east', 'meadow', 7)")
 
 		// Everything off: no predicate holds, so there is no WHERE at all.
 		if hive.sql.run(db, findColonies("", 0, false, false)) is Result.Ok(all) \{
@@ -4498,10 +4636,10 @@ query findColonies(apiary: Str, minFrames: Int, small: Bool, huge: Bool): Colony
 proc main(): void \{
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 1, 1)
 	if opened is Result.Ok(db) \{
-		hive.sql.raw(db, "CREATE TABLE colonies (name TEXT, apiary TEXT, frames INTEGER)")
-		hive.sql.raw(db, "INSERT INTO colonies VALUES ('north', 'orchard', 12)")
-		hive.sql.raw(db, "INSERT INTO colonies VALUES ('south', 'orchard', 2)")
-		hive.sql.raw(db, "INSERT INTO colonies VALUES ('east', 'meadow', 7)")
+		hive.sql.unsafe(db, "CREATE TABLE colonies (name TEXT, apiary TEXT, frames INTEGER)")
+		hive.sql.unsafe(db, "INSERT INTO colonies VALUES ('north', 'orchard', 12)")
+		hive.sql.unsafe(db, "INSERT INTO colonies VALUES ('south', 'orchard', 2)")
+		hive.sql.unsafe(db, "INSERT INTO colonies VALUES ('east', 'meadow', 7)")
 
 		// Tudo desligado: nenhum predicado vale, então não há WHERE algum.
 		if hive.sql.run(db, findColonies("", 0, false, false)) is Result.Ok(all) \{
@@ -4545,8 +4683,8 @@ proc main(): void \{
 	// them all the same one.
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 8, 1)
 	if opened is Result.Ok(db) \{
-		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
-		hive.sql.raw(db, "INSERT INTO users (id, name) VALUES (1, 'ada'), (2, 'grace')")
+		hive.sql.unsafe(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.unsafe(db, "INSERT INTO users (id, name) VALUES (1, 'ada'), (2, 'grace')")
 
 		echo await [lookUp(db, "ada"), lookUp(db, "grace")]
 		hive.sql.close(db)
@@ -4572,13 +4710,205 @@ proc main(): void \{
 	// elas serem o mesmo banco.
 	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), "file::memory:?cache=shared", 8, 1)
 	if opened is Result.Ok(db) \{
-		hive.sql.raw(db, "CREATE TABLE users (id INTEGER, name TEXT)")
-		hive.sql.raw(db, "INSERT INTO users (id, name) VALUES (1, 'ada'), (2, 'grace')")
+		hive.sql.unsafe(db, "CREATE TABLE users (id INTEGER, name TEXT)")
+		hive.sql.unsafe(db, "INSERT INTO users (id, name) VALUES (1, 'ada'), (2, 'grace')")
 
 		echo await [lookUp(db, "ada"), lookUp(db, "grace")]
 		hive.sql.close(db)
 	}
 }`),
+			],
+		),
+		Slide(
+			title: "Laws on a table",
+			titlePt: "Leis sobre uma tabela",
+			download: false,
+			shot: "",
+			explanation: "A law written `for table <name>` is about every query on that table. It takes one parameter — the value a query is run for, such as the contact or the session asking — and its body is a SQL filter rather than statements: Hive appears only in `\{…}` values and `if` conditions, as in a query. A body that opens with `if`, `or` or `and` is a `WHERE \{ }` block, whose filter applies where its `if`s hold; any other body always applies.\n\nEvery `query` that touches the table has to take a value of the law's parameter type, and the compiler reads its SQL to hold it to the filter:\n\n- what it reads, changes or deletes carries the filter: one of the parts its WHERE ANDs is the filter, or says more — `fk_contact_from_id = \{contact.id}` alone carries a filter that allows either column — wherever the law's `if` holds;\n- a row it inserts lands inside the filter, by writing the filter's value into one of its `column = value` parts;\n- a row it updates stays inside it: setting a filtered column sets it to the filter's value.\n\nJoins, subqueries and each side of a `UNION` are read on their own, and a column the law names is the table's when it is written through the table's alias. `hive.sql.unsafe` is not a query, so no law reads it: SQL assembled at run time is outside the guarantee, and easy to find.",
+			explanationPt: "Uma lei escrita `for table <nome>` é sobre toda query naquela tabela. Ela recebe um parâmetro — o valor para quem a query roda, como o contato ou a sessão que pergunta — e seu corpo é um filtro SQL em vez de instruções: Hive só aparece em valores `\{…}` e em condições `if`, como numa query. Um corpo que abre com `if`, `or` ou `and` é um bloco `WHERE \{ }`, cujo filtro vale onde seus `if`s valem; qualquer outro corpo vale sempre.\n\nToda `query` que toca a tabela precisa receber um valor do tipo do parâmetro da lei, e o compilador lê o SQL dela para cobrar o filtro:\n\n- o que ela lê, altera ou apaga carrega o filtro: uma das partes que o WHERE liga com AND é o filtro, ou diz mais — `fk_contact_from_id = \{contact.id}` sozinho carrega um filtro que aceita qualquer uma das duas colunas — onde quer que o `if` da lei valha;\n- uma linha que ela insere cai dentro do filtro, escrevendo o valor do filtro numa das suas partes `coluna = valor`;\n- uma linha que ela atualiza continua dentro dele: definir uma coluna filtrada a define com o valor do filtro.\n\nJunções, subqueries e cada lado de um `UNION` são lidos cada um por si, e uma coluna que a lei nomeia é da tabela quando escrita pelo apelido da tabela. `hive.sql.unsafe` não é uma query, então nenhuma lei o lê: SQL montado em tempo de execução fica fora da garantia, e fácil de achar.",
+			examples: [
+				Example(caption: "A contact reads only their own chats", captionPt: "Um contato só lê as próprias conversas", code: `type Contact \{
+	id: Int
+}
+
+type Chat \{
+	body: Str
+}
+
+law ownChatsOnly(contact: Contact) for table chats \{
+	fk_contact_from_id = \{contact.id} or
+	fk_contact_to_id = \{contact.id}
+}
+
+query sent(contact: Contact): Chat[dyn] \{
+	SELECT body FROM chats WHERE fk_contact_from_id = \{contact.id}
+}
+
+query send(contact: Contact, to: Int, body: Str): void \{
+	INSERT INTO chats (fk_contact_from_id, fk_contact_to_id, body) VALUES (\{contact.id}, \{to}, \{body})
+}
+
+proc main(): void \{
+	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), ":memory:", 1, 1)
+	if opened is Result.Ok(db) \{
+		_ := hive.sql.unsafe(db, "CREATE TABLE chats (fk_contact_from_id INTEGER, fk_contact_to_id INTEGER, body TEXT)")
+		_ := hive.sql.run(db, send(Contact(1), 2, "lunch?"))
+		echo hive.sql.run(db, sent(Contact(1)))
+	}
+}`, codePt: `type Contact \{
+	id: Int
+}
+
+type Chat \{
+	body: Str
+}
+
+law ownChatsOnly(contact: Contact) for table chats \{
+	fk_contact_from_id = \{contact.id} or
+	fk_contact_to_id = \{contact.id}
+}
+
+query sent(contact: Contact): Chat[dyn] \{
+	SELECT body FROM chats WHERE fk_contact_from_id = \{contact.id}
+}
+
+query send(contact: Contact, to: Int, body: Str): void \{
+	INSERT INTO chats (fk_contact_from_id, fk_contact_to_id, body) VALUES (\{contact.id}, \{to}, \{body})
+}
+
+proc main(): void \{
+	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), ":memory:", 1, 1)
+	if opened is Result.Ok(db) \{
+		_ := hive.sql.unsafe(db, "CREATE TABLE chats (fk_contact_from_id INTEGER, fk_contact_to_id INTEGER, body TEXT)")
+		_ := hive.sql.run(db, send(Contact(1), 2, "almoço?"))
+		echo hive.sql.run(db, sent(Contact(1)))
+	}
+}`),
+				Example(caption: "Admins see every organization", captionPt: "Administradores veem todas as organizações", code: `type Organization \{
+	id: Int
+	name: Str
+}
+
+type User \{
+	Admin
+	Regular
+	id: Int
+	name: Str
+	org: Organization
+}
+
+type Session \{
+	user: User
+}
+
+law sameOrganization(session: Session) for table people \{
+	if session.user is User.Regular \{
+		org_id = \{session.user.org.id}
+	}
+}
+
+query names(session: Session): Str[dyn] \{
+	SELECT name FROM people
+	WHERE \{
+		if session.user is User.Regular \{ org_id = \{session.user.org.id} }
+	}
+	ORDER BY name
+}
+
+proc main(): void \{
+	bees := Organization(1, "Bees")
+	ada := Session(User.Regular(1, "Ada", bees))
+	root := Session(User.Admin(2, "Root", bees))
+	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), ":memory:", 1, 1)
+	if opened is Result.Ok(db) \{
+		hive.sql.unsafe(db, "CREATE TABLE people (name TEXT, org_id INTEGER)")
+		hive.sql.unsafe(db, "INSERT INTO people VALUES ('Ada', 1), ('Grace', 1), ('Tim', 2)")
+		echo hive.sql.run(db, names(ada))
+		echo hive.sql.run(db, names(root))
+		hive.sql.close(db)
+	}
+}`, codePt: `type Organization \{
+	id: Int
+	name: Str
+}
+
+type User \{
+	Admin
+	Regular
+	id: Int
+	name: Str
+	org: Organization
+}
+
+type Session \{
+	user: User
+}
+
+law sameOrganization(session: Session) for table people \{
+	if session.user is User.Regular \{
+		org_id = \{session.user.org.id}
+	}
+}
+
+query names(session: Session): Str[dyn] \{
+	SELECT name FROM people
+	WHERE \{
+		if session.user is User.Regular \{ org_id = \{session.user.org.id} }
+	}
+	ORDER BY name
+}
+
+proc main(): void \{
+	bees := Organization(1, "Bees")
+	ada := Session(User.Regular(1, "Ada", bees))
+	root := Session(User.Admin(2, "Root", bees))
+	opened := hive.sql.pool(hive.sql.DatabaseDriver.SQLite(), ":memory:", 1, 1)
+	if opened is Result.Ok(db) \{
+		hive.sql.unsafe(db, "CREATE TABLE people (name TEXT, org_id INTEGER)")
+		hive.sql.unsafe(db, "INSERT INTO people VALUES ('Ada', 1), ('Grace', 1), ('Tim', 2)")
+		echo hive.sql.run(db, names(ada))
+		echo hive.sql.run(db, names(root))
+		hive.sql.close(db)
+	}
+}`),
+				Example(caption: "chats.hive, wrong on purpose", captionPt: "chats.hive, errado de propósito", code: `type Contact \{
+	id: Int
+}
+
+type Chat \{
+	body: Str
+}
+
+law ownChatsOnly(contact: Contact) for table chats \{
+	fk_contact_from_id = \{contact.id} or
+	fk_contact_to_id = \{contact.id}
+}
+
+query everything(contact: Contact): Chat[dyn] \{
+	SELECT body FROM chats
+}
+
+proc main(): void \{
+}`, codePt: `type Contact \{
+	id: Int
+}
+
+type Chat \{
+	body: Str
+}
+
+law ownChatsOnly(contact: Contact) for table chats \{
+	fk_contact_from_id = \{contact.id} or
+	fk_contact_to_id = \{contact.id}
+}
+
+query everything(contact: Contact): Chat[dyn] \{
+	SELECT body FROM chats
+}
+
+proc main(): void \{
+}`),
+				Example(caption: "What a refusal looks like", captionPt: "Como uma recusa aparece", code: "$ hive check chats.hive\nchats.hive:14: in `everything`: this query reads `chats` without the filter law `ownChatsOnly` keeps on it\n    its WHERE has to carry `fk_contact_from_id = \{contact.id} OR fk_contact_to_id = \{contact.id}`", codePt: "$ hive check chats.hive\nchats.hive:14: in `everything`: this query reads `chats` without the filter law `ownChatsOnly` keeps on it\n    its WHERE has to carry `fk_contact_from_id = \{contact.id} OR fk_contact_to_id = \{contact.id}`"),
 			],
 		),
 	]

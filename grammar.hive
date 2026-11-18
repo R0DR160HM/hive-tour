@@ -184,6 +184,21 @@ func testDecl(): Rule {
 		[seq([sign("test"), rule("STRING"), rule("block")])])
 }
 
+func lawDecl(): Rule {
+	return spec("law-decl", "2.3",
+		"law-decl = \"law\" IDENT \"(\" [ params ] \")\" ( block | table-law ) ;",
+		[
+			seq([sign("law"), rule("IDENT"), sign("("), opt(rule("params")), sign(")")]),
+			either([rule("block"), rule("table-law")]),
+		])
+}
+
+func tableLaw(): Rule {
+	return spec("table-law", "2.3",
+		"table-law = \"for\" \"table\" IDENT \{ \".\" IDENT } SQL ;",
+		[seq([sign("for"), sign("table"), rule("IDENT"), many(seq([sign("."), rule("IDENT")])), rule("SQL")])])
+}
+
 func params(): Rule {
 	return parsed("params", "2.3",
 		"params = param \{ \",\" param } [ \",\" ] ;",
@@ -687,15 +702,17 @@ func slideRules(): SlideRules[dyn] {
 		SlideRules(title: "Mutability and value semantics", rules: [param(), assign()]),
 		SlideRules(title: "func and proc", rules: [funcDecl(), procDecl()]),
 		SlideRules(title: "Generics", rules: [namedType(), typeArgs()]),
-		SlideRules(title: "Concurrency: async", rules: [asyncStmt(), varDecl()]),
-		SlideRules(title: "Concurrency: await", rules: [awaitAll()]),
-		SlideRules(title: "Concurrency: with timeout", rules: [withExpr()]),
 		SlideRules(title: "Modules", rules: [importRule(), file()]),
 		SlideRules(title: "Importing a Go file", rules: [importRule()]),
 		SlideRules(title: "Testing", rules: [testDecl()]),
+		SlideRules(title: "Laws", rules: [lawDecl()]),
+		SlideRules(title: "Concurrency: async", rules: [asyncStmt(), varDecl()]),
+		SlideRules(title: "Concurrency: await", rules: [awaitAll()]),
+		SlideRules(title: "Concurrency: with timeout", rules: [withExpr()]),
 		SlideRules(title: "Field annotations", rules: [field(), annotations(), annotation()]),
 		SlideRules(title: "SQL", rules: [queryDecl(), sqlBody(), sqlParam()]),
 		SlideRules(title: "Optional filters: WHERE \{ }", rules: [whereBlock(), sqlItem()]),
+		SlideRules(title: "Laws on a table", rules: [tableLaw()]),
 	]
 }
 

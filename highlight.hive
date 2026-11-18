@@ -293,7 +293,7 @@ func word(chars: Str[], i: Int): Scan {
 // list and there is nothing conditional about any of it.
 func isKeyword(word: Str): Bool {
 	return indexOf([
-		"import", "proc", "func", "query", "test", "type", "if", "else",
+		"import", "proc", "func", "query", "test", "law", "axiom", "type", "if", "else",
 		"return", "is", "with", "void", "true", "false", "echo",
 		"assert", "panic", "dyn", "mut", "async", "await", "for", "in",
 		"each", "bounds", "break", "continue", "switch",
