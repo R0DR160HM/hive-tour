@@ -37,7 +37,7 @@ type Post {
 // list's: `all` puts the newest first.
 func names(): Str[dyn] {
 	return [
-		"2026-11-25-laws",
+		"2026-11-24-laws",
 	]
 }
 
