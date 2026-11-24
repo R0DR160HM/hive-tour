@@ -1,7 +1,7 @@
 // The chart: every slide in the tour has a symbol, and no symbol is kept for
 // a slide the tour does not have.
-import ./chart
-import ./slides
+import ../src/chart
+import ../src/slides
 
 test "every slide has a symbol" {
 	for each slide in slides.all() {

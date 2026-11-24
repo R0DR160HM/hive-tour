@@ -292,12 +292,17 @@ func word(chars: Str[], i: Int): Scan {
 // them. A word here is reserved however it is spelled, so this is the whole
 // list and there is nothing conditional about any of it.
 func isKeyword(word: Str): Bool {
-	return indexOf([
+	return indexOf(keywords(), word) is Result.Ok(_)
+}
+
+// The same list, handed to ./play too, so the editor paints with this one.
+func keywords(): Str[30] {
+	return [
 		"import", "proc", "func", "query", "test", "law", "axiom", "type", "if", "else",
 		"return", "is", "with", "void", "true", "false", "echo",
 		"assert", "panic", "dyn", "mut", "async", "await", "for", "in",
 		"each", "bounds", "break", "continue", "switch",
-	], word) is Result.Ok(_)
+	]
 }
 
 // The builtins, which are always in scope and are not keywords: a program may
@@ -305,11 +310,15 @@ func isKeyword(word: Str): Bool {
 // a colour of their own rather than the keyword colour — they are names, and
 // a name is something a program is allowed to take back.
 func isBuiltin(word: Str): Bool {
-	return indexOf([
+	return indexOf(builtins(), word) is Result.Ok(_)
+}
+
+func builtins(): Str[16] {
+	return [
 		"len", "bytes", "append", "prepend", "drop", "join", "split",
 		"replaceFirst", "replaceAll", "indexOf", "row", "column", "map",
 		"filter", "filterMap", "sort",
-	], word) is Result.Ok(_)
+	]
 }
 
 // The characters that may open a name, and the ones that may continue one.

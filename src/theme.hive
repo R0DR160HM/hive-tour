@@ -55,7 +55,7 @@ func styleTag(): Str {
 func css(): Str {
 	return faces() + palette() + darkScheme() + families() + shell() + head() + buttons() + prose()
 		+ code() + syntax() + play() + rules() + track() + slide() + home() + chart()
-		+ contents() + lost() + responsive()
+		+ contents() + blog() + lost() + responsive()
 }
 
 // ---------------------------------------------------------------------------
@@ -171,15 +171,17 @@ func palette(): Str {
 	--sy-string:#2f6a2a;
 	--sy-literal:#8b2f6b;
 	--sy-comment:#5a5f66;
-	--c1:#f3dfb5;--d1:#e3be72;
-	--c2:#f5cdbd;--d2:#e9a184;
-	--c3:#f1c9d6;--d3:#de95ad;
-	--c4:#ddd0f2;--d4:#b9a2e3;
-	--c5:#c9d5f3;--d5:#93a9e6;
-	--c6:#c4e2ef;--d6:#84c2dc;
-	--c7:#c6e7d8;--d7:#86cbab;
-	--c8:#dbe8bd;--d8:#b4cf78;
-	--c9:#dedbd3;--d9:#bdb7aa;
+	--sy-keyword:#8a4a00;
+	--sy-type:#1f5a8c;
+	--c1:#e7dbc1;--d1:#ceb787;
+	--c2:#ead2c8;--d2:#d6a997;
+	--c3:#e9d1d9;--d3:#d0a3b2;
+	--c4:#dfd6ec;--d4:#bdaed7;
+	--c5:#d1d8eb;--d5:#a3b0d6;
+	--c6:#ccdfe7;--d6:#95bbcb;
+	--c7:#cce1d7;--d7:#93beaa;
+	--c8:#d8e0c5;--d8:#aebe89;
+	--c9:#dcdad5;--d9:#b9b6ae;
 	--rr:2px;
 	--measure:1280px;
 	--gutter:40px;
@@ -216,15 +218,17 @@ func dark(): Str {
 	--sy-string:#9ccc8a;
 	--sy-literal:#e2a2d0;
 	--sy-comment:#9da2a9;
-	--c1:#3d3220;--d1:#5e4b28;
-	--c2:#43291f;--d2:#66392a;
-	--c3:#42252f;--d3:#643547;
-	--c4:#322a45;--d4:#4a3d6b;
-	--c5:#252f47;--d5:#36466e;
-	--c6:#1f3540;--d6:#2c5163;
-	--c7:#1f3a2f;--d7:#2c5946;
-	--c8:#2f3a1f;--d8:#48582c;
-	--c9:#33312c;--d9:#4c4942;
+	--sy-keyword:#e8a84c;
+	--sy-type:#8ec1ec;
+	--c1:#373126;--d1:#544832;
+	--c2:#3c2c26;--d2:#5b3f35;
+	--c3:#3c2b31;--d3:#5b3e49;
+	--c4:#342f40;--d4:#4e4662;
+	--c5:#2b3241;--d5:#414b63;
+	--c6:#25333a;--d6:#364d59;
+	--c7:#24352e;--d7:#355045;
+	--c8:#2e3524;--d8:#465034;
+	--c9:#32302d;--d9:#4a4844;
 	color-scheme:dark;
 `
 }
@@ -396,7 +400,9 @@ letter-spacing:0;color:var(--ink)}
 // starts and stops and where a literal value sits are the two things a
 // reader most needs to see at a glance. Names, types and calls stay in ink.
 func syntax(): Str {
-	return `.tour-code .k,.tour-code .b\{font-weight:700}
+	return `.tour-code .k\{color:var(--sy-keyword);font-weight:600}
+.tour-code .b\{color:var(--sy-keyword)}
+.tour-code .t\{color:var(--sy-type)}
 .tour-code .s\{color:var(--sy-string)}
 .tour-code .e,.tour-code .i,.tour-code .n,.tour-code .a\{color:var(--sy-literal)}
 .tour-code .c\{font-family:var(--f-serif);font-style:italic;font-size:1.08em;
@@ -435,9 +441,16 @@ text-decoration-thickness:2px;text-underline-offset:.2em}
 .tour-run-state\{font:italic 400 15.5px/1.4 var(--f-serif);color:var(--muted)}
 .tour-run-keys\{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);
 white-space:nowrap}
-.tour-play .tour-code:focus-within\{outline:2px solid var(--ink);outline-offset:3px}
-.tour-play .tour-code code[contenteditable]\{display:inline-block;min-width:100%;outline:none;
-cursor:text;caret-color:var(--ink)}
+.tour-play .tour-code:focus-within\{outline:2px solid var(--ink);outline-offset:6px}
+.tour-editor\{display:grid}
+.tour-editor>code,.tour-editor>.tour-input\{grid-area:1 / 1}
+.tour-editor .c\{font-family:var(--f-mono);font-size:1em}
+.tour-input\{margin:0;padding:0;border:0;outline:none;resize:none;overflow:hidden;
+width:100%;height:100%;min-height:0;background:transparent;color:transparent;
+-webkit-text-fill-color:transparent;caret-color:var(--ink);cursor:text;
+font:400 14px/1.62 var(--f-mono);font-variant-ligatures:none;letter-spacing:0;
+tab-size:4;white-space:pre}
+.tour-input::selection\{background:color-mix(in srgb,var(--brand) 38%,transparent)}
 .tour-output\{margin:20px 0 0;min-width:0}
 .tour-output pre\{margin:0;padding:16px 24px;max-height:420px;overflow:auto;background:var(--code);
 font:400 13.5px/1.62 var(--f-mono);font-variant-ligatures:none;tab-size:4;color:var(--ink)}
@@ -476,6 +489,10 @@ transition:transform .16s cubic-bezier(.16,1,.3,1)}
 .tour-grammar>.tour-rules\{margin-top:20px}
 .tour-rules\{display:flex;flex-wrap:wrap;gap:36px 72px;align-items:flex-start}
 figure.rr\{margin:0;min-width:0;max-width:100%}
+figure.rr>.h-column,.tour-grammar,.tour-rules\{min-width:0;max-width:100%}
+.tour-left>*\{min-width:0;max-width:100%}
+figure.rr>.h-column>.h-row\{min-width:0;max-width:100%}
+.tour-right>*\{min-width:0;max-width:100%}
 figure.rr>.h-column\{gap:8px}
 figure.rr>.h-column>.h-row:first-child\{align-items:baseline;gap:20px}
 figure.rr>.h-column>.h-row:first-child>.h-text\{font:italic 600 18px/1.3 var(--f-serif)}
@@ -501,9 +518,11 @@ figure.rr>.h-column>.h-text:nth-child(4)\{font:italic 400 14.5px/1.45 var(--f-se
 // wide, and this stretches it across the page. Under it, which chapter this
 // is and how far along.
 func track(): Str {
-	return `.tour-slide>.h-column:first-child\{gap:6px;padding-top:8px}
-.tour-slide>.h-column:first-child>.h-canvas\{width:100%;height:auto;color:var(--ink)}
-.tour-slide>.h-column:first-child>.h-row>.h-text\{font-variant-numeric:lining-nums tabular-nums}
+	return `.tour-progress\{display:flex;flex-direction:column;gap:8px;padding-top:12px}
+.tour-progress>div:first-child\{display:flex;justify-content:space-between;gap:16px;
+font:500 14.5px/1.4 var(--f-serif);color:var(--muted);font-variant-numeric:lining-nums tabular-nums}
+.tour-bar\{height:2px;background:var(--line)}
+.tour-bar>i\{display:block;height:100%;background:var(--ink)}
 `
 }
 
@@ -528,55 +547,74 @@ func track(): Str {
 // line's own weight, rather than an arrow character, so it is the same mark
 // at every size and in every face.
 func slide(): Str {
-	return `.tour-slide\{display:flex;flex-direction:column;gap:30px}
-.tour-head>.h-row\{align-items:center;gap:32px;margin-top:22px}
-.tour-head .h-row>.h-column\{flex:none;position:relative;width:136px;height:136px;
-padding:12px 14px;justify-content:space-between;background:var(--fc)}
-.tour-head .h-row>.h-column>.h-text:first-child\{font:500 14px/1 var(--f-mono)}
-.tour-head .h-row>.h-column>.h-text:nth-child(2)\{font:600 32px/1 var(--f-mono);
+	return `main.tour-slide\{max-width:none;padding:0}
+.tour-split\{display:grid;grid-template-columns:minmax(0,46fr) minmax(0,54fr);align-items:start}
+.tour-left\{display:flex;flex-direction:column;gap:28px;min-width:0;
+padding:0 56px 96px max(var(--gutter),calc((100vw - var(--measure)) / 2 + var(--gutter)))}
+:root\{--headh:63px}
+.tour-right\{position:sticky;top:var(--headh);height:calc(100vh - var(--headh));min-width:0;
+display:flex;flex-direction:column;background:var(--wash)}
+.tour-programs\{flex:1 1 auto;min-height:0;overflow:auto;display:flex;flex-direction:column;
+gap:28px;padding:32px 36px 40px}
+.tour-programs>*\{min-width:0;max-width:100%}
+.tour-console\{flex:0 0 auto;height:30%;min-height:150px;display:flex;flex-direction:column;
+border-top:1px solid var(--line);background:var(--paper)}
+.tour-console[hidden]\{display:none}
+.tour-console>.tour-caption\{margin:0;padding:10px 36px;border-bottom:1px solid var(--line)}
+.tour-console>pre\{flex:1 1 auto;min-height:0;margin:0;padding:14px 36px 20px;overflow:auto;
+font:400 13.5px/1.62 var(--f-mono);font-variant-ligatures:none;tab-size:4;color:var(--ink);
+white-space:pre-wrap;overflow-wrap:anywhere}
+.tour-right .tour-example\{margin:0;padding:0 22px 20px;background:var(--paper);border:1px solid var(--line)}
+.tour-right .tour-example>.tour-caption\{margin:0 -22px 18px;padding:11px 22px;
+border-bottom:1px solid var(--line)}
+.tour-right .tour-example>.tour-code:first-child\{padding-top:20px}
+.tour-right .tour-code\{padding:0;background:none;overflow-x:auto}
+.tour-right .tour-code,.tour-right .tour-code code\{font-size:14px}
+.tour-right .tour-play .tour-code:focus-within\{outline:none}
+.tour-right .tour-play:focus-within\{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+@media (min-width:981px)\{
+	.h-root>.h-column:has(>main.tour-slide)>.h-row:first-child\{position:sticky;top:0;z-index:5;
+	box-sizing:border-box;height:var(--headh);background:var(--paper);border-bottom:1px solid var(--line)}
+}
+.tour-right>.h-column>.h-image\{width:100%;height:auto}
+.tour-right>.h-column>.h-image+.h-text\{margin-top:8px;font-style:italic}
+.tour-head>.h-row\{align-items:center;gap:24px;margin-top:6px}
+.tour-head h1.h-size-title\{font-size:clamp(34px,3.4vw,50px)}
+.tour-head .h-row>.h-column\{flex:none;position:relative;width:112px;height:112px;
+padding:10px 12px;justify-content:space-between;background:var(--fc)}
+.tour-head .h-row>.h-column>.h-text:first-child\{font:500 13px/1 var(--f-mono)}
+.tour-head .h-row>.h-column>.h-text:nth-child(2)\{font:600 26px/1 var(--f-mono);
 letter-spacing:-.02em;white-space:nowrap;overflow:hidden}
-.tour-head .h-row>.h-column>.h-text.h-size-caption:nth-child(2)\{font-size:22px;color:var(--ink)}
-.tour-head .h-row>.h-column>.h-text:last-child\{font:500 13px/1.25 var(--f-serif);color:var(--soft)}
-.tour-slide>.h-row:has(.tour-text)\{gap:56px;align-items:flex-start;margin-top:6px}
-.tour-slide>.h-row:has(.tour-text)>.h-column:first-child\{flex:1 1 0;min-width:340px;gap:28px}
-.tour-slide>.h-row:has(.tour-text)>.h-column:last-child\{flex:0 1 700px;min-width:0;gap:28px}
-.tour-slide .tour-code,.tour-slide .tour-code code\{font-size:13.5px}
-.tour-wide>.h-row:has(.tour-text)\{flex-direction:column !important;gap:44px}
-.tour-wide>.h-row:has(.tour-text)>.h-column\{flex:none !important;width:100%;min-width:0}
-.tour-slide .h-column>.h-column>.h-image\{width:100%;height:auto}
-.tour-slide .h-column>.h-column>.h-image+.h-text\{margin-top:8px;font-style:italic}
-.tour-slide>.h-row:has(.tour-text) .h-column>.h-row\{flex-wrap:wrap;gap:12px}
-.tour-slide>.h-row:has(.tour-text) .h-column>.h-row>.h-link\{display:inline-flex;align-items:center;
+.tour-head .h-row>.h-column>.h-text.h-size-caption:nth-child(2)\{font-size:18px;color:var(--ink)}
+.tour-head .h-row>.h-column>.h-text:last-child\{font:500 12px/1.25 var(--f-serif);color:var(--soft)}
+.tour-left>.h-column\{gap:28px}
+.tour-left>.h-column>.h-row\{flex-wrap:wrap;gap:12px}
+.tour-left>.h-column>.h-row>.h-link\{display:inline-flex;align-items:center;
 min-height:44px;padding:6px 20px;border:var(--rr) solid var(--ink);border-radius:999px;
 font:600 16px/1.25 var(--f-serif);text-decoration:none;
 transition:background-color .16s cubic-bezier(.16,1,.3,1),color .16s cubic-bezier(.16,1,.3,1)}
-.tour-slide>.h-row:has(.tour-text) .h-column>.h-row>.h-link:hover,
-.tour-slide>.h-row:has(.tour-text) .h-column>.h-row>.h-link:focus-visible\{
+.tour-left>.h-column>.h-row>.h-link:hover,
+.tour-left>.h-column>.h-row>.h-link:focus-visible\{
 background-color:var(--ink);color:var(--paper);text-decoration:none}
-.tour-slide>.h-row:has(.tour-text) .h-column>.h-row>.h-link+.h-link\{min-height:0;padding:0;border:0;
+.tour-left>.h-column>.h-row>.h-link+.h-link\{min-height:0;padding:0;border:0;
 border-radius:0;font:600 16px/1.3 var(--f-serif);text-decoration:underline;
 text-decoration-color:var(--line);text-decoration-thickness:2px}
-.tour-slide>.h-row:has(.tour-text) .h-column>.h-row>.h-link+.h-link:hover\{background:none;color:var(--ink);
+.tour-left>.h-column>.h-row>.h-link+.h-link:hover\{background:none;color:var(--ink);
 text-decoration-color:var(--brand)}
-.tour-slide>.h-row:last-child\{align-items:center;margin-top:44px}
-.tour-slide>.h-row:last-child>.h-spacer\{position:relative;height:0;min-width:40px;
-border-top:var(--rr) solid var(--ink);margin:0 -2px}
-.tour-slide>.h-row:last-child>.h-spacer::after\{content:"";position:absolute;
-left:calc(50% - 8px);top:-9px;width:16px;height:16px;border-radius:50%;
-background:var(--brand);box-shadow:0 0 0 var(--rr) var(--ink)}
-.tour-slide>.h-row:last-child>.h-link\{display:inline-flex;align-items:center;gap:12px;
+.tour-left>.h-row:last-child\{align-items:center;gap:16px;margin-top:20px}
+.tour-left>.h-row:last-child>.h-link\{display:inline-flex;align-items:center;gap:12px;
 min-height:46px;padding:6px 20px;border:var(--rr) solid var(--ink);border-radius:999px;
 background-color:var(--paper);color:var(--ink);font:600 16px/1.25 var(--f-serif);
 text-decoration:none;transition:background-color .16s cubic-bezier(.16,1,.3,1),color .16s cubic-bezier(.16,1,.3,1)}
-.tour-slide>.h-row:last-child>.h-link::before,.tour-slide>.h-row:last-child>.h-link::after\{
+.tour-left>.h-row:last-child>.h-link::before,.tour-left>.h-row:last-child>.h-link::after\{
 content:"";flex:none;width:8px;height:8px;border-top:var(--rr) solid currentColor;
 border-right:var(--rr) solid currentColor}
-.tour-slide>.h-row:last-child>.h-link:first-child::before\{transform:rotate(-135deg);margin-left:4px}
-.tour-slide>.h-row:last-child>.h-link:first-child::after,
-.tour-slide>.h-row:last-child>.h-link:last-child::before\{display:none}
-.tour-slide>.h-row:last-child>.h-link:last-child::after\{transform:rotate(45deg);margin-right:4px}
-.tour-slide>.h-row:last-child>.h-link:visited\{background-color:var(--wash)}
-.tour-slide>.h-row:last-child>.h-link:hover,.tour-slide>.h-row:last-child>.h-link:focus-visible\{
+.tour-left>.h-row:last-child>.h-link:first-child::before\{transform:rotate(-135deg);margin-left:4px}
+.tour-left>.h-row:last-child>.h-link:first-child::after,
+.tour-left>.h-row:last-child>.h-link:last-child::before\{display:none}
+.tour-left>.h-row:last-child>.h-link:last-child::after\{transform:rotate(45deg);margin-right:4px}
+.tour-left>.h-row:last-child>.h-link:visited\{background-color:var(--wash)}
+.tour-left>.h-row:last-child>.h-link:hover,.tour-left>.h-row:last-child>.h-link:focus-visible\{
 background-color:var(--ink);color:var(--paper);text-decoration:none}
 `
 }
@@ -600,10 +638,10 @@ func home(): Str {
 .tour-home>.h-column>.h-row:first-child>.h-column>.h-row:first-child\{align-items:center;gap:16px;
 margin-bottom:4px}
 .tour-home>.h-column>.h-row:first-child .h-image\{width:84px;height:84px;flex:none}
-.tour-home>.h-column>.h-row:first-child h1.h-size-title\{font-size:clamp(64px,8vw,104px);
-line-height:.9;letter-spacing:-.035em;padding-bottom:8px}
-.tour-home .h-size-subtitle:not(h2)\{font:500 27px/1.32 var(--f-serif);letter-spacing:-.012em;
-color:var(--ink);max-width:26ch;text-wrap:pretty}
+.tour-home>.h-column>.h-row:first-child h1.h-size-title\{font-size:clamp(56px,7vw,88px);
+line-height:.9;letter-spacing:-.03em;padding-bottom:8px}
+.tour-home .h-size-subtitle:not(h2)\{font:500 24px/1.36 var(--f-serif);letter-spacing:-.01em;
+color:var(--ink);max-width:32ch;text-wrap:pretty}
 .tour-home>.h-column>.h-row:first-child>.h-column:first-child>.h-text:not(.h-size-subtitle)\{
 color:var(--soft);max-width:58ch}
 .tour-home>.h-column>.h-row:first-child .h-column:has(>.h-row>.h-link.h-bg-good)\{margin-top:10px}
@@ -652,7 +690,7 @@ flex:0 0 9.5em}
 .tour-home .h-row:has(>.h-text+.h-text.h-tone-good)>.h-text.h-tone-good\{flex:1 1 auto}
 .tour-home>.h-column>.h-column:last-child\{gap:22px}
 .tour-home>.h-column>.h-column:last-child>.h-text\{max-width:60ch}
-.tour-home>.h-column>.h-column:last-child>.chart\{margin:18px 0 10px}
+.tour-home>.h-column>.h-column:last-child>.toc\{margin:18px 0 10px}
 `
 }
 
@@ -679,40 +717,20 @@ flex:0 0 9.5em}
 // the key under the chart names the colours instead, because a name will not
 // fit over a block one tile wide.
 func chart(): Str {
-	return `.chart\{--tile:82px;--tall:108px;--g:5px}
-.chart-sky\{display:grid;grid-template-columns:repeat(var(--fams),auto);grid-auto-flow:column;
-justify-content:start;align-items:end;column-gap:9px;row-gap:24px}
-.chart-sky>.fam,.chart-sky>.fam-gap\{grid-row:1}
-.chart-sky>.fam-long\{grid-row:2;grid-column:1 / -1;justify-self:end}
-.fam\{position:relative;min-width:0}
-.fam>h2,.fam>h3\{font:italic 600 18px/1.3 var(--f-serif);position:absolute;width:1px;height:1px;
-overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
-.fam-tiles\{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows),var(--tall));
-grid-auto-columns:var(--tile);gap:var(--g)}
-.fam-long .fam-tiles\{grid-auto-flow:row;grid-template-rows:none;grid-auto-rows:var(--tall);
-grid-template-columns:repeat(var(--wide),var(--tile))}
-.fam-tiles>.h-column\{position:relative;width:var(--tile);height:var(--tall)}
-.fam-tiles>.h-column>.h-link\{position:absolute;inset:0;display:-webkit-box;
--webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden;padding:48px 4px 0 6px;
-background-color:var(--fc);color:var(--ink);font:500 11px/1.2 var(--f-serif);
-letter-spacing:-.015em;hyphens:auto;overflow-wrap:normal;word-break:normal;
-text-decoration:none;transition:box-shadow .16s cubic-bezier(.16,1,.3,1)}
-.fam-tiles>.h-column>.h-link:visited\{background-color:var(--fd)}
-.fam-tiles>.h-column>.h-link:hover,.fam-tiles>.h-column>.h-link:focus-visible\{
-box-shadow:inset 0 0 0 var(--rr) var(--ink);text-decoration:none;outline:none}
-.fam-tiles>.h-column>.h-text\{position:absolute;left:7px;right:4px;pointer-events:none;
-white-space:nowrap;overflow:hidden;color:var(--ink)}
-.fam-tiles>.h-column>.h-text:nth-child(2)\{top:6px;font:500 11px/1 var(--f-mono)}
-.fam-tiles>.h-column>.h-text:nth-child(3)\{top:24px;font:600 17px/1 var(--f-mono);letter-spacing:-.02em}
-.fam-tiles>.h-column>.h-text.h-size-caption:nth-child(3)\{font-size:12.5px;top:27px}
-.fam-gap\{width:var(--tile);height:var(--tall);display:grid;place-items:end start;padding:8px;
-background:color-mix(in srgb,var(--fc) 45%,transparent);border:var(--rr) dashed var(--fd);
-font:500 11px/1 var(--f-mono);color:var(--ink)}
-.chart-key\{display:flex;flex-wrap:wrap;gap:8px 22px;list-style:none;padding:0;margin:26px 0 0;
-font:500 14px/1.4 var(--f-serif);color:var(--soft)}
-.chart-key>li::before\{content:"";display:inline-block;width:13px;height:13px;margin-right:8px;
-vertical-align:-1px;background:var(--fc);
-box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 35%,transparent)}
+	return `.toc\{columns:3 260px;column-gap:56px}
+.toc-part\{break-inside:avoid;margin:0 0 34px}
+.toc-part>h2,.toc-part>h3\{display:flex;align-items:center;gap:10px;margin:0 0 10px;
+font:600 19px/1.3 var(--f-serif)}
+.toc-part>h2::before,.toc-part>h3::before\{content:"";flex:none;width:12px;height:12px;
+background:var(--fc);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 30%,transparent)}
+.toc-part ol\{list-style:none;margin:0;padding:0}
+.toc-part a\{display:flex;gap:12px;padding:3px 0;color:var(--ink);text-decoration:none;
+font:400 16.5px/1.45 var(--f-serif)}
+.toc-part a>span\{flex:none;min-width:2.4ch;text-align:right;font:500 13px/1.9 var(--f-mono);
+color:var(--muted);font-variant-numeric:tabular-nums}
+.toc-part a:hover\{text-decoration:underline;text-decoration-color:var(--brand);
+text-decoration-thickness:2px}
+.toc-part a:visited\{color:var(--muted)}
 `
 }
 
@@ -721,6 +739,57 @@ func contents(): Str {
 	return `.tour-contents\{padding-top:36px}
 .tour-contents>.h-column\{gap:10px;margin-bottom:44px}
 .tour-contents>.h-column>.h-text\{max-width:60ch}
+`
+}
+
+// The blog. Its index is the contents page's title and line, and then the
+// posts down one column a line of prose wide: each the day it went up, in the
+// caption's italic; its title, a heading that is a link, underlined in the
+// hairline until the pointer reaches it; and its abstract in soft ink. Paper
+// separates them, and no rule, as paper separates the front page's sections.
+//
+// A post is that same column, with room beside it for its programs, which sit
+// in the panel the tour sets its own in. The paragraph it opens on is a size
+// up, because it is the abstract and says what the rest is about; headings
+// are a step down from the front page's, so a post's sections never outrank
+// its title. A link in the prose is underlined in the muted ink, which a reader
+// can find without being shouted at, and turns amber under the pointer like
+// every other link here. A code panel inside the prose takes back the wash
+// and padding `.tour-text` gives the code inside a sentence.
+func blog(): Str {
+	return `.tour-blog,.tour-post\{padding-top:36px}
+.tour-blog>.h-column\{gap:10px;margin-bottom:56px}
+.tour-blog>.h-column>.h-text\{max-width:60ch}
+.posts\{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:52px;max-width:66ch}
+.posts article\{display:flex;flex-direction:column;gap:8px}
+.post-date\{margin:0;font:italic 400 16px/1.4 var(--f-serif);color:var(--muted)}
+.post-date a\{color:var(--soft);text-decoration:underline;text-decoration-color:var(--line);
+text-decoration-thickness:1px}
+.post-date a:hover\{color:var(--ink);text-decoration-color:var(--brand)}
+.posts h2,.tour-post .tour-text h2\{margin:0;font:600 clamp(24px,2.4vw,30px)/1.2 var(--f-serif);
+letter-spacing:-.012em;text-wrap:balance}
+.posts h2>.h-link\{text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:2px}
+.posts h2>.h-link:hover\{text-decoration-color:var(--brand)}
+.posts p:not(.post-date)\{margin:0;color:var(--soft)}
+.posts code\{font-family:var(--f-mono);font-size:.84em;font-variant-ligatures:none;
+padding:.06em .15em;background:var(--wash);overflow-wrap:anywhere}
+.tour-post article\{max-width:760px}
+.tour-post header\{display:flex;flex-direction:column;gap:12px;margin-bottom:40px}
+.tour-post .tour-text\{gap:20px}
+.tour-post .tour-text>p:first-child\{font-size:21px;line-height:1.5;color:var(--soft)}
+.tour-post .tour-text h2\{margin-top:28px}
+.tour-post .tour-text h3\{font:600 19px/1.35 var(--f-serif);margin:12px 0 0}
+.tour-post .tour-text h4\{font:italic 600 18px/1.3 var(--f-serif);margin:8px 0 0}
+.tour-post .tour-text ol,.tour-post .tour-text blockquote\{margin:0;max-width:66ch}
+.tour-post .tour-text ol\{padding-left:1.4em;display:flex;flex-direction:column;gap:8px}
+.tour-post .tour-text ol li::marker\{color:var(--muted)}
+.tour-post .tour-text blockquote\{display:flex;flex-direction:column;gap:18px;padding:2px 0 2px 20px;
+border-left:var(--rr) solid var(--ink);color:var(--soft)}
+.tour-post .tour-text em\{font-style:italic}
+.tour-post .tour-text a\{color:var(--ink);text-decoration-color:var(--muted)}
+.tour-post .tour-text a:hover\{text-decoration-color:var(--brand);text-decoration-thickness:2px}
+.tour-post .tour-text .tour-code code\{padding:0;background:none;overflow-wrap:normal}
+.tour-post footer\{margin-top:64px}
 `
 }
 
@@ -744,28 +813,30 @@ func lost(): Str {
 // The chart lets go of its skyline first, at the width it stops fitting:
 // below that, each chapter is a block under its own name, the tiles flowing
 // across the page in order, and the key is no longer needed.
+//
+// The running head stays one line down to 480px, with no link in it ever
+// broken across two. Narrower than that, the tour's name, the mark and the two
+// switches no longer leave room for the contents and the blog beside them, so
+// those two take a second line of their own, under the mark, rather than
+// squeezing the tour's name onto four.
 func responsive(): Str {
 	return `.h-root>.h-column>.h-row:first-child\{flex-wrap:wrap;row-gap:8px}
-@media (max-width:1180px)\{
-	.chart-sky\{display:block}
-	.fam\{margin:0 0 26px}
-	.fam>h2,.fam>h3\{position:static;width:auto;height:auto;overflow:visible;clip:auto;
-	clip-path:none;white-space:normal;margin:0 0 10px;font:italic 600 18px/1.3 var(--f-serif)}
-	.fam-tiles,.fam-long .fam-tiles\{grid-auto-flow:row;grid-template-rows:none;
-	grid-auto-rows:var(--tall);grid-template-columns:repeat(auto-fill,var(--tile))}
-	.chart-sky>.fam-long\{justify-self:auto}
-	.fam-gap,.chart-key\{display:none}
-}
 @media (max-width:980px)\{
-	.tour-slide>.h-row:has(.tour-text),
 	.tour-home>.h-column>.h-row,
 	.tour-home>.h-column>.h-column>.h-row\{flex-direction:column !important;
 	align-items:stretch !important;gap:36px}
-	.tour-slide>.h-row:has(.tour-text)>.h-column,
 	.tour-home>.h-column>.h-row>.h-column,
 	.tour-home>.h-column>.h-column>.h-row>.h-column,
 	.tour-home>.h-column>.h-column>.h-row>.h-row\{flex:none !important;min-width:0}
 	.tour-home>.h-column>.h-column:nth-child(2)\{gap:36px}
+	.tour-split\{display:flex;flex-direction:column;align-items:stretch;gap:24px;padding:0 var(--gutter)}
+	.tour-left\{display:contents}
+	.tour-right\{order:1;position:static;height:auto;overflow:visible;margin:8px calc(-1 * var(--gutter)) 0;
+	padding:28px var(--gutter) 40px}
+	.tour-programs\{overflow:visible;padding:0}
+	.tour-console\{height:auto;min-height:120px;margin-top:24px;border:1px solid var(--line)}
+	.tour-console>.tour-caption,.tour-console>pre\{padding-left:18px;padding-right:18px}
+	.tour-left>.h-row:last-child\{order:2;margin-top:32px;margin-bottom:64px}
 }
 @media (max-width:640px)\{
 	:root\{--gutter:20px}
@@ -779,20 +850,30 @@ func responsive(): Str {
 	body\{font-size:17px}
 	.tour-home>.h-column\{gap:88px}
 	.tour-home>.h-column>.h-row:first-child .h-image\{width:60px;height:60px}
-	.tour-home .h-size-subtitle:not(h2)\{font-size:23px}
-	.tour-head>.h-row\{gap:18px}
-	.tour-head .h-row>.h-column\{width:96px;height:96px;padding:9px 10px}
+	.tour-home .h-size-subtitle:not(h2)\{font-size:21px}
+	.tour-head>.h-row\{gap:16px}
+	.tour-head .h-row>.h-column\{width:84px;height:84px;padding:8px 9px}
 	.tour-head .h-row>.h-column>.h-text:nth-child(2)\{font-size:22px}
 	.tour-head .h-row>.h-column>.h-text.h-size-caption:nth-child(2)\{font-size:15px}
 	.tour-head .h-row>.h-column>.h-text:last-child\{display:none}
-	.chart\{--tile:78px;--tall:108px}
 	.tour-home .h-row:has(>.h-text+.h-text.h-tone-good)\{flex-direction:column !important;gap:2px}
 	.tour-home .h-row:has(>.h-text+.h-text.h-tone-good)>.h-text\{flex:none !important}
 	.tour-home .h-row>.h-text.h-tone-good\{flex-basis:auto}
-	.tour-slide>.h-row:last-child\{flex-direction:column !important;
+	.tour-left>.h-row:last-child\{flex-direction:column !important;
 	align-items:stretch !important;gap:14px}
-	.tour-slide>.h-row:last-child>.h-spacer\{display:none}
-	.tour-slide>.h-row:last-child>.h-link\{justify-content:center}
+	.tour-left>.h-row:last-child>.h-spacer\{display:none}
+	.tour-left>.h-row:last-child>.h-link\{justify-content:center}
+	.posts\{gap:40px}
+	.tour-post .tour-text>p:first-child\{font-size:19px}
+	.h-root>.h-column>.h-row:first-child>.h-link\{white-space:nowrap}
+}
+@media (max-width:480px)\{
+	.h-root>.h-column>.h-row:first-child\{flex-wrap:wrap;row-gap:6px}
+	.h-root>.h-column>.h-row:first-child::after\{content:"";flex-basis:100%;order:2}
+	.h-root>.h-column>.h-row:first-child>a[href^="/theme/"],
+	.h-root>.h-column>.h-row:first-child>.h-row\{order:1}
+	.h-root>.h-column>.h-row:first-child>a[href^="/contents"],
+	.h-root>.h-column>.h-row:first-child>a[href^="/blog"]\{order:3}
 }
 `
 }

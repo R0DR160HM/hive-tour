@@ -1,10 +1,10 @@
 // The grammar the site draws: every slide it names is in the tour, every rule
 // can be drawn, and every drawing says exactly what the EBNF printed under it
 // says.
-import ./main as tour
-import ./grammar
-import ./rail
-import ./slides
+import ../main as tour
+import ../src/grammar
+import ../src/rail
+import ../src/slides
 
 test "every slide a rule is drawn on is in the tour" {
 	all := slides.all()

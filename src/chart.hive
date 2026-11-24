@@ -11,8 +11,8 @@
 // one — the keyword, the operator, the type or the module the slide teaches —
 // so a reader who has finished the tour can read the chart as a summary of
 // it. A slide is found by its English title, for the reason ./home and
-// ./grammar find them that way, and chart.test.hive holds every slide in the
-// tour to having a symbol here.
+// ./grammar find them that way, and tests/chart.test.hive holds every slide
+// in the tour to having a symbol here.
 
 type Symbol {
 	title:  Str
@@ -60,7 +60,7 @@ func symbols(): Symbol[dyn] {
 		Symbol(title: "A length is a promise", symbol: "[3]"),
 		Symbol(title: "Matching with is", symbol: "is"),
 		Symbol(title: "Matching vectors and strings", symbol: "..."),
-		Symbol(title: "Bits and bytes", symbol: "<<>>"),
+		Symbol(title: "Bits and bytes", symbol: "<<<>>>"),
 		Symbol(title: "Chains that cover a type", symbol: "else if"),
 		Symbol(title: "Matching with switch", symbol: "switch"),
 		Symbol(title: "Binding with a pattern", symbol: ":= else"),

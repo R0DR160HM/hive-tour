@@ -23,6 +23,9 @@
 
 // One thing a program can ask for that a page in a browser does not have: the
 // text that asks for it, the name to call it by, and what it would need.
+import ./highlight
+import ./theme
+
 type Missing {
 	needle:   Str
 	name:     Str
@@ -280,46 +283,196 @@ func page(): Str {
 	return `
 	var LIMIT = 200000;
 	var PATIENCE = 10000;
+	var KEYWORDS = "{join(highlight.keywords(), " ")}".split(" ");
+	var BUILTINS = "{join(highlight.builtins(), " ")}".split(" ");
+	var PUNCT = "\{}()[]:;,.><=+-*/%!&|";
+
+	function escapeText(text) \{
+		return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+	}
+
+	function span(name, text) \{
+		return text === "" ? "" : "<span class=\"" + name + "\">" + escapeText(text) + "</span>";
+	}
+
+	// ./highlight, step for step, so a program is painted the same way while it
+	// is edited as it was when the page arrived.
+	function highlight(source) \{
+		var cs = Array.from(source);
+		var out = "";
+		var i = 0;
+		function at(j) \{ return j < cs.length ? cs[j] : ""; }
+		function upper(c) \{ return c >= "A" && c <= "Z"; }
+		function lower(c) \{ return c >= "a" && c <= "z"; }
+		function digit(c) \{ return c >= "0" && c <= "9"; }
+		function namePart(c) \{ return upper(c) || lower(c) || digit(c) || c === "_"; }
+		function hole(j) \{
+			var text = "";
+			var depth = 0;
+			while (j < cs.length) \{
+				var c = cs[j];
+				if (c === "\{") \{ depth++; } else if (c === "}") \{ depth--; }
+				text += c;
+				j++;
+				if (depth === 0) \{ break; }
+			}
+			out += span("{theme.interpClass()}", text);
+			return j;
+		}
+		while (i < cs.length) \{
+			var c = cs[i];
+			var j = i;
+			var text = "";
+			if (c === "/" && at(i + 1) === "/") \{
+				while (j < cs.length && cs[j] !== "\n") \{ text += cs[j]; j++; }
+				out += span("{theme.commentClass()}", text);
+			} else if (c === "\"") \{
+				out += span("{theme.stringClass()}", "\"");
+				j = i + 1;
+				var closed = false;
+				while (j < cs.length) \{
+					var d = cs[j];
+					if (d === "\\" && j + 1 < cs.length) \{
+						out += span("{theme.stringClass()}", text);
+						text = "";
+						out += span("{theme.escapeClass()}", d + cs[j + 1]);
+						j += 2;
+					} else if (d === "\{") \{
+						out += span("{theme.stringClass()}", text);
+						text = "";
+						j = hole(j);
+					} else if (d === "\"") \{
+						out += span("{theme.stringClass()}", text + "\"");
+						text = "";
+						j++;
+						closed = true;
+						break;
+					} else \{
+						text += d;
+						j++;
+					}
+				}
+				if (!closed) \{ out += span("{theme.stringClass()}", text); }
+			} else if (c === "\x60") \{
+				text = "\x60";
+				j = i + 1;
+				var ended = false;
+				while (j < cs.length) \{
+					var e = cs[j];
+					if (e === "\\" && at(j + 1) === "\{") \{
+						out += span("{theme.stringClass()}", text);
+						text = "";
+						out += span("{theme.escapeClass()}", "\\\{");
+						j += 2;
+					} else if (e === "\{") \{
+						out += span("{theme.stringClass()}", text);
+						text = "";
+						j = hole(j);
+					} else \{
+						text += e;
+						j++;
+						if (e === "\x60") \{
+							out += span("{theme.stringClass()}", text);
+							text = "";
+							ended = true;
+							break;
+						}
+					}
+				}
+				if (!ended) \{ out += span("{theme.stringClass()}", text); }
+			} else if (c === "#" && upper(at(i + 1))) \{
+				text = "#";
+				j = i + 1;
+				while (namePart(at(j))) \{ text += cs[j]; j++; }
+				out += span("{theme.atomClass()}", text);
+			} else if (digit(c)) \{
+				while (digit(at(j))) \{ text += cs[j]; j++; }
+				if (at(j) === "." && digit(at(j + 1))) \{
+					text += ".";
+					j++;
+					while (digit(at(j))) \{ text += cs[j]; j++; }
+				}
+				out += span("{theme.numberClass()}", text);
+			} else if (upper(c) || lower(c) || c === "_") \{
+				while (namePart(at(j))) \{ text += cs[j]; j++; }
+				if (KEYWORDS.indexOf(text) >= 0) \{
+					out += span("{theme.keywordClass()}", text);
+				} else if (BUILTINS.indexOf(text) >= 0) \{
+					out += span("{theme.builtinClass()}", text);
+				} else if (upper(c)) \{
+					out += span("{theme.typeClass()}", text);
+				} else if (at(j) === "(") \{
+					out += span("{theme.callClass()}", text);
+				} else \{
+					out += escapeText(text);
+				}
+			} else if (PUNCT.indexOf(c) >= 0) \{
+				out += span("{theme.punctClass()}", c);
+				j = i + 1;
+			} else \{
+				out += escapeText(c);
+				j = i + 1;
+			}
+			i = j > i ? j : i + 1;
+		}
+		return out;
+	}
+
+	// The slide's one console, docked under its programs: every program prints
+	// there, and only one runs at a time.
+	var output = document.querySelector(".tour-console");
+	if (!output) \{
+		return;
+	}
+	var heading = output.querySelector(".tour-caption");
+	var screen = output.querySelector("pre");
+	var running = null;
+	output.hidden = false;
 
 	document.querySelectorAll(".tour-play").forEach(function (block) \{
-		var code = block.querySelector(".tour-code code");
+		var pre = block.querySelector(".tour-code");
+		var code = pre.querySelector("code");
 		var controls = block.querySelector(".tour-run");
 		var run = controls.querySelector(".tour-run-go");
 		var reset = controls.querySelector(".tour-run-reset");
 		var state = controls.querySelector(".tour-run-state");
-		var output = block.querySelector(".tour-output");
-		var heading = output.querySelector(".tour-caption");
-		var screen = output.querySelector("pre");
+		var named = block.querySelector(".tour-caption");
+		var name = named ? named.textContent : "";
 		var says = controls.dataset;
-		var original = code.innerHTML;
-		var edited = false;
+		var paintedHtml = code.innerHTML;
+		var original = code.textContent;
 		var job = null;
 
-		code.setAttribute("contenteditable", "plaintext-only");
-		if (code.contentEditable !== "plaintext-only") \{
-			code.setAttribute("contenteditable", "true");
-		}
-		code.setAttribute("spellcheck", "false");
-		code.setAttribute("autocapitalize", "off");
-		code.setAttribute("autocorrect", "off");
-		code.setAttribute("role", "textbox");
-		code.setAttribute("aria-multiline", "true");
-		code.setAttribute("aria-label", says.label);
-		code.setAttribute("aria-describedby", controls.querySelector(".tour-run-keys").id);
+		// The program is a text box laid exactly over the painted program, its
+		// own letters transparent: the reader types into the box and reads the
+		// painting under it, which is repainted on every change.
+		var input = document.createElement("textarea");
+		input.className = "tour-input";
+		input.value = original;
+		input.spellcheck = false;
+		input.setAttribute("autocapitalize", "off");
+		input.setAttribute("autocomplete", "off");
+		input.setAttribute("autocorrect", "off");
+		input.setAttribute("wrap", "off");
+		input.setAttribute("aria-label", says.label);
+		input.setAttribute("aria-describedby", controls.querySelector(".tour-run-keys").id);
+		code.setAttribute("aria-hidden", "true");
+		pre.classList.add("tour-editor");
+		pre.appendChild(input);
 		controls.hidden = false;
 
-		code.addEventListener("input", function () \{
-			if (!edited) \{
-				edited = true;
-				flatten();
-				reset.hidden = false;
-			}
-		});
-		code.addEventListener("paste", function (event) \{
-			event.preventDefault();
-			insert(event.clipboardData.getData("text/plain"));
-		});
-		code.addEventListener("keydown", function (event) \{
+		function repaint() \{
+			code.innerHTML = highlight(input.value) + "\n";
+			reset.hidden = input.value === original;
+		}
+
+		function type(text) \{
+			input.setRangeText(text, input.selectionStart, input.selectionEnd, "end");
+			repaint();
+		}
+
+		input.addEventListener("input", repaint);
+		input.addEventListener("keydown", function (event) \{
 			if (event.isComposing) \{
 				return;
 			}
@@ -327,11 +480,14 @@ func page(): Str {
 				event.preventDefault();
 				start();
 			} else if (event.key === "Enter") \{
+				// A new line starts as indented as the one it breaks.
 				event.preventDefault();
-				insert("\n");
+				var before = input.value.slice(0, input.selectionStart);
+				var line = before.slice(before.lastIndexOf("\n") + 1);
+				type("\n" + line.match(/^[\t ]*/)[0]);
 			} else if (event.key === "Tab" && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey) \{
 				event.preventDefault();
-				insert("\t");
+				type("\t");
 			} else if (event.key === "Escape") \{
 				run.focus();
 			}
@@ -344,44 +500,16 @@ func page(): Str {
 			}
 		});
 		reset.addEventListener("click", function () \{
-			code.innerHTML = original;
-			edited = false;
+			input.value = original;
+			code.innerHTML = paintedHtml;
 			reset.hidden = true;
-			code.focus();
+			input.focus();
 		});
 
-		function insert(text) \{
-			if (!document.execCommand("insertText", false, text)) \{
-				var selection = window.getSelection();
-				if (selection.rangeCount) \{
-					var range = selection.getRangeAt(0);
-					range.deleteContents();
-					range.insertNode(document.createTextNode(text));
-					range.collapse(false);
-				}
-			}
-		}
-
-		function flatten() \{
-			var at = -1;
-			var selection = window.getSelection();
-			if (selection.rangeCount && code.contains(selection.anchorNode)) \{
-				var before = document.createRange();
-				before.selectNodeContents(code);
-				before.setEnd(selection.anchorNode, selection.anchorOffset);
-				at = before.toString().length;
-			}
-			code.textContent = code.textContent;
-			if (at >= 0 && code.firstChild) \{
-				var range = document.createRange();
-				range.setStart(code.firstChild, Math.min(at, code.firstChild.length));
-				range.collapse(true);
-				selection.removeAllRanges();
-				selection.addRange(range);
-			}
-		}
-
 		function start() \{
+			if (running) \{
+				running.stop(says.stopped);
+			}
 			var mine = \{};
 			var asking = new AbortController();
 			mine.stop = function (note) \{
@@ -389,11 +517,13 @@ func page(): Str {
 				finish(note);
 			};
 			job = mine;
+			running = mine;
+			show(says.compiling, "");
 			run.textContent = says.stop;
 			state.textContent = says.compiling;
 			fetch("{compilePath()}?lang=" + says.lang, \{
 				method: "POST",
-				body: code.textContent,
+				body: input.value,
 				signal: asking.signal,
 				headers: \{ "Content-Type": "text/plain; charset=utf-8", "X-Hive-Tour": "play" }
 			}).then(function (response) \{
@@ -478,12 +608,14 @@ func page(): Str {
 		}
 
 		function show(title, text) \{
-			output.hidden = false;
-			heading.textContent = title;
+			heading.textContent = name ? title + " · " + name : title;
 			screen.textContent = text;
 		}
 
 		function finish(note) \{
+			if (running === job) \{
+				running = null;
+			}
 			job = null;
 			run.textContent = says.run;
 			state.textContent = note;

@@ -1,6 +1,6 @@
 ---
 name: The Hive Tour
-description: A language's home page and its tour, set as a book on cool paper with the whole language as one chart.
+description: A language's home page and its tour, set as a book on cool paper, with each slide's text beside a live editor.
 colors:
   paper: "#f6f7f8"
   ink: "#15171a"
@@ -15,31 +15,31 @@ colors:
   syntax-string: "#2f6a2a"
   syntax-literal: "#8b2f6b"
   syntax-comment: "#5a5f66"
-  chapter-1: "#f3dfb5"
-  chapter-1-read: "#e3be72"
-  chapter-2: "#f5cdbd"
-  chapter-2-read: "#e9a184"
-  chapter-3: "#f1c9d6"
-  chapter-3-read: "#de95ad"
-  chapter-4: "#ddd0f2"
-  chapter-4-read: "#b9a2e3"
-  chapter-5: "#c9d5f3"
-  chapter-5-read: "#93a9e6"
-  chapter-6: "#c4e2ef"
-  chapter-6-read: "#84c2dc"
-  chapter-7: "#c6e7d8"
-  chapter-7-read: "#86cbab"
-  chapter-8: "#dbe8bd"
-  chapter-8-read: "#b4cf78"
-  chapter-9: "#dedbd3"
-  chapter-9-read: "#bdb7aa"
+  chapter-1: "#e7dbc1"
+  chapter-1-read: "#ceb787"
+  chapter-2: "#ead2c8"
+  chapter-2-read: "#d6a997"
+  chapter-3: "#e9d1d9"
+  chapter-3-read: "#d0a3b2"
+  chapter-4: "#dfd6ec"
+  chapter-4-read: "#bdaed7"
+  chapter-5: "#d1d8eb"
+  chapter-5-read: "#a3b0d6"
+  chapter-6: "#ccdfe7"
+  chapter-6-read: "#95bbcb"
+  chapter-7: "#cce1d7"
+  chapter-7-read: "#93beaa"
+  chapter-8: "#d8e0c5"
+  chapter-8-read: "#aebe89"
+  chapter-9: "#dcdad5"
+  chapter-9-read: "#b9b6ae"
 typography:
   display:
     fontFamily: "\"Hive Serif\" (Source Serif 4), Charter, \"Bitstream Charter\", \"Sitka Text\", Cambria, Georgia, serif"
-    fontSize: "clamp(64px, 8vw, 104px)"
+    fontSize: "clamp(56px, 7vw, 88px)"
     fontWeight: 600
     lineHeight: 0.9
-    letterSpacing: "-0.035em"
+    letterSpacing: "-0.03em"
   headline:
     fontFamily: "\"Hive Serif\" (Source Serif 4), Charter, Georgia, serif"
     fontSize: "clamp(40px, 5vw, 64px)"
@@ -54,10 +54,10 @@ typography:
     letterSpacing: "-0.016em"
   lede:
     fontFamily: "\"Hive Serif\" (Source Serif 4), Charter, Georgia, serif"
-    fontSize: "27px"
+    fontSize: "24px"
     fontWeight: 500
-    lineHeight: 1.32
-    letterSpacing: "-0.012em"
+    lineHeight: 1.36
+    letterSpacing: "-0.01em"
   subhead:
     fontFamily: "\"Hive Serif\" (Source Serif 4), Charter, Georgia, serif"
     fontSize: "19px"
@@ -158,9 +158,9 @@ components:
 
 ## Overview
 
-**Creative North Star: "The Language Set Out as a Book and a Chart"**
+**Creative North Star: "The Language Set Out as a Book, with the Code Beside It"**
 
-The site is a language's home page done properly and a tour that teaches the whole language, and it is set the way a good technical book is set: a cool white paper, one ink, a book serif for everything that is read and its sibling monospace for everything that is run. Two devices belong to teaching a language and nothing else, and they are the system's signature: the grammar drawn as railroad diagrams (in the tour only), and the whole language laid out as one periodic-table chart of 85 tiles in nine chapter colours. Every slide carries its own tile beside its title, so a chapter has a colour and 85 slides stop looking like one.
+The site is a language's home page done properly and a tour that teaches the whole language, and it is set the way a good technical book is set: a cool white paper, one ink, a book serif for everything that is read and its sibling monospace for everything that is run. A slide is set the way a language's own tour is: the explanation on the left, read down the page, and its programs on the right in a pane held in view under a fixed running head, each program a panel of its own, with one console docked under them. The grammar is drawn as railroad diagrams (in the tour only). Every slide carries a tile in its chapter's colour beside its title, so a chapter has a colour and 85 slides stop looking like one; the contents are a plain chaptered list.
 
 Density is a book's: an 18px body at a 66ch measure, generous paper between sections (128px on the front page), two columns where the explanation sits beside the programs it explains. Colour is rationed hard. Chapter colours only ever fill a tile; amber is the way on and where the reader is, and nothing else. Nothing moves: no entrance animation, no positional motion, only a 160ms colour change on the button, pills and tiles. The site ships no JavaScript beyond the playground's one script, so every state the design has (the reader's scheme, read slides, the current station) is drawn by CSS from what HTML and the server already know; only running an example needs the script.
 
@@ -169,7 +169,7 @@ Confirmed rejections: the SaaS landing page (gradient hero, feature-card rows, g
 **Key Characteristics:**
 - Cool paper (never cream), one ink, flat surfaces separated by paper rather than lines.
 - Source Serif 4 for headings and prose, Source Code Pro for programs, tiles and tokens; both embedded, nothing fetched.
-- Nine muted chapter colours, each with a deeper read shade, filling tiles only.
+- Nine muted, low-saturation chapter colours, each with a deeper read shade, filling tiles only.
 - Amber on exactly two things: the one primary button and the reader's current station.
 - Square tiles and panels; pills only for links that act as buttons; circles only for stations and drawn markers.
 - Light and dark follow the system, with a no-JS cookie switch in the running head.
@@ -195,7 +195,7 @@ A cool neutral book palette with one warm voice and nine quiet chapter fills.
 - **Wash** (`wash`) and **Code Panel** (`code-panel`): a shade off the paper, for inline code, program panels and the visited pager pill.
 - **Syntax inks** (`syntax-string`, `syntax-literal`, `syntax-comment`): two quiet inks for strings and literal values; comments in a grey serif italic.
 
-The dark scheme (`#121315` paper, `#e9e7e1` ink, darkened chapter fills `#3d3220`..`#33312c` with read shades `#5e4b28`..`#4c4942`, amber `#e5a53a`) is written once and applied both under `prefers-color-scheme: dark` (unless the reader chose light) and under `data-theme=dark`. Values are in the sidecar.
+The dark scheme (`#121315` paper, `#e9e7e1` ink, darkened chapter fills `#373126`..`#32302d` with read shades `#544832`..`#4a4844`, amber `#e5a53a`) is written once and applied both under `prefers-color-scheme: dark` (unless the reader chose light) and under `data-theme=dark`. Values are in the sidecar.
 
 ### Named Rules
 **The Tile-Only Rule.** Chapter colours fill tiles and nothing else: never text, borders, backgrounds of sections, or underlines. If it is not a tile (or a key swatch naming a tile's colour), it is paper or ink.
@@ -213,10 +213,10 @@ The dark scheme (`#121315` paper, `#e9e7e1` ink, darkened chapter fills `#3d3220
 **Character:** A book pairing from one family: an optically sized serif that is read, beside the monospace drawn to sit with it, for what is run. Italic is the captioning voice, as a book captions a figure.
 
 ### Hierarchy
-- **Display** (600, clamp 64–104px, 0.9, -0.035em): the language name beside the mark on the front page; the 404 numeral at clamp 88–160px.
+- **Display** (600, clamp 56–88px, 0.9, -0.03em): the language name beside the mark on the front page; the 404 numeral at clamp 88–160px.
 - **Headline** (600, clamp 40–64px, 1.04, -0.022em, balanced): slide titles and page titles.
 - **Title** (600, clamp 28–38px, 1.12, -0.016em, balanced): front-page section headings.
-- **Lede** (500, 27px, 1.32, 26ch max): the one sentence that says what Hive is (23px on phones).
+- **Lede** (500, 24px, 1.36, 32ch max): the one sentence that says what Hive is (21px on phones).
 - **Subhead** (600, 19px, 1.35): reasons and list headings; 18px italic 600 for rule names and column labels ("A good fit for", "Think twice if").
 - **Body** (400, 18px, 1.62, 66ch max; 17px on phones): slide prose and front-page paragraphs; 17px/1.55 in dense lists.
 - **Caption** (italic 400, 16px, 1.4): code captions, "In the tour" labels, the lead line over tables.
@@ -227,18 +227,20 @@ The dark scheme (`#121315` paper, `#e9e7e1` ink, darkened chapter fills `#3d3220
 ### Named Rules
 **The Serif-Reads, Mono-Runs Rule.** Anything a reader could type into a `.hive` file (programs, tokens, commands, tile symbols, terminals in diagrams) is set in the monospace; everything else is the serif. Rule names in diagrams are serif italic, because they are names, not text to type.
 
-**The Bold Keyword Rule.** Syntax highlighting is typographic first: keywords and builtins in bold, comments in the serif italic, colour only for strings and literals. Names, types and calls stay in ink.
+**The Quiet Colour Rule.** Syntax highlighting uses a few quiet inks, each held at 4.5:1 or better on its panel in both schemes: keywords in a deep amber-brown (semibold) and builtins in the same ink, types in blue, strings in green, literals in plum, comments in grey (serif italic in static samples, monospace in editors so the caret lines up). Names and calls stay in ink. The editor repaints with the same rules as the server's lexer, from the same keyword and builtin lists.
 
 ## Layout
 
 One centred column of 1280px max (`measure`) with 40px gutters (20px under 640px), with the running head aligned to the same column. Pages end with 112px of paper.
 
 - **Front page:** the hero is a 5:7 split, text left (name, lede, intro at 58ch, then the ways in on two lines) and a whole program right, starting level with the name. Sections follow at 128px intervals (88px on phones), separated by paper alone; reasoned sections repeat the 5:7 split of argument and program/table. The page ends on the chart.
-- **Slide:** track across the full width with chapter and "Slide n of 85" under it; then the slide tile (136px square) beside the headline; then the grammar fold, closed, under which the railroad figures sit in a wrapping row (36px / 72px gaps); then two columns that start level: prose (flex, min 340px) and examples (up to 700px, sized for ~80-column programs), 56px apart. A slide whose widest program exceeds 84 columns is marked wide and stacks prose above full-width programs. Pager at the foot.
-- **Contents:** headline, one line of explanation (60ch), then the chart.
-- **Chart:** chapters stand side by side as grid blocks one or two 82×108px tiles wide with 5px gaps and 9px between chapters, aligned on one baseline so their lengths read as a skyline. The long standard-library chapter is detached into rows below, right-aligned like a periodic table's lanthanides, with a dashed placeholder tile in the skyline.
+- **Slide:** two panes, 46:54. Left, aligned with the running head's column: chapter and "Slide n of 85" over a 2px progress line, the slide tile (112px) beside the headline (clamp 34–50px), the grammar fold, the prose, and the pager at the foot. Right, a wash-coloured pane held in view under the fixed running head (sticky, full remaining height): the programs scroll inside it, each a paper panel with a hairline border and its caption as the panel's header, and the console is docked under them (30% of the pane, at least 150px). Under 980px the panes stack: text, then programs and console, then the pager; the running head is fixed only above 980px.
+- **Contents:** headline, one line of explanation (60ch), then the chaptered list.
+- **Blog:** headline and one line, as on the contents page, then the posts down one 66ch column 52px apart, separated by paper: each a date in the caption's italic, its title as a heading-link (serif 600, clamp 24–30px) underlined in hairline until hover turns it amber, and its abstract in soft ink.
+- **Post:** one column of 760px max: date, headline, then the prose at 66ch with its opening paragraph (the abstract) at 21px soft ink; section headings at the blog's title size, programs in the tour's code panel at the column's full width, links underlined in muted ink. It ends 64px down on the amber "Start the tour" pill and a plain "All posts" link.
+- **Contents list:** chapters in CSS columns (3 × 260px min, 56px apart), each a heading (serif 600 19px) with a 12px square swatch of its colour, then its slides numbered (mono 13px muted numbers, serif 16.5px titles). A read slide is `:visited`, in muted ink. The same list ends the front page.
 
-Breakpoints: **1180px** the skyline lets go (each chapter becomes a block under its own visible italic name, tiles flowing in order; key and placeholder hidden); **980px** all two-column rows stack; **640px** phone (17px body, 96px slide tile, pager pills stack full-width, table rows stack, theme switch reduced to its drawn circle).
+Breakpoints: **980px** all two-column rows and the slide's panes stack; **640px** phone (17px body, 96px slide tile, pager pills stack full-width, table rows stack, theme switch reduced to its drawn circle, running-head links never broken); **480px** the running head takes two lines, Contents and Blog under the mark.
 
 **The Inline-Direction Rule.** `hive.ui` writes a row's direction as an inline `style`, so responsive overrides of flex direction, alignment and gap use `!important`, inside the responsive block only and for that purpose only. Nowhere else does the stylesheet use `!important` (besides the reduced-motion reset).
 
@@ -275,19 +277,16 @@ Confident and singular: there is one button on the site.
 
 ### Cards / Containers
 - **Code panel:** square, `code-panel` fill, 20px 24px padding, flush with the column, scrolls sideways on its own with scroll shades; captioned above in serif italic 16px soft ink.
-- **Playground (runnable examples on slides):** under the code panel, 14px down, a wrapping row of the Run outline pill, "Put the original back" as a plain underlined serif 600 15.5px soft-ink button (shown only once the program is edited), and a state line in serif italic 15.5px muted ink ("You can edit this program and run it here.", "Compiling…", "It exited with status 2."). The panel itself is the editor: the 2px ink focus ring goes round the whole panel while editing, and the program drops its highlighting to plain ink at the first edit. What comes back sits 20px under the row: a caption in the code-caption style ("What it printed", "What the compiler said", "Why it did not run") over a second code-panel-shade block in mono 13.5px, at most 420px tall, scrolling on its own. No colour marks an error; the caption says what the text is. All of it is rendered `hidden` and uncovered by the script, so without it the slide is unchanged. The front page has none.
+- **Playground (runnable examples on slides):** under the code panel, 14px down, a wrapping row of the Run outline pill, "Put the original back" as a plain underlined serif 600 15.5px soft-ink button (shown only once the program is edited), and a state line in serif italic 15.5px muted ink ("You can edit this program and run it here.", "Compiling…", "It exited with status 2."). The panel itself is the editor: a transparent text box laid exactly over the painted program, repainted on every change, and the panel's border turns ink while editing. What comes back goes to the slide's one console, docked under the programs and shown as the page loads ("Run a program to see what it prints here."): a caption in the code-caption style naming what it is and which program ("What it printed · Variants, and what they bind") over mono 13.5px text that scrolls on its own. Starting one program stops any other that is running. No colour marks an error; the caption says what the text is. All of it is rendered `hidden` and uncovered by the script, so without it the slide is unchanged. The front page has none.
 - **Tables:** rows separated by 1px hairlines top and bottom; first column is a mono or underlined-link label at a fixed width. These are the only hairlines in the system.
 
 ### Navigation
-- **Running head:** mark (30px), "The Hive Tour" and Contents in serif 600 16.5px; at the right, the scheme switch (a drawn half-filled circle plus "Dark"/"Light", only the scheme not on screen shown) and EN/PT in label type, muted at rest, ink on hover, the current language underlined 2px in amber.
-- **Track:** a full-width canvas line of 85 stations in nine chapter segments divided by ticks, ending in a buffer stop: stations behind the reader solid ink, those ahead punched out in paper, the current station a larger amber dot ringed in ink. Under it, chapter name left and "Slide n of 85" right in tabular figures.
-- **Pager:** outline pills with drawn chevrons either side of a 2px ink line carrying the amber station; a visited pager pill rests on wash.
-
-### Wall Chart (signature)
-Each tile is an 82×108px link the size of the tile, filled with its chapter colour: number (mono 500 11px) and symbol (mono 600 17px) laid over the top without catching the pointer, title at the foot (serif 500 11px, clamped to four lines). Visited tiles turn the read shade. A key of square swatches with chapter names sits under the skyline on wide screens.
+- **Running head:** mark (30px), "The Hive Tour", Contents and Blog in serif 600 16.5px; at the right, the scheme switch (a drawn half-filled circle plus "Dark"/"Light", only the scheme not on screen shown) and EN/PT in label type, muted at rest, ink on hover, the current language underlined 2px in amber.
+- **Progress:** chapter name left and "Slide n of 85" right (serif 500 14.5px muted, tabular figures) over a 2px line in hairline, filled in ink as far as this slide.
+- **Pager:** outline pills with drawn chevrons at the foot of the text pane; a visited pager pill rests on wash.
 
 ### Slide Tile
-The chart's own tile, larger (136px; 96px on phones): number, symbol at 32px mono, chapter name in soft ink. It is the one place on a slide that carries chapter colour.
+A square in the chapter's colour (112px; 84px on phones): number, symbol at 26px mono, chapter name in soft ink. It is the one place on a slide that carries chapter colour.
 
 ### Grammar Fold
 One closed line under a slide's title: a 2px chevron that turns from pointing right to pointing down when open, "Grammar:" in serif 600 16px soft ink, and the rules' names after it in serif italic 500 16px muted. It is HTML's own `<details>`, so it opens without a script, and it holds every railroad figure the slide teaches. A slide opens on its explanation and its programs; the grammar is one click away.
@@ -299,7 +298,7 @@ Rule name in serif italic 600 18px with a muted underlined spec link beside it, 
 
 ### Do:
 - **Do** keep amber to the one primary pill and the current station; everything else that needs emphasis uses ink, weight or an underline.
-- **Do** fill tiles (chart, slide tile, reads tiles, key swatches) with chapter colours and let `:visited` turn them to the read shade.
+- **Do** fill tiles (slide tile, reads tiles, contents swatches) with chapter colours and let `:visited` turn the reads tiles to the read shade.
 - **Do** set every program, token, command and tile symbol in Source Code Pro with ligatures off, and everything read in Source Serif 4.
 - **Do** use the ink focus ring (2px solid ink, 3px offset), or the inset 2px ink ring on filled tiles.
 - **Do** keep every interactive state in HTML and CSS: `:visited`, `:hover`, `:focus-visible`, server round-trips and the theme cookie. The playground's running states are the one exception, and even they are server-rendered markup the script only uncovers and relabels.

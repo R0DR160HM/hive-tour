@@ -4,8 +4,8 @@
 //
 // The two are kept side by side on purpose. The EBNF is printed under every
 // diagram, so a reader can check the picture against the text, and
-// grammar.test.hive reads every diagram back into EBNF and holds it to the
-// line printed under it, so the two can never quietly disagree.
+// tests/grammar.test.hive reads every diagram back into EBNF and holds it to
+// the line printed under it, so the two can never quietly disagree.
 //
 // Most rules are copied from spec/02-grammar.md character for character. A
 // few are not, because the specification's chapter 2 has fallen behind the
@@ -33,8 +33,8 @@
 // rule is drawn on every slide that teaches the construct it describes. A
 // slide names its rules by its English title, for the reason ./home names
 // slides that way — a number moves when a slide is added in front of it, and
-// a title does not. grammar.test.hive holds every title here to being one the
-// tour really has.
+// a title does not. tests/grammar.test.hive holds every title here to being
+// one the tour really has.
 import ./rail
 
 type Rule {
@@ -61,11 +61,11 @@ func rule(text: Str): rail.Rail {
 	return rail.Rail.Name(text)
 }
 
-func seq(items: rail.Rail[dyn]): rail.Rail {
+func seq(items: rail.Rail[]): rail.Rail {
 	return rail.Rail.Seq(items)
 }
 
-func either(items: rail.Rail[dyn]): rail.Rail {
+func either(items: rail.Rail[]): rail.Rail {
 	return rail.Rail.Choice(items)
 }
 
@@ -78,11 +78,11 @@ func many(item: rail.Rail): rail.Rail {
 }
 
 // A rule as the specification writes it, and one as the compiler reads it.
-func spec(name: Str, section: Str, ebnf: Str, rows: rail.Rail[dyn]): Rule {
+func spec(name: Str, section: Str, ebnf: Str, rows: rail.Rail[]): Rule {
 	return Rule(name: name, ebnf: ebnf, section: section, revised: false, rows: rows)
 }
 
-func parsed(name: Str, section: Str, ebnf: Str, rows: rail.Rail[dyn]): Rule {
+func parsed(name: Str, section: Str, ebnf: Str, rows: rail.Rail[]): Rule {
 	return Rule(name: name, ebnf: ebnf, section: section, revised: true, rows: rows)
 }
 
@@ -579,12 +579,12 @@ func element(): Rule {
 
 func bitsPattern(): Rule {
 	return parsed("bits-pattern", "2.7",
-		"bits-pattern = \"<<\" \{ bit-field \",\" } [ bit-field | \"...\" IDENT ] \">>\" ;",
+		"bits-pattern = \"<<<\" \{ bit-field \",\" } [ bit-field | \"...\" IDENT ] \">>>\" ;",
 		[seq([
-			sign("<<"),
+			sign("<<<"),
 			many(seq([rule("bit-field"), sign(",")])),
 			opt(either([rule("bit-field"), seq([sign("..."), rule("IDENT")])])),
-			sign(">>"),
+			sign(">>>"),
 		])])
 }
 
@@ -603,11 +603,11 @@ func bitField(): Rule {
 
 func bitsLit(): Rule {
 	return parsed("bits-lit", "2.6",
-		"bits-lit = \"<<\" [ bit-part \{ \",\" bit-part } ] \">>\" ;",
+		"bits-lit = \"<<<\" [ bit-part \{ \",\" bit-part } ] \">>>\" ;",
 		[seq([
-			sign("<<"),
+			sign("<<<"),
 			opt(seq([rule("bit-part"), many(seq([sign(","), rule("bit-part")]))])),
-			sign(">>"),
+			sign(">>>"),
 		])])
 }
 
