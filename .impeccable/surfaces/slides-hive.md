@@ -1,8 +1,8 @@
 ---
 version: 1
 slug: "slides-hive"
-primary_target: "slides.hive"
-related_targets: ["theme.hive","main.hive","rail.hive","grammar.hive","chart.hive"]
+primary_target: "src/slides.hive"
+related_targets: ["src/theme.hive","main.hive","src/rail.hive","src/grammar.hive","src/chart.hive"]
 ---
 
 # Surface: the tour (`/1` … `/74`, `/contents`, the 404)

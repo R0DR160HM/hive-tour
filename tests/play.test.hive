@@ -3,9 +3,9 @@
 // when it has something for the script to run. Nothing here compiles a
 // program — every request below is one the server answers without the
 // compiler — so the suite needs no Go to run.
-import ./main as tour
-import ./play
-import ./slides
+import ../main as tour
+import ../src/play
+import ../src/slides
 
 test "a program that only computes can run" {
 	assert play.runnable("proc main(): void \{\n\techo \"hi\"\n}")
@@ -111,7 +111,7 @@ test "a slide carries the script only when it has something to run" {
 	mut withScript := 0
 	mut without := 0
 	for i := 0; i < len(all); i++ {
-		page := tour.route("/{i + 1}").body
+		page := tour.route(tour.slidePath(all[i])).body
 		hasScript := indexOf(page, "<script src=\"" + play.scriptPath() + "\"") is Result.Ok(_)
 		hasControls := indexOf(page, "class=\"tour-example tour-play\"") is Result.Ok(_)
 		assert hasScript == hasControls

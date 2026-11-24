@@ -1,5 +1,5 @@
 // The markup a slide's explanation carries, rendered.
-import ./main as tour
+import ../main as tour
 
 test "a paragraph with a code span" {
 	assert tour.proseHtml("a `b` c") == "<div class=\"tour-text\"><p>a <code>b</code> c</p></div>"

@@ -1,0 +1,525 @@
+// Markdown, as much of it as a post on this site needs, turned into HTML.
+//
+// The blog's posts are written in it, so writing one is writing a text file
+// rather than a Hive value with its prose in a string. What it reads:
+//
+//   ## Heading                a heading, down to ####; a lone # is read as ##,
+//                             because a page has one h1 and it is the title
+//   a paragraph               lines run together until a blank line
+//   - item, * item, 1. item   a list, bulleted or numbered; an indented line
+//                             carries on the item above it
+//   > quoted                  a quotation, which may hold any of these
+//   ```hive … ```             a program, painted by ./highlight; a fence that
+//                             names another language, or none, is set as it is
+//
+// and inside any of those, `code`, **bold**, *italic* and [words](target), with
+// a backslash before a piece of punctuation standing for that character alone.
+//
+// Everything else is text, and every character of it is escaped: HTML written
+// into a post is shown, not obeyed. Where a link goes is the caller's to say:
+// `link` is handed whatever is between the parentheses and answers with the
+// href, or with "" for a link it will not make, whose words are then set as
+// plain text.
+import ./highlight
+
+// A whole document, a block at a time. Paragraph, list and quotation lines are
+// held until whatever ends them, and starting any one of the three ends the
+// other two first, so at most one is ever being held and `flush` can let go of
+// all three in any order.
+func html(text: Str, link: func(Str): Str): Str {
+	mut Str[dyn] out = []
+	mut Str[dyn] para = []
+	mut Str[dyn] items = []
+	mut Str[dyn] quote = []
+	mut Str[dyn] fence = []
+	mut ordered := false
+	mut fenced := false
+	mut fenceLang := ""
+	for each raw in split(text, "\n") {
+		line := replaceAll(raw, "\r", "")
+		if fenced {
+			if startsWith(line, "```") {
+				append(out, codeHtml(join(fence, "\n"), fenceLang))
+				fence = []
+				fenced = false
+			} else {
+				append(fence, line)
+			}
+			continue
+		}
+		if startsWith(line, "```") {
+			flush(out, para, items, ordered, quote, link)
+			fenced = true
+			fenceLang = trim(replaceFirst(line, "```", ""))
+			continue
+		}
+		bare := trim(line)
+		if bare == "" {
+			flush(out, para, items, ordered, quote, link)
+			continue
+		}
+		if line is "{marks is (#{1,6})} {words}" {
+			flush(out, para, items, ordered, quote, link)
+			level := headingLevel(len(marks))
+			append(out, "<h{level}>" + inline(trim(words), link) + "</h{level}>")
+			continue
+		}
+		if listItem(line) is Result.Ok(item) {
+			numbered := listNumbered(line)
+			if numbered != ordered {
+				flushList(out, items, ordered, link)
+			}
+			flushPara(out, para, link)
+			flushQuote(out, quote, link)
+			ordered = numbered
+			append(items, item)
+			continue
+		}
+		if startsWith(line, " ") || startsWith(line, "\t") {
+			last := len(items) - 1
+			if len(para) == 0 && items bounds last {
+				items[last] = items[last] + " " + bare
+				continue
+			}
+		}
+		if line == ">" || startsWith(line, "> ") {
+			flushPara(out, para, link)
+			flushList(out, items, ordered, link)
+			append(quote, replaceFirst(replaceFirst(line, ">", ""), " ", ""))
+			continue
+		}
+		if len(items) > 0 || len(quote) > 0 {
+			flush(out, para, items, ordered, quote, link)
+		}
+		append(para, bare)
+	}
+	if fenced {
+		append(out, codeHtml(join(fence, "\n"), fenceLang))
+	}
+	flush(out, para, items, ordered, quote, link)
+	return join(out, "")
+}
+
+// Whatever is being held, written out and let go of.
+proc flush(out: mut Str[dyn], para: mut Str[dyn], items: mut Str[dyn], ordered: Bool, quote: mut Str[dyn], link: func(Str): Str): void {
+	flushPara(out, para, link)
+	flushList(out, items, ordered, link)
+	flushQuote(out, quote, link)
+}
+
+proc flushPara(out: mut Str[dyn], para: mut Str[dyn], link: func(Str): Str): void {
+	if len(para) > 0 {
+		append(out, "<p>" + inline(join(para, " "), link) + "</p>")
+		para = []
+	}
+}
+
+proc flushList(out: mut Str[dyn], items: mut Str[dyn], ordered: Bool, link: func(Str): Str): void {
+	if len(items) > 0 {
+		mut Str[dyn] lis = []
+		for each item in items {
+			append(lis, "<li>" + inline(item, link) + "</li>")
+		}
+		mut tag := "ul"
+		if ordered {
+			tag = "ol"
+		}
+		append(out, "<{tag}>" + join(lis, "") + "</{tag}>")
+		items = []
+	}
+}
+
+// A quotation holds blocks of its own, so what is inside one is read as a
+// document of its own.
+proc flushQuote(out: mut Str[dyn], quote: mut Str[dyn], link: func(Str): Str): void {
+	if len(quote) > 0 {
+		append(out, "<blockquote>" + html(join(quote, "\n"), link) + "</blockquote>")
+		quote = []
+	}
+}
+
+// The heading a run of `#`s stands for: the page's title is its only h1, so a
+// single `#` in the body is a section like `##`, and anything deeper than `####`
+// is a `####`.
+func headingLevel(marks: Int): Int {
+	if marks < 2 {
+		return 2
+	}
+	if marks > 4 {
+		return 4
+	}
+	return marks
+}
+
+// The words of a line that opens a list item, or an Error for a line that
+// does not.
+func listItem(line: Str): Result<Str, Str> {
+	if line is "{mark is ([-*+])} {words}" {
+		return Result.Ok(trim(words))
+	}
+	if line is "{n is (\d{1,9})}. {words}" {
+		return Result.Ok(trim(words))
+	}
+	return Result.Error("not a list item")
+}
+
+func listNumbered(line: Str): Bool {
+	if line is "{n is (\d{1,9})}. {words}" {
+		return true
+	}
+	return false
+}
+
+// A program in the same panel the tour sets its samples in. Only a fence that
+// says `hive` is painted: ./highlight knows one language, and a shell session
+// or a query painted as Hive would be painted wrong.
+func codeHtml(code: Str, lang: Str): Str {
+	mut body := escape(code)
+	if lang == "hive" {
+		body = highlight.html(code)
+	}
+	return "<pre class=\"tour-code\"><code>" + body + "</code></pre>"
+}
+
+// ---------------------------------------------------------------------------
+// Inside a block
+
+// A line's worth of text with its spans: code first, since nothing inside a
+// code span is markup; then a backslash, emphasis and links, each only when
+// it closes, so a stray `*` or `[` is the character it looks like.
+func inline(text: Str, link: func(Str): Str): Str {
+	cs := split(text, "")
+	mut Str[dyn] out = []
+	mut i := 0
+	for ; i < len(cs); {
+		if cs bounds i {
+			c := cs[i]
+			if c == "\\" && isPunctuation(atOr(cs, i + 1)) {
+				append(out, escapeChar(atOr(cs, i + 1)))
+				i = i + 2
+				continue
+			}
+			if c == "`" {
+				run := runOf(cs, i, "`")
+				close := closingTicks(cs, i + run, run)
+				if close >= 0 {
+					append(out, "<code>" + escape(codeText(cs, i + run, close - 1)) + "</code>")
+					i = close + run
+					continue
+				}
+				append(out, slice(cs, i, i + run - 1))
+				i = i + run
+				continue
+			}
+			if c == "*" {
+				stars := runOf(cs, i, "*")
+				if stars <= 2 {
+					close := closingStars(cs, i + stars, stars)
+					if close > i + stars && atOr(cs, i + stars) != " " && atOr(cs, close - 1) != " " {
+						mut tag := "em"
+						if stars == 2 {
+							tag = "strong"
+						}
+						append(out, "<{tag}>" + inline(slice(cs, i + stars, close - 1), link) + "</{tag}>")
+						i = close + stars
+						continue
+					}
+				}
+				append(out, slice(cs, i, i + stars - 1))
+				i = i + stars
+				continue
+			}
+			if c == "[" {
+				shut := closingBracket(cs, i + 1)
+				if shut >= 0 {
+					end := closingParen(cs, shut + 2)
+					if end >= 0 {
+						words := inline(slice(cs, i + 1, shut - 1), link)
+						target := link(trim(slice(cs, shut + 2, end - 1)))
+						if target == "" {
+							append(out, words)
+						} else {
+							append(out, "<a href=\"" + escapeAttr(target) + "\">" + words + "</a>")
+						}
+						i = end + 1
+						continue
+					}
+				}
+			}
+			append(out, escapeChar(c))
+		}
+		i = i + 1
+	}
+	return join(out, "")
+}
+
+// The same text with its markup taken off, for the places that take only
+// text: a page's description, read by a search engine or a link preview. A
+// link keeps its words and loses where it went.
+func plain(text: Str): Str {
+	cs := split(text, "")
+	mut Str[dyn] out = []
+	mut i := 0
+	for ; i < len(cs); {
+		if cs bounds i {
+			c := cs[i]
+			if c == "\\" && isPunctuation(atOr(cs, i + 1)) {
+				append(out, atOr(cs, i + 1))
+				i = i + 2
+				continue
+			}
+			if c == "`" || c == "*" {
+				i = i + 1
+				continue
+			}
+			if c == "[" {
+				shut := closingBracket(cs, i + 1)
+				if shut >= 0 {
+					end := closingParen(cs, shut + 2)
+					if end >= 0 {
+						append(out, plain(slice(cs, i + 1, shut - 1)))
+						i = end + 1
+						continue
+					}
+				}
+			}
+			append(out, c)
+		}
+		i = i + 1
+	}
+	return join(out, "")
+}
+
+// Every link target in a document, in the order they are written, for a test
+// that has to know where a post points. Code spans are passed over, as the
+// renderer passes over them.
+func targets(text: Str): Str[dyn] {
+	cs := split(text, "")
+	mut Str[dyn] found = []
+	mut i := 0
+	for ; i < len(cs); {
+		if cs bounds i {
+			c := cs[i]
+			if c == "`" {
+				run := runOf(cs, i, "`")
+				close := closingTicks(cs, i + run, run)
+				if close >= 0 {
+					i = close + run
+					continue
+				}
+				i = i + run
+				continue
+			}
+			if c == "[" {
+				shut := closingBracket(cs, i + 1)
+				if shut >= 0 {
+					end := closingParen(cs, shut + 2)
+					if end >= 0 {
+						found = found + targets(slice(cs, i + 1, shut - 1))
+						append(found, trim(slice(cs, shut + 2, end - 1)))
+						i = end + 1
+						continue
+					}
+				}
+			}
+		}
+		i = i + 1
+	}
+	return found
+}
+
+// How many of `c` in a row start at `from`.
+func runOf(cs: Str[], from: Int, c: Str): Int {
+	mut n := 0
+	for at := from; at < len(cs); at++ {
+		if cs bounds at {
+			if cs[at] != c {
+				return n
+			}
+		}
+		n = n + 1
+	}
+	return n
+}
+
+// Where the next run of exactly `run` backticks starts, or -1.
+func closingTicks(cs: Str[], from: Int, run: Int): Int {
+	mut at := from
+	for ; at < len(cs); {
+		n := runOf(cs, at, "`")
+		if n == run {
+			return at
+		}
+		if n > 0 {
+			at = at + n
+		} else {
+			at = at + 1
+		}
+	}
+	return -1
+}
+
+// Where the run of exactly `stars` stars that closes an emphasis starts, or
+// -1. A code span is stepped over whole, so a star inside one closes nothing,
+// and so is a run of another length, so `*a **b** c*` closes where it should.
+func closingStars(cs: Str[], from: Int, stars: Int): Int {
+	mut at := from
+	for ; at < len(cs); {
+		c := atOr(cs, at)
+		if c == "\\" {
+			at = at + 2
+			continue
+		}
+		if c == "`" {
+			run := runOf(cs, at, "`")
+			close := closingTicks(cs, at + run, run)
+			if close >= 0 {
+				at = close + run
+			} else {
+				at = at + run
+			}
+			continue
+		}
+		if c == "*" {
+			n := runOf(cs, at, "*")
+			if n == stars {
+				return at
+			}
+			at = at + n
+			continue
+		}
+		at = at + 1
+	}
+	return -1
+}
+
+// The `]` that closes a link's words, when a `(` follows it straight away, or
+// -1. Brackets inside nest, and a code span is stepped over whole.
+func closingBracket(cs: Str[], from: Int): Int {
+	mut depth := 0
+	mut at := from
+	for ; at < len(cs); {
+		c := atOr(cs, at)
+		if c == "\\" {
+			at = at + 2
+			continue
+		}
+		if c == "`" {
+			run := runOf(cs, at, "`")
+			close := closingTicks(cs, at + run, run)
+			if close >= 0 {
+				at = close + run
+			} else {
+				at = at + run
+			}
+			continue
+		}
+		if c == "[" {
+			depth = depth + 1
+		}
+		if c == "]" {
+			if depth == 0 {
+				if atOr(cs, at + 1) == "(" {
+					return at
+				}
+				return -1
+			}
+			depth = depth - 1
+		}
+		at = at + 1
+	}
+	return -1
+}
+
+// The `)` that closes a link's target, or -1. Parentheses inside nest, so a
+// target such as `Hive_(language)` keeps its last one.
+func closingParen(cs: Str[], from: Int): Int {
+	mut depth := 0
+	for at := from; at < len(cs); at++ {
+		c := atOr(cs, at)
+		if c == "(" {
+			depth = depth + 1
+		}
+		if c == ")" {
+			if depth == 0 {
+				return at
+			}
+			depth = depth - 1
+		}
+	}
+	return -1
+}
+
+// A code span's text: one space just inside each end is padding, dropped, so
+// `` `x` `` can hold a backtick.
+func codeText(cs: Str[], low: Int, high: Int): Str {
+	text := slice(cs, low, high)
+	if len(text) >= 2 && atOr(cs, low) == " " && atOr(cs, high) == " " {
+		return slice(cs, low + 1, high - 1)
+	}
+	return text
+}
+
+// The characters from `low` to `high`, both included, or "" when that is none.
+func slice(cs: Str[], low: Int, high: Int): Str {
+	if low <= high && cs bounds low && cs bounds high {
+		return join(cs[low:high], "")
+	}
+	return ""
+}
+
+func atOr(cs: Str[], i: Int): Str {
+	if cs bounds i {
+		return cs[i]
+	}
+	return ""
+}
+
+func isPunctuation(c: Str): Bool {
+	if c == "" {
+		return false
+	}
+	return indexOf("\\`*_[]()#+-.!>\{}", c) is Result.Ok(_)
+}
+
+func startsWith(s: Str, prefix: Str): Bool {
+	return indexOf(s, prefix) is Result.Ok(0)
+}
+
+// A line without the spaces and tabs at either end.
+func trim(s: Str): Str {
+	cs := split(s, "")
+	mut low := 0
+	mut high := len(cs) - 1
+	for ; low <= high && isSpace(atOr(cs, low)); {
+		low = low + 1
+	}
+	for ; high >= low && isSpace(atOr(cs, high)); {
+		high = high - 1
+	}
+	return slice(cs, low, high)
+}
+
+func isSpace(c: Str): Bool {
+	return c == " " || c == "\t"
+}
+
+func escapeChar(c: Str): Str {
+	if c == "&" { return "&amp;" }
+	else if c == "<" { return "&lt;" }
+	else if c == ">" { return "&gt;" }
+	return c
+}
+
+func escape(s: Str): Str {
+	return join(map(split(s, ""), escapeChar), "")
+}
+
+func escapeAttrChar(c: Str): Str {
+	if c == "\"" { return "&quot;" }
+	return escapeChar(c)
+}
+
+func escapeAttr(s: Str): Str {
+	return join(map(split(s, ""), escapeAttrChar), "")
+}

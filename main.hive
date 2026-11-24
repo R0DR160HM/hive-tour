@@ -7,46 +7,54 @@
 // does, because code is not prose. `handle` reads the slide number and the
 // chosen language out of the URL, `hive.net.httpServe` does the rest.
 //
-// This file is the server, and only the server. Twelve others hold the things
-// that are not it, each because a program is easier to read when the thing it
-// does and the material it does it to are not interleaved:
+// This file is the server, and only the server, and the only one of the
+// program's files at the top of the project. The tests are under tests/, each
+// file of them a program of its own. A comment here that names a module as
+// ./theme means src/theme.hive; a comment in src/ means the file beside it, as
+// its import does. Fourteen files under src/ hold the things that are not the
+// server, each because a program is easier to read when the thing it does and
+// the material it does it to are not interleaved:
 //
-//   ./slides     the tour itself, seventy-five slides of it in two languages,
-//                and the two types that hold one. Four fifths of the whole
-//                program by weight, and none of it about HTTP.
-//   ./home       what the front page says: the case for the language, made to
-//                somebody deciding whether to use it, in the same two
-//                languages and with samples held to the same rule.
-//   ./logo       the mark, as the paths of an SVG. A drawing is not prose,
-//                and a page of path coordinates in the middle of some would
-//                read as neither.
-//   ./icon       the same mark as pixels, in the three raster shapes a
-//                search engine, a browser, and an iOS home screen or a
-//                pasted link respectively want. It exists because neither
-//                Google Search nor any link unfurler will read the SVG the
-//                other two files are perfectly happy with.
-//   ./theme      how it all looks: the one stylesheet this program writes,
-//                layered over the one `ui.page` writes for itself.
-//   ./fonts      the three typefaces it is set in, carried in the binary so
-//                nothing on a page is fetched from anywhere but here.
-//   ./rail       railroad diagrams — a grammar rule drawn as track — drawn
-//                with `hive.ui`'s own canvas, and the line of the tour
-//                drawn in the same notation across the top of a slide.
-//   ./chart      the symbol on each slide's tile, for the chart the contents
-//                page is and the front page ends on.
-//   ./grammar    the rules of Hive's grammar it draws, copied from the spec,
-//                and which slide teaches which.
-//   ./highlight  a Hive lexer, for painting the samples in ./slides. It is
-//                here rather than in a script tag because the home page
-//                claims there is no framework underneath this site, and that
-//                claim is worth more than the eight lines it saves.
-//   ./play       the playground: which samples can run in a reader's
-//                browser, what to say about one that cannot, and the one
-//                script this site ships, which runs them there. It says
-//                why there is a script at all.
-//   ./compile.go the build behind the playground's Run button — the one
-//                file not written in Hive, because it has to be able to give
-//                up on a build, and Hive cannot stop a program it started.
+//   src/slides    the tour itself, seventy-five slides of it in two languages,
+//                  and the two types that hold one. Four fifths of the whole
+//                  program by weight, and none of it about HTTP.
+//   src/home       what the front page says: the case for the language, made to
+//                  somebody deciding whether to use it, in the same two
+//                  languages and with samples held to the same rule.
+//   src/logo       the mark, as the paths of an SVG. A drawing is not prose,
+//                  and a page of path coordinates in the middle of some would
+//                  read as neither.
+//   src/icon       the same mark as pixels, in the three raster shapes a
+//                  search engine, a browser, and an iOS home screen or a
+//                  pasted link respectively want. It exists because neither
+//                  Google Search nor any link unfurler will read the SVG the
+//                  other two files are perfectly happy with.
+//   src/theme      how it all looks: the one stylesheet this program writes,
+//                  layered over the one `ui.page` writes for itself.
+//   src/fonts      the three typefaces it is set in, carried in the binary so
+//                  nothing on a page is fetched from anywhere but here.
+//   src/rail       railroad diagrams — a grammar rule drawn as track — drawn
+//                  with `hive.ui`'s own canvas, and the line of the tour
+//                  drawn in the same notation across the top of a slide.
+//   src/chart      the symbol on each slide's tile, for the chart the contents
+//                  page is and the front page ends on.
+//   src/grammar    the rules of Hive's grammar it draws, copied from the spec,
+//                  and which slide teaches which.
+//   src/highlight  a Hive lexer, for painting the samples in ./slides. It is
+//                  here rather than in a script tag because the home page
+//                  claims there is no framework underneath this site, and that
+//                  claim is worth more than the eight lines it saves.
+//   src/play       the playground: which samples can run in a reader's
+//                  browser, what to say about one that cannot, and the one
+//                  script this site ships, which runs them there. It says
+//                  why there is a script at all.
+//   src/compile.go the build behind the playground's Run button — the one
+//                  file not written in Hive, because it has to be able to give
+//                  up on a build, and Hive cannot stop a program it started.
+//   src/blog       the blog's posts: which there are, and each one read out of
+//                  the Markdown files under assets/blog/ that the build puts
+//                  inside the executable.
+//   src/markdown   the Markdown those posts are written in, turned into HTML.
 //
 // The interface is built with `hive.ui`: the running head, the track, the
 // headings, the columns, the links and the diagrams are all `View`s, rendered
@@ -67,25 +75,30 @@
 // are, so a slide added there is a slide a crawler is told about, and there
 // is no second list anywhere to forget to update.
 import hive.ui
-import ./logo
-import ./chart
-import ./compile.go
-import ./fonts
-import ./grammar
-import ./highlight
-import ./home
-import ./icon
-import ./play
-import ./rail
-import ./shots
-import ./slides
-import ./theme
+import ./src/logo
+import ./src/blog
+import ./src/chart
+import ./src/compile.go
+import ./src/fonts
+import ./src/grammar
+import ./src/highlight
+import ./src/home
+import ./src/icon
+import ./src/markdown
+import ./src/play
+import ./src/rail
+import ./src/shots
+import ./src/slides
+import ./src/theme
 
 // What a page says about itself before anybody has read a word of it: the
 // title in the tab, the sentence a search result prints under it, the URL
 // that is the real one when several point at the same page, and where the
 // other language's version of it lives. Every page this server sends fills
 // one of these in, and `document` turns it into the tags that carry it.
+//
+// `published` is the day a blog post went up, as 2026-11-19, and "" on every
+// page that is not one.
 type PageHead {
 	title:       Str
 	description: Str
@@ -94,6 +107,7 @@ type PageHead {
 	indexable:   Bool
 	prev:        Str
 	next:        Str
+	published:   Str
 }
 
 // `httpServe` binds `:8080` — every interface, not just the loopback — which
@@ -206,6 +220,17 @@ proc route(url: Str): hive.net.HttpResponse {
 		return contentsResponse(lang)
 	}
 
+	// The blog: its index, and a post by its slug. A slug the blog does not
+	// have falls through to the 404 at the end like any other path.
+	if path == "/blog" {
+		return blogResponse(lang)
+	}
+	if path is "/blog/{slug}" {
+		if blog.find(slug, lang) is Result.Ok(post) {
+			return postResponse(post, lang)
+		}
+	}
+
 	if path == "/robots.txt" {
 		return robotsResponse()
 	}
@@ -214,17 +239,79 @@ proc route(url: Str): hive.net.HttpResponse {
 	}
 
 	all := slides.all()
+	if path is "/tour/{slug}" {
+		if slideBySlug(all, slug) is Result.Ok(idx) {
+			if all bounds idx {
+				return renderSlide(all[idx], idx, all, lang)
+			}
+		}
+	}
+	// The numbered addresses slides had before they were named, kept working
+	// for every link already out there.
 	if path is "/{n}" {
-		parsed := hive.conv.sti(n)
-		if parsed is Result.Ok(num) {
+		if hive.conv.sti(n) is Result.Ok(num) {
 			idx := num - 1
 			if all bounds idx {
-				slide := all[idx]
-				return renderSlide(slide, idx, all, lang)
+				return movedResponse(href(slidePath(all[idx]), lang))
 			}
 		}
 	}
 	return notFoundResponse(lang, path)
+}
+
+// Where a slide lives: its English title as an address, so a link to it
+// keeps working when slides are added or moved around it.
+func slidePath(slide: slides.Slide): Str {
+	return "/tour/" + slideSlug(slide.title)
+}
+
+// A title as it is written in an address: lower case, and every run of
+// anything but a letter or a digit one hyphen.
+func slideSlug(title: Str): Str {
+	upper := split("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "")
+	lower := split("abcdefghijklmnopqrstuvwxyz", "")
+	mut out := ""
+	mut gap := false
+	for each c in split(title, "") {
+		mut letter := c
+		if indexOf(upper, c) is Result.Ok(at) && lower bounds at {
+			letter = lower[at]
+		}
+		if (letter >= "a" && letter <= "z") || (letter >= "0" && letter <= "9") {
+			if gap && out != "" {
+				out = out + "-"
+			}
+			out = out + letter
+			gap = false
+		} else {
+			gap = true
+		}
+	}
+	return out
+}
+
+// The tour's first slide, where every way in starts.
+func firstSlidePath(): Str {
+	all := slides.all()
+	if all bounds 0 {
+		return slidePath(all[0])
+	}
+	return "/contents"
+}
+
+func slideBySlug(all: slides.Slide[], slug: Str): Result<Int, Bool> {
+	mut i := 0
+	for each slide in all {
+		if slideSlug(slide.title) == slug {
+			return Result.Ok(i)
+		}
+		i = i + 1
+	}
+	return Result.Error(false)
+}
+
+func movedResponse(to: Str): hive.net.HttpResponse {
+	return hive.net.HttpResponse(301, [["Location", to], ["Cache-Control", "public, max-age=86400"]], "")
 }
 
 // ---------------------------------------------------------------------------
@@ -426,6 +513,9 @@ func headTags(head: PageHead): Str {
 	if head.next != "" {
 		append(tags, linkTag("next", absoluteUrl(head.next, head.lang)))
 	}
+	if head.published != "" {
+		append(tags, propertyTag("article:published_time", head.published))
+	}
 
 	append(tags, structuredDataTag(head))
 	return join(tags, "")
@@ -507,10 +597,10 @@ func openGraphLocale(lang: Str): Str {
 	return "en_US"
 }
 
-// Open Graph's own word for what a page is. The home screen is the site;
-// every slide is a piece of writing on it.
+// Open Graph's own word for what a page is. The home screen and the blog's
+// index are the site; every slide and every post is a piece of writing on it.
 func openGraphType(head: PageHead): Str {
-	if head.path == "/" { return "website" }
+	if head.path == "/" || head.path == "/blog" { return "website" }
 	return "article"
 }
 
@@ -565,6 +655,25 @@ func structuredData(head: PageHead): Str {
 			+ jsonText(head.description) + ",\"inLanguage\":"
 			+ jsonText(htmlLang(head.lang)) + ",\"about\":" + language + "}"
 	}
+
+	// The blog is a `Blog`, and a post on it a `BlogPosting`, which is the
+	// shape that carries the day it went up and who wrote it.
+	if head.path == "/blog" {
+		return "\{\"@context\":\"https://schema.org\",\"@type\":\"Blog\",\"name\":"
+			+ jsonText(head.title) + ",\"description\":" + jsonText(head.description)
+			+ ",\"url\":" + jsonText(absoluteUrl(head.path, head.lang)) + ",\"inLanguage\":"
+			+ jsonText(htmlLang(head.lang)) + ",\"isPartOf\":" + site
+			+ ",\"about\":" + language + "}"
+	}
+	if head.published != "" {
+		author := blog.authorOf(replaceFirst(head.path, "/blog/", ""))
+		return "\{\"@context\":\"https://schema.org\",\"@type\":\"BlogPosting\",\"headline\":"
+			+ jsonText(head.title) + ",\"description\":" + jsonText(head.description)
+			+ ",\"url\":" + jsonText(absoluteUrl(head.path, head.lang)) + ",\"inLanguage\":"
+			+ jsonText(htmlLang(head.lang)) + ",\"datePublished\":" + jsonText(head.published)
+			+ ",\"author\":\{\"@type\":\"Person\",\"name\":" + jsonText(author.name) + ",\"url\":" + jsonText(author.url) + "}"
+			+ ",\"isPartOf\":" + site + ",\"about\":" + language + ",\"isAccessibleForFree\":true}"
+	}
 	return "\{\"@context\":\"https://schema.org\",\"@type\":\"TechArticle\",\"headline\":"
 		+ jsonText(head.title) + ",\"description\":" + jsonText(head.description)
 		+ ",\"url\":" + jsonText(absoluteUrl(head.path, head.lang)) + ",\"inLanguage\":"
@@ -606,8 +715,16 @@ func sitemapResponse(): hive.net.HttpResponse {
 		sitemapEntry("/contents", "en"), sitemapEntry("/contents", "pt"),
 	]
 	for i := 0; i < len(all); i++ {
-		append(entries, sitemapEntry("/{i + 1}", "en"))
-		append(entries, sitemapEntry("/{i + 1}", "pt"))
+		if all bounds i {
+			append(entries, sitemapEntry(slidePath(all[i]), "en"))
+			append(entries, sitemapEntry(slidePath(all[i]), "pt"))
+		}
+	}
+	append(entries, sitemapEntry("/blog", "en"))
+	append(entries, sitemapEntry("/blog", "pt"))
+	for each post in blog.all("en") {
+		append(entries, sitemapEntry("/blog/" + post.slug, "en"))
+		append(entries, sitemapEntry("/blog/" + post.slug, "pt"))
 	}
 	body := "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 		+ "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\""
@@ -843,15 +960,17 @@ proc loaderResponse(): hive.net.HttpResponse {
 // tiles are: a colour that changes with the scheme cannot be an inline one.
 func renderSlide(slide: slides.Slide, idx: Int, all: slides.Slide[], lang: Str): hive.net.HttpResponse {
 	total := len(all)
-	path := "/{idx + 1}"
+	path := slidePath(slide)
 
 	// Where a reader — and a crawler — goes from here. Empty at either end
 	// of the tour, which is what says there is no such page rather than
 	// pointing at one that isn't there.
 	mut previous := ""
-	if idx > 0 { previous = "/{idx}" }
+	before := idx - 1
+	if all bounds before { previous = slidePath(all[before]) }
 	mut following := ""
-	if idx + 1 < total { following = "/{idx + 2}" }
+	after := idx + 1
+	if all bounds after { following = slidePath(all[after]) }
 
 	head := PageHead(
 		title: slideTitle(slide, lang) + pageTitleSuffix(lang),
@@ -861,49 +980,44 @@ func renderSlide(slide: slides.Slide, idx: Int, all: slides.Slide[], lang: Str):
 		indexable: true,
 		prev: previous,
 		next: following,
+		published: "",
 	)
 	part := chapterOf(idx)
 	title := ui.row([], [
 		tileView(idx, slide.title, chapterTitle(part, lang)),
 		ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], slideTitle(slide, lang)),
 	])
-	body := ui.row([], [
-		ui.column([], [holeView("TEXT", 1)] + downloadViews(slide, lang)),
-		ui.column([], shotView(slide, lang) + [holeView("CODE", 1)]),
-	])
-	mut text := fill(ui.html(body), "TEXT", 1, proseHtml(slideExplanation(slide, lang)))
-	text = fill(text, "CODE", 1, examplesHtml(slide.examples, lang, true))
+	text := fill(ui.html(ui.column([], [holeView("TEXT", 1)] + downloadViews(slide, lang))),
+		"TEXT", 1, proseHtml(slideExplanation(slide, lang)))
+	mut shot := ""
+	for each view in shotView(slide, lang) {
+		shot = shot + ui.html(view)
+	}
 
-	inner := ui.html(trackView(idx, total, lang))
+	// The explanation on the left, read down the page, and the programs on the
+	// right, held in view beside it: the shape of a language's own tour, where
+	// the code is the other half of the page rather than something under the
+	// text.
+	left := progressHtml(idx, total, lang)
 		+ "<div class=\"tour-head f{part}\">" + ui.html(title) + "</div>"
 		+ rulesHtml(grammar.forSlide(slide.title), lang)
 		+ text
 		+ ui.html(pagerView(idx, all, lang))
+	right := "<div class=\"tour-programs\">" + shot + examplesHtml(slide.examples, lang, true) + "</div>"
+		+ consoleHtml(slide.examples, lang)
+	inner := "<div class=\"tour-split\"><div class=\"tour-left\">" + left + "</div>"
+		+ "<div class=\"tour-right\">" + right + "</div></div>"
 		+ playScriptTag(slide.examples, lang)
-	mut name := "tour-slide"
-	if widest(slide.examples, lang) > 84 {
-		name = "tour-slide tour-wide"
-	}
-	return framed(head, lang, path, name, inner, 200)
+	return framed(head, lang, path, "tour-slide", inner, 200)
 }
 
-// The widest line among a slide's programs, in columns, with a tab counted as
-// the four ./theme sets it at.
-func widest(examples: slides.Example[], lang: Str): Int {
-	mut most := 0
-	for each ex in examples {
-		mut code := ex.code
-		if lang == "pt" {
-			code = ex.codePt
-		}
-		for each line in split(code, "\n") {
-			wide := len(line) + 3 * (len(split(line, "\t")) - 1)
-			if wide > most {
-				most = wide
-			}
-		}
-	}
-	return most
+// Where this slide is: its chapter, how far along the tour it is, and a thin
+// line filled as far as that.
+func progressHtml(idx: Int, total: Int, lang: Str): Str {
+	done := (idx + 1) * 1000 / total
+	return "<div class=\"tour-progress\"><div><span>" + escapeHtml(chapterTitle(chapterOf(idx), lang)) + "</span>"
+		+ "<span>" + escapeHtml(slideProgress(idx, total, lang)) + "</span></div>"
+		+ "<div class=\"tour-bar\" aria-hidden=\"true\"><i style=\"width:{done / 10}.{done % 10}%\"></i></div></div>"
 }
 
 // Which chapter a slide is in, counted from one, which is the number its
@@ -1014,16 +1128,17 @@ func homeResponse(lang: Str): hive.net.HttpResponse {
 		reasonsView(lang),
 		fitView(lang),
 		pointView(points[0], 1, [holeView("CODE", 1)], all, lang),
-		pointView(points[1], 2, [targetsView(lang)], all, lang),
+		pointView(points[1], 2, [holeView("CODE", 2)], all, lang),
 		pointView(points[2], 3, [holeView("CODE", 3)], all, lang),
-		pointView(points[3], 4, [entriesView(home.modulesLabel(lang), home.modules(), lang)], all, lang),
-		pointView(points[4], 5, [entriesView(home.commandsLabel(lang), home.commands(), lang)], all, lang),
+		pointView(points[3], 4, [targetsView(lang)], all, lang),
+		pointView(points[4], 5, [entriesView(home.modulesLabel(lang), home.modules(), lang)], all, lang),
+		pointView(points[5], 6, [entriesView(home.commandsLabel(lang), home.commands(), lang)], all, lang),
 		proofView(home.proof(), proofNumber, all, lang),
 		closingView(lang, len(all), proofNumber + 1),
 	])
 
 	mut inner := fill(ui.html(view), "CODE", 0, examplesHtml(home.hero(), lang, false))
-	inner = fill(inner, "CHART", 1, chartHtml(all, lang, 3))
+	inner = fill(inner, "CHART", 1, tocHtml(all, lang, 3))
 	for i := 0; i < len(points); i++ {
 		inner = fill(inner, "TEXT", i + 1, proseHtml(inLang(lang, points[i].text, points[i].textPt)))
 		inner = fill(inner, "CODE", i + 1, examplesHtml(points[i].examples, lang, false))
@@ -1042,7 +1157,8 @@ func homeResponse(lang: Str): hive.net.HttpResponse {
 		lang: lang,
 		indexable: true,
 		prev: "",
-		next: "/1",
+		next: firstSlidePath(),
+		published: "",
 	)
 	return framed(head, lang, "/", "tour-home", inner, 200)
 }
@@ -1079,7 +1195,7 @@ func heroView(lang: Str): ui.View {
 func actionsView(lang: Str): ui.View {
 	return ui.column([], [
 		ui.row([], [
-			ui.link([ui.background(ui.Tone.Good())], href("/1", lang), startTourLabel(lang)),
+			ui.link([ui.background(ui.Tone.Good())], href(firstSlidePath(), lang), startTourLabel(lang)),
 			ui.link([], href("/contents", lang), contentsLabel(lang)),
 		]),
 		ui.row([], [
@@ -1155,23 +1271,24 @@ func reasonsView(lang: Str): ui.View {
 }
 
 // Where each reason is argued: the section of the page it links to, by the
-// order ./home gives the reasons in. Secure defaults and batteries included
-// are one section, because the standard library is where the defaults are.
+// order ./home gives the reasons in.
 func reasonAnchor(i: Int): Str {
 	if i == 0 { return "reliability" }
-	if i == 1 { return "everywhere" }
+	if i == 1 { return "laws" }
 	if i == 2 { return "scale" }
-	if i == 3 || i == 4 { return "batteries" }
+	if i == 3 { return "everywhere" }
+	if i == 4 { return "batteries" }
 	return "learn"
 }
 
 // The name each section of the page answers to, by its place among them.
 func pointAnchor(n: Int): Str {
 	if n == 1 { return "reliability" }
-	if n == 2 { return "everywhere" }
+	if n == 2 { return "laws" }
 	if n == 3 { return "scale" }
-	if n == 4 { return "batteries" }
-	if n == 5 { return "tooling" }
+	if n == 4 { return "everywhere" }
+	if n == 5 { return "batteries" }
+	if n == 6 { return "tooling" }
 	return "learn"
 }
 
@@ -1207,7 +1324,7 @@ func claimsColumn(label: Str, claims: home.Claim[], icon: ui.Icon, tone: ui.Tone
 // and a figure beside all of it. The figure is whatever the caller hands in —
 // a hole a sample goes in, or a list — so a point that is about a program and
 // a point that is about everything around one are laid out as the same thing.
-func pointView(point: home.Point, n: Int, figure: ui.View[dyn], all: slides.Slide[], lang: Str): ui.View {
+func pointView(point: home.Point, n: Int, figure: ui.View[], all: slides.Slide[], lang: Str): ui.View {
 	return ui.row([], [
 		ui.column([], [
 			holeView("ANCHOR", n),
@@ -1249,14 +1366,14 @@ func readsView(n: Int, lang: Str): ui.View {
 // is about. The colour is the chapter's class, written by hand because a
 // colour that changes with the scheme cannot be an inline one. A title the
 // tour does not have is left out rather than linked to a 404, and
-// home.test.hive is what keeps that from ever happening quietly.
+// tests/home.test.hive is what keeps that from ever happening quietly.
 func readsHtml(titles: Str[], all: slides.Slide[], lang: Str): Str {
 	mut Str[dyn] items = []
 	for each title in titles {
 		if slideIndex(all, title) is Result.Ok(idx) {
 			if all bounds idx {
 				slide := all[idx]
-				link := ui.link([], href("/{idx + 1}", lang), "{idx + 1}. {slideTitle(slide, lang)}")
+				link := ui.link([], href(slidePath(slide), lang), "{idx + 1}. {slideTitle(slide, lang)}")
 				append(items, "<li class=\"f{chapterOf(idx)}\">" + ui.html(link) + "</li>")
 			}
 		}
@@ -1322,17 +1439,18 @@ func closingView(lang: Str, total: Int, n: Int): ui.View {
 func notFoundResponse(lang: Str, path: Str): hive.net.HttpResponse {
 	content := ui.column([], [
 		ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], "404"),
-		ui.text([ui.tone(ui.Tone.Muted())], notFoundText(lang)),
+		ui.text([ui.tone(ui.Tone.Muted())], notFoundText(lang, path)),
 		actionsView(lang),
 	])
 	head := PageHead(
 		title: notFoundPageTitle(lang),
-		description: notFoundText(lang),
+		description: notFoundText(lang, path),
 		path: path,
 		lang: lang,
 		indexable: false,
 		prev: "",
 		next: "",
+		published: "",
 	)
 	return framed(head, lang, path, "tour-lost", ui.html(content), 404)
 }
@@ -1363,6 +1481,7 @@ func runningHeadView(lang: Str, path: Str): ui.View {
 		ui.image([], "/favicon.svg", logoAlt(lang)),
 		ui.link([], href("/", lang), tourTitle(lang)),
 		ui.link([], href("/contents", lang), contentsLabel(lang)),
+		ui.link([], href("/blog", lang), blogLabel(lang)),
 		ui.spacer(),
 		ui.link([ui.hint(themeHint(lang, "dark"))], "/theme/dark" + href(path, lang), themeLabel(lang, "dark")),
 		ui.link([ui.hint(themeHint(lang, "light"))], "/theme/light" + href(path, lang), themeLabel(lang, "light")),
@@ -1370,31 +1489,11 @@ func runningHeadView(lang: Str, path: Str): ui.View {
 	])
 }
 
-// Where this slide is: the whole tour drawn as one line of track by ./rail,
-// with this slide's station in amber, and under it the chapter it belongs to
-// and its number. It is what the rail down the left was genuinely good at — a
-// glance that says there is a lot of this left, or nearly none — kept, and
-// given one line instead of a column.
-func trackView(idx: Int, total: Int, lang: Str): ui.View {
-	mut Int[dyn] lengths = []
-	for each part in slides.chapters() {
-		append(lengths, part.length)
-	}
-	return ui.column([], [
-		rail.journey(lengths, idx),
-		ui.row([], [
-			ui.text([ui.size(ui.TextSize.Caption())], chapterTitle(chapterOf(idx), lang)),
-			ui.spacer(),
-			ui.text([ui.size(ui.TextSize.Caption())], slideProgress(idx, total, lang)),
-		]),
-	])
-}
-
 // Every page in this program is the same two things stacked: the running head,
 // and then whatever that page is. It is one function because it is one shape,
 // and because a head is the kind of thing that is wrong the moment one page
 // has a slightly different one.
-func pageView(lang: Str, path: Str, body: ui.View[dyn]): ui.View {
+func pageView(lang: Str, path: Str, body: ui.View[]): ui.View {
 	return ui.column([], [runningHeadView(lang, path)] + body)
 }
 
@@ -1411,7 +1510,7 @@ func contentsResponse(lang: Str): hive.net.HttpResponse {
 		ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], contentsLabel(lang)),
 		ui.text([ui.tone(ui.Tone.Muted())], featuresCount(lang, total) + ". " + visitedHint(lang)),
 	])
-	inner := ui.html(intro) + chartHtml(all, lang, 2)
+	inner := ui.html(intro) + tocHtml(all, lang, 2)
 	head := PageHead(
 		title: contentsLabel(lang) + pageTitleSuffix(lang),
 		description: contentsDescription(lang),
@@ -1419,94 +1518,157 @@ func contentsResponse(lang: Str): hive.net.HttpResponse {
 		lang: lang,
 		indexable: true,
 		prev: "",
-		next: "/1",
+		next: firstSlidePath(),
+		published: "",
 	)
 	return framed(head, lang, "/contents", "tour-contents", inner, 200)
 }
 
-// The chart itself, as it stands on the contents page and at the foot of the
-// front page.
+// The blog: what has changed in Hive, and why, the newest post first. Each one
+// is the day it went up, its title as the way to it, and its abstract — the
+// paragraph it opens on — so a reader can tell from here which are worth the
+// click. ./blog says where the posts come from.
 //
-// It is laid out the way a periodic table is. Each chapter is a family, a
-// block of tiles one or two wide, in reading order down the block; the blocks
-// stand side by side in tour order, on one baseline, so their heights make a
-// skyline of the language. A chapter too long for the skyline is set apart
-// below it as rows of its own — the standard library, which is what the
-// lanthanides are to the elements — and a tile in the skyline marks where it
-// belongs. On a phone the blocks simply follow one another, each under its
-// name.
+// The list is written by hand round the views in it, as the chart is: a list
+// of posts is an `<ol>`, and a post's title is a heading that is a link, and
+// `hive.ui` has a widget for neither.
 //
-// Every tile is a link to its slide whose label is the slide's title, so a
-// screen reader reads the chart as seventy-five named links in order. The
-// number and the symbol are laid over the link by ./theme, and the colour is
-// the family's class, written here, because a colour that has to change with
-// the scheme cannot be an inline one. How many rows a family takes is worked
-// out from its length and written beside it, so a slide added to a chapter
-// changes the shape of the chart and nothing else has to.
-func chartHtml(all: slides.Slide[], lang: Str, level: Int): Str {
-	mut Str[dyn] families = []
-	mut Str[dyn] key = []
+// The page is laid out from whatever posts it is handed, so the test that
+// holds it to listing every one can hand it the posts off the disk: a test is
+// built with nothing embedded, and `blog.all` would hand it none.
+func blogResponse(lang: Str): hive.net.HttpResponse {
+	return blogPage(blog.all(lang), lang)
+}
+
+func blogPage(posts: blog.Post[], lang: Str): hive.net.HttpResponse {
+	all := slides.all()
+	intro := ui.column([], [
+		ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], blogLabel(lang)),
+	])
+	mut Str[dyn] entries = []
+	for each post in posts {
+		append(entries, postEntryHtml(post, all, lang))
+	}
+	mut list := "<ol class=\"posts\">" + join(entries, "") + "</ol>"
+	if len(entries) == 0 {
+		list = ui.html(ui.text([], noPostsText(lang)))
+	}
+	head := PageHead(
+		title: blogLabel(lang) + pageTitleSuffix(lang),
+		description: blogDescription(lang),
+		path: "/blog",
+		lang: lang,
+		indexable: true,
+		prev: "",
+		next: "",
+		published: "",
+	)
+	return framed(head, lang, "/blog", "tour-blog", ui.html(intro) + list, 200)
+}
+
+func postEntryHtml(post: blog.Post, all: slides.Slide[], lang: Str): Str {
+	title := ui.link([], href("/blog/" + post.slug, lang), post.title)
+	return "<li><article>" + dateHtml(post.date, lang)
+		+ "<h2>" + ui.html(title) + "</h2>"
+		+ "<p>" + markdown.inline(post.abstract, postLink(_, all, lang)) + "</p>"
+		+ "</article></li>"
+}
+
+// One post: the day it went up and its title, the post in one column as wide
+// as a line of a book, and then the ways on. The tour comes first among them,
+// in the amber the way on is always in, because whatever a post says about
+// the language the tour teaches in full; the rest of the blog is beside it.
+//
+// The way on is a row of its own rather than `actionsView`, whose second line
+// would be a third and fourth link the foot of a post has no use for.
+func postResponse(post: blog.Post, lang: Str): hive.net.HttpResponse {
+	all := slides.all()
+	path := "/blog/" + post.slug
+	title := ui.text([ui.size(ui.TextSize.Title()), ui.heading(1)], post.title)
+	ways := ui.row([], [
+		ui.link([ui.background(ui.Tone.Good())], href(firstSlidePath(), lang), startTourLabel(lang)),
+		ui.link([], href("/blog", lang), allPostsLabel(lang)),
+	])
+	inner := "<article><header>" + bylineHtml(post, lang) + ui.html(title) + "</header>"
+		+ "<div class=\"tour-text\">" + markdown.html(post.body, postLink(_, all, lang)) + "</div>"
+		+ "<footer>" + ui.html(ways) + "</footer></article>"
+	head := PageHead(
+		title: post.title + pageTitleSuffix(lang),
+		description: summarise(markdown.plain(post.abstract), 155),
+		path: path,
+		lang: lang,
+		indexable: true,
+		prev: "",
+		next: "",
+		published: post.date,
+	)
+	return framed(head, lang, path, "tour-post", inner, 200)
+}
+
+// The head of a post: the day it went up, and who wrote it, linked.
+func bylineHtml(post: blog.Post, lang: Str): Str {
+	author := blog.authorOf(post.slug)
+	return "<p class=\"post-date\"><time datetime=\"" + escapeAttr(post.date) + "\">"
+		+ escapeHtml(blog.longDate(post.date, lang)) + "</time> · <a rel=\"author\" href=\""
+		+ escapeAttr(author.url) + "\">" + escapeHtml(author.name) + "</a></p>"
+}
+
+// The day a post went up, as a reader says it and as a machine reads it.
+func dateHtml(date: Str, lang: Str): Str {
+	return "<p class=\"post-date\"><time datetime=\"" + escapeAttr(date) + "\">"
+		+ escapeHtml(blog.longDate(date, lang)) + "</time></p>"
+}
+
+// Where a link in a post goes.
+//
+// `tour:` and a slide's English title is that slide, wherever the tour has it
+// now. It is how the front page names its slides too, and for the same reason:
+// a slide added ahead of it would otherwise send a post written today to the
+// wrong slide tomorrow. A title the tour does not have is no link at all, and
+// tests/blog.test.hive fails the build on one. A path on this site keeps the
+// reader's language, and anything else goes where it says.
+func postLink(target: Str, all: slides.Slide[], lang: Str): Str {
+	if target is "tour:{title}" {
+		if slideIndex(all, title) is Result.Ok(idx) && all bounds idx {
+			return href(slidePath(all[idx]), lang)
+		}
+		return ""
+	}
+	if indexOf(target, "/") is Result.Ok(0) && indexOf(target, "//") is Result.Error(_) {
+		if target is "{page}#{fragment}" {
+			return href(page, lang) + "#" + fragment
+		}
+		return href(target, lang)
+	}
+	return target
+}
+
+// The whole tour as a table of contents, on the contents page and at the foot
+// of the front page: each chapter under its name, with its colour as a small
+// square beside it, and its slides numbered in order. A slide already read
+// is the browser's own `:visited`, so nothing is stored and no script runs.
+// Written by hand round the views, as the blog's list is: a list of slides is
+// an `<ol>`, and `hive.ui` has no widget for one.
+func tocHtml(all: slides.Slide[], lang: Str, level: Int): Str {
+	mut Str[dyn] parts = []
 	mut index := 0
 	mut part := 0
-	apart := apartChapter()
 	for each chapter in slides.chapters() {
 		part += 1
 		name := inLang(lang, chapter.title, chapter.titlePt)
-		long := part == apart
-		mut wide := 1
-		if chapter.length > 5 { wide = 2 }
-		if long { wide = 11 }
-		rows := (chapter.length + wide - 1) / wide
-
-		mut Str[dyn] tiles = []
-		first := index + 1
+		mut Str[dyn] items = []
 		for j := 0; j < chapter.length; j++ {
 			if all bounds index {
 				slide := all[index]
-				tiles = tiles + [ui.html(chartTileView(index, slide, lang))]
+				append(items, "<li><a href=\"" + escapeAttr(href(slidePath(slide), lang)) + "\"><span>{index + 1}</span>"
+					+ escapeHtml(slideTitle(slide, lang)) + "</a></li>")
 			}
 			index += 1
 		}
-		if long {
-			append(families, "<div class=\"fam-gap f{part}\" aria-hidden=\"true\"><span>{first}–{index}</span></div>")
-		}
-		mut kind := "fam"
-		if long { kind = "fam fam-long" }
-		append(families, "<section class=\"" + kind + " f{part}\" style=\"--rows:{rows};--wide:{wide}\">"
-			+ ui.html(ui.text([ui.heading(level)], name))
-			+ "<div class=\"fam-tiles\">" + join(tiles, "") + "</div></section>")
-		append(key, "<li class=\"f{part}\">" + escapeHtml(name) + "</li>")
+		append(parts, "<section class=\"toc-part f{part}\"><h{level}>" + escapeHtml(name) + "</h{level}><ol>"
+			+ join(items, "") + "</ol></section>")
 	}
-	return "<div class=\"chart\"><div class=\"chart-sky\" style=\"--fams:{part}\">" + join(families, "") + "</div>"
-		+ "<ul class=\"chart-key\">" + join(key, "") + "</ul></div>"
-}
-
-// Which chapter the chart sets apart under its skyline, counted from one: the
-// longest, when it is too long to stand in the skyline — more than eight rows
-// of two — and none, as nought, when none is. Never more than one, because
-// ./theme has one place under the skyline to put it, and a second chapter
-// sent there is drawn over by the first rather than beside it.
-func apartChapter(): Int {
-	mut longest := 0
-	mut size := 0
-	mut part := 0
-	for each chapter in slides.chapters() {
-		part += 1
-		if chapter.length > size {
-			longest = part
-			size = chapter.length
-		}
-	}
-	if size > 16 { return longest }
-	return 0
-}
-
-func chartTileView(idx: Int, slide: slides.Slide, lang: Str): ui.View {
-	return ui.column([], [
-		ui.link([], href("/{idx + 1}", lang), slideTitle(slide, lang)),
-		ui.text([], "{idx + 1}"),
-		symbolView(chart.symbol(slide.title)),
-	])
+	return "<div class=\"toc\">" + join(parts, "") + "</div>"
 }
 
 func languageSwitcherView(lang: Str, path: Str): ui.View {
@@ -1563,11 +1725,11 @@ func pagerView(idx: Int, all: slides.Slide[], lang: Str): ui.View {
 	after := idx + 1
 	mut back := ui.link([], href("/", lang), tourTitle(lang))
 	if all bounds before {
-		back = ui.link([], href("/{idx}", lang), "{idx}. {slideTitle(all[before], lang)}")
+		back = ui.link([], href(slidePath(all[before]), lang), "{idx}. {slideTitle(all[before], lang)}")
 	}
 	mut on := ui.link([], href("/contents", lang), contentsLabel(lang))
 	if all bounds after {
-		on = ui.link([], href("/{idx + 2}", lang), "{idx + 2}. {slideTitle(all[after], lang)}")
+		on = ui.link([], href(slidePath(all[after]), lang), "{idx + 2}. {slideTitle(all[after], lang)}")
 	}
 	return ui.row([], [back, ui.spacer(), on])
 }
@@ -1693,7 +1855,28 @@ func runHtml(lang: Str, n: Int): Str {
 		+ "<button type=\"button\" class=\"tour-run-reset\" hidden>" + escapeHtml(resetLabel(lang)) + "</button>"
 		+ "<span class=\"tour-run-state\" role=\"status\">" + escapeHtml(editHint(lang)) + "</span>"
 		+ "<span class=\"tour-run-keys\" id=\"tour-keys-{n}\">" + escapeHtml(keysHint(lang)) + "</span>"
-		+ "</div><div class=\"tour-output\" hidden><div class=\"tour-caption\"></div><pre></pre></div>"
+		+ "</div>"
+}
+
+// The one place a slide's programs print to, docked under them, on a slide
+// with anything to run. Written hidden, like the controls, and uncovered by
+// the script as the page loads, so it is there before anything has run.
+func consoleHtml(examples: slides.Example[], lang: Str): Str {
+	if playScriptTag(examples, lang) == "" {
+		return ""
+	}
+	return "<div class=\"tour-console\" hidden aria-live=\"polite\"><div class=\"tour-caption\">"
+		+ escapeHtml(consoleLabel(lang)) + "</div><pre>" + escapeHtml(consoleEmpty(lang)) + "</pre></div>"
+}
+
+func consoleLabel(lang: Str): Str {
+	if lang == "pt" { return "Saída" }
+	return "Output"
+}
+
+func consoleEmpty(lang: Str): Str {
+	if lang == "pt" { return "Rode um programa para ver aqui o que ele imprime." }
+	return "Run a program to see what it prints here."
 }
 
 func dataAttr(name: Str, value: Str): Str {
@@ -1976,6 +2159,29 @@ func contentsLabel(lang: Str): Str {
 	return "Contents"
 }
 
+// What the blog is called, in the running head, on its page, and in the tab:
+// the same word in both languages, and in all three places.
+func blogLabel(lang: Str): Str {
+	return "Blog"
+}
+
+func blogDescription(lang: Str): Str {
+	if lang == "pt" {
+		return "Notas sobre o Hive conforme ele muda: o que cada versão traz, e por quê."
+	}
+	return "Notes on Hive as it changes: what each release brings, and why."
+}
+
+func allPostsLabel(lang: Str): Str {
+	if lang == "pt" { return "Todos os posts" }
+	return "All posts"
+}
+
+func noPostsText(lang: Str): Str {
+	if lang == "pt" { return "Ainda não há nada aqui." }
+	return "There is nothing here yet."
+}
+
 func contentsDescription(lang: Str): Str {
 	if lang == "pt" {
 		return "Todos os recursos do tour da linguagem Hive, em ordem, cada um em uma página."
@@ -2117,8 +2323,8 @@ func featuresCount(lang: Str, n: Int): Str {
 // What the contents says about the tiles it shows in a deeper shade. It is
 // said once, here, rather than left for a reader to work out from the picture.
 func visitedHint(lang: Str): Str {
-	if lang == "pt" { return "Os que você já leu aparecem em um tom mais forte." }
-	return "The ones you have read are shown in a deeper shade."
+	if lang == "pt" { return "Os que você já leu aparecem em cinza." }
+	return "The ones you have read are shown in grey."
 }
 
 // The switch to each scheme, as it reads in the running head, and the line
@@ -2190,7 +2396,12 @@ func shotCaption(lang: Str): Str {
 	return "Drawn by hive.ui, in a window"
 }
 
-func notFoundText(lang: Str): Str {
+// What is not there: a post, under the blog, and a slide anywhere else.
+func notFoundText(lang: Str, path: Str): Str {
+	if indexOf(path, "/blog/") is Result.Ok(0) {
+		if lang == "pt" { return "Esse post não existe." }
+		return "That post does not exist."
+	}
 	if lang == "pt" { return "Esse slide não existe." }
 	return "That slide does not exist."
 }

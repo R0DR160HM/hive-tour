@@ -28,8 +28,8 @@
 //
 // A point names the slides that say the rest by their English titles rather
 // than by number, because a number moves every time a slide is added in front
-// of it, and a title does not. home.test.hive holds every one of them to being
-// a title the tour really has.
+// of it, and a title does not. tests/home.test.hive holds every one of them
+// to being a title the tour really has.
 import ./slides
 
 // A short statement and the sentence that backs it up: one of the six reasons
@@ -74,16 +74,16 @@ type Target {
 
 func lede(lang: Str): Str {
 	if lang == "pt" {
-		return "Uma linguagem compilada sem exceções durante a execução e com leis que o compilador prova, feita para sistemas distribuídos, que roda em qualquer lugar e é pequena o bastante para se aprender em um dia."
+		return "Uma linguagem compilada para sistemas distribuídos, em que falhas viram erros de compilação e o compilador prova as regras que você escreve sobre o seu código. Pequena o bastante para aprender em um dia."
 	}
-	return "A compiled language with no runtime exceptions and laws the compiler proves, built for distributed systems, that runs anywhere and is small enough to learn in a day."
+	return "A compiled language for distributed systems, where crashes are compile errors and the compiler proves the rules you write about your code. Small enough to learn in a day."
 }
 
 func intro(lang: Str): Str {
 	if lang == "pt" {
-		return "No Hive, os erros que outras linguagens deixam para a produção viram erros de compilação: não existe null, nada é lançado, e todo índice é verificado. Você também escreve leis sobre o seu código, os seus tipos e as suas tabelas, e o compilador as prova para todo valor possível. HTTP, SQL, JSON, criptografia, UI e serviços entre máquinas já vêm com a linguagem, e o mesmo código roda no Windows, Linux, macOS, navegador e Android."
+		return "O Hive não tem null, não lança exceções e não deixa nenhum índice sem verificação, então o que falharia em produção não compila. Você também pode escrever leis, regras sobre as suas funções, os seus tipos e as suas tabelas, e o compilador as prova para todo valor possível. HTTP, SQL, JSON, criptografia, uma biblioteca de UI e chamadas entre máquinas já vêm com a linguagem, e o mesmo código roda no Windows, Linux, macOS, Android e no navegador."
 	}
-	return "In Hive, the mistakes other languages leave for production are compile errors: there is no null, nothing is thrown, and every index is checked. You can also write laws about your code, your types and your tables, and the compiler proves them for every possible value. HTTP, SQL, JSON, cryptography, a UI and services across machines come with the language, and the same code runs on Windows, Linux, macOS, the browser and Android."
+	return "Hive has no null, no thrown exceptions and no unchecked index, so what would crash in production fails to compile instead. You can also write laws, rules about your functions, types and database tables, and the compiler proves them for every possible value. HTTP, SQL, JSON, cryptography, a UI library and calls between machines are built in, and the same code runs on Windows, Linux, macOS, Android and in the browser."
 }
 
 // The figure beside the masthead: one short program that is most of the
@@ -161,38 +161,38 @@ func reasons(): Claim[6] {
 		Claim(
 			title: "No crashes in production",
 			titlePt: "Sem falhas em produção",
-			text: "No null, no exceptions, no out-of-range index: what would crash elsewhere does not compile.",
-			textPt: "Sem null, sem exceções, sem índice fora do intervalo: o que falharia em outra linguagem não compila.",
+			text: "No null, no exceptions, no unchecked index: code that would crash does not compile.",
+			textPt: "Sem null, sem exceções, sem índice sem verificação: o código que falharia não compila.",
 		),
 		Claim(
-			title: "Runs everywhere",
-			titlePt: "Roda em qualquer lugar",
-			text: "The same code on Windows, Linux, macOS, the browser, a container and Android.",
-			textPt: "O mesmo código no Windows, Linux, macOS, navegador, contêiner e Android.",
+			title: "Rules the compiler proves",
+			titlePt: "Regras que o compilador prova",
+			text: "Write a law about your code, and the compiler proves it for every possible value, or shows the values that break it.",
+			textPt: "Escreva uma lei sobre o seu código, e o compilador a prova para todo valor possível, ou mostra os valores que a quebram.",
 		),
 		Claim(
 			title: "One process or many machines",
 			titlePt: "Um processo ou muitas máquinas",
-			text: "Calling a service across the network looks exactly like calling one locally.",
-			textPt: "Chamar um serviço pela rede é exatamente igual a chamar um local.",
+			text: "Calling a service on another machine is the same line of code as calling it locally.",
+			textPt: "Chamar um serviço em outra máquina é a mesma linha de código que chamá-lo localmente.",
 		),
 		Claim(
-			title: "Secure defaults",
-			titlePt: "Segura por padrão",
-			text: "Encrypted links between machines, injection-proof SQL, and secrets that never reach a log.",
-			textPt: "Conexões criptografadas entre máquinas, SQL à prova de injeção, e segredos que nunca chegam a um log.",
+			title: "Runs everywhere",
+			titlePt: "Roda em qualquer lugar",
+			text: "Windows, Linux, macOS, the browser, a container and Android, from the same code.",
+			textPt: "Windows, Linux, macOS, navegador, contêiner e Android, com o mesmo código.",
 		),
 		Claim(
-			title: "Batteries included",
-			titlePt: "Baterias inclusas",
-			text: "HTTP, SQL, JSON, cryptography and a UI library come with the language.",
-			textPt: "HTTP, SQL, JSON, criptografia e uma biblioteca de UI vêm com a linguagem.",
+			title: "Batteries included, safe by default",
+			titlePt: "Baterias inclusas, seguras por padrão",
+			text: "HTTP, SQL, JSON, cryptography and a UI library come with the language, with injection-proof SQL and encrypted links between machines.",
+			textPt: "HTTP, SQL, JSON, criptografia e uma biblioteca de UI vêm com a linguagem, com SQL à prova de injeção e conexões criptografadas entre máquinas.",
 		),
 		Claim(
-			title: "Productive in a day",
-			titlePt: "Produtiva em um dia",
-			text: "A small language. This tour covers all of it, one feature at a time.",
-			textPt: "Uma linguagem pequena. Este tour cobre toda ela, um recurso por vez.",
+			title: "Learn it in a day",
+			titlePt: "Aprenda em um dia",
+			text: "A small language, taught one feature per slide, with examples you can run right on the page.",
+			textPt: "Uma linguagem pequena, ensinada um recurso por slide, com exemplos que você roda na própria página.",
 		),
 	]
 }
@@ -225,8 +225,8 @@ func fits(): Claim[5] {
 		Claim(
 			title: "Systems spread across machines",
 			titlePt: "Sistemas espalhados por várias máquinas",
-			text: "Distribution is part of the language, not a framework bolted on.",
-			textPt: "A distribuição faz parte da linguagem, não é um framework acoplado.",
+			text: "Services talk across machines with no framework or message queue to add.",
+			textPt: "Os serviços conversam entre máquinas sem framework nem fila de mensagens para adicionar.",
 		),
 		Claim(
 			title: "Software that has to run everywhere",
@@ -237,14 +237,14 @@ func fits(): Claim[5] {
 		Claim(
 			title: "Command-line and internal tools",
 			titlePt: "Ferramentas de linha de comando e internas",
-			text: "One file to hand out, and no runtime to install.",
-			textPt: "Um arquivo para distribuir, e nenhum runtime para instalar.",
+			text: "One executable to hand out, with no runtime to install.",
+			textPt: "Um executável para distribuir, sem runtime para instalar.",
 		),
 		Claim(
-			title: "Teams that want no surprises in production",
-			titlePt: "Times que não querem surpresas em produção",
-			text: "What would have been a crash at 3 a.m. is a compile error instead.",
-			textPt: "O que seria uma falha às 3 da manhã vira um erro de compilação.",
+			title: "Code with rules that must always hold",
+			titlePt: "Código com regras que sempre precisam valer",
+			text: "Bookings, billing, permissions: state the rule as a law, and the compiler proves it before the code ships.",
+			textPt: "Reservas, cobrança, permissões: escreva a regra como uma lei, e o compilador a prova antes de o código ir para produção.",
 		),
 	]
 }
@@ -259,14 +259,14 @@ func caveats(): Claim[3] {
 		Claim(
 			title: "You need long-term stability today",
 			titlePt: "Você precisa de estabilidade de longo prazo hoje",
-			text: "Hive is young — not yet 1.0 — and still changes from one release to the next.",
-			textPt: "O Hive é jovem — ainda não chegou à 1.0 — e ainda muda de uma versão para outra.",
+			text: "Hive is young, not yet 1.0, and still changes between releases.",
+			textPt: "O Hive é jovem, ainda não chegou à 1.0, e ainda muda entre uma versão e outra.",
 		),
 		Claim(
-			title: "You rely on deep editor integration",
-			titlePt: "Você depende de integração profunda com o editor",
-			text: "There is no language server yet. Errors come as file:line, which any editor can jump to.",
-			textPt: "Ainda não há language server. Os erros vêm como arquivo:linha, que qualquer editor sabe abrir.",
+			title: "You need a large library ecosystem",
+			titlePt: "Você precisa de um grande ecossistema de bibliotecas",
+			text: "Hive's own packages are few. A Go file can be imported directly, which opens the Go ecosystem.",
+			textPt: "Os pacotes do próprio Hive são poucos. Um arquivo Go pode ser importado diretamente, o que abre o ecossistema Go.",
 		),
 		Claim(
 			title: "You need manual control of memory",
@@ -284,16 +284,17 @@ func readsLabel(lang: Str): Str {
 
 // The reasons at length, in the order the six above give them, minus the
 // one the closing line of the page makes on its own: that it can be learned
-// in a day. Reliability and scale carry a program. The other three are about
-// everything around a program, and main.hive sets a list beside each of them
-// instead — the platforms, what is in the box, and the commands.
-func points(): Point[5] {
+// in a day, and plus the tooling. Reliability, laws and scale carry a program.
+// The other three are about everything around a program, and main.hive sets a
+// list beside each of them instead — the platforms, what is in the box, and
+// the commands.
+func points(): Point[6] {
 	return [
 		Point(
 			title: "What would crash does not compile",
 			titlePt: "O que falharia não compila",
-			text: "Null references, uncaught exceptions and out-of-range indexes are among the most common causes of crashes in production, and in Hive none of them can happen. Anything that can fail returns a `Result`, and the compiler makes you check it before you touch the value inside. An index it cannot prove safe is a compile error, and the error says how to fix it. Even a division by zero is a value, not a crash.\n\nThe mistakes that would have shown up in production show up while you are still writing the code.",
-			textPt: "Referências nulas, exceções não tratadas e índices fora do intervalo estão entre as causas mais comuns de falhas em produção, e no Hive nenhuma delas pode acontecer. Tudo que pode falhar devolve um `Result`, e o compilador obriga você a verificá-lo antes de tocar no valor dentro dele. Um índice que ele não consegue provar seguro é um erro de compilação, e o erro diz como corrigir. Até uma divisão por zero é um valor, não uma falha.\n\nOs erros que apareceriam em produção aparecem enquanto você ainda está escrevendo o código.",
+			text: "Null references, uncaught exceptions and out-of-range indexes cause much of what crashes in production, and none of them exist in Hive. Anything that can fail returns a `Result`, and the compiler makes you check it before you use the value inside. An index it cannot prove safe is a compile error that says how to fix it, and dividing by zero gives a value instead of a crash.\n\nThe mistakes that would have surfaced in production surface while you write the code.",
+			textPt: "Referências nulas, exceções não tratadas e índices fora do intervalo causam boa parte das falhas em produção, e nenhum deles existe no Hive. Tudo que pode falhar devolve um `Result`, e o compilador obriga você a verificá-lo antes de usar o valor dentro dele. Um índice que ele não consegue provar seguro é um erro de compilação que diz como corrigir, e dividir por zero dá um valor em vez de uma falha.\n\nOs erros que apareceriam em produção aparecem enquanto você escreve o código.",
 			reads: ["Result<T, E>", "Bounds, proved at compile time", "Arithmetic at the edges"],
 			examples: [
 				slides.Example(caption: "A lookup that can come back empty", captionPt: "Uma busca que pode voltar vazia", code: `type User \{
@@ -348,18 +349,80 @@ proc main(): void \{
 			],
 		),
 		Point(
-			title: "One codebase, every platform",
-			titlePt: "Um código, todas as plataformas",
-			text: "The same Hive code runs on Windows, Linux and macOS, in the browser through WebAssembly, in a container, and on Android. Choosing a platform is a flag on the build, not a port of the program — no separate toolchain, and no C compiler to install. On the desktop and the server, a build is a single native executable with no runtime to ship beside it.\n\nInterfaces travel too. A `hive.ui` view is drawn as a desktop window, served as a web page, or packaged as an Android app — the same view, unchanged.",
-			textPt: "O mesmo código Hive roda no Windows, no Linux e no macOS, no navegador via WebAssembly, em um contêiner e no Android. Escolher a plataforma é uma flag na build, não uma reescrita do programa — nenhuma toolchain separada, e nenhum compilador C para instalar. No desktop e no servidor, uma build é um único executável nativo, sem runtime para entregar junto.\n\nAs interfaces vão junto. Uma view do `hive.ui` é desenhada como uma janela de desktop, servida como uma página web, ou empacotada como um app Android — a mesma view, sem mudar nada.",
-			reads: ["Building for another platform", "Containers", "Packaging an app"],
-			examples: [],
+			title: "The compiler proves your rules",
+			titlePt: "O compilador prova as suas regras",
+			text: "A law states something that must always hold, like \"a cancelled booking stays cancelled\" or \"a total is never negative\", and the compiler proves it for every possible input before the program runs. If it can't, compilation fails, and the error shows the values that break the rule or what it could not prove.\n\nA law can also sit on a type, so every value of that type keeps it, or on a database table, so every query on it must respect it. A law costs nothing at run time: it is checked while compiling and never emitted.",
+			textPt: "Uma lei afirma algo que sempre precisa valer, como \"uma reserva cancelada continua cancelada\" ou \"um total nunca é negativo\", e o compilador a prova para toda entrada possível antes de o programa rodar. Se não consegue, a compilação falha, e o erro mostra os valores que quebram a regra ou o que ele não conseguiu provar.\n\nUma lei também pode ficar num tipo, e todo valor desse tipo passa a cumpri-la, ou numa tabela do banco, e toda consulta a ela precisa respeitá-la. Uma lei não custa nada em tempo de execução: ela é verificada durante a compilação e nunca é emitida.",
+			reads: ["Laws", "Laws on a table"],
+			examples: [
+				slides.Example(caption: "A cancelled booking stays cancelled", captionPt: "Uma reserva cancelada continua cancelada", code: `type Status \{
+	Requested
+	Confirmed
+	Cancelled
+}
+
+type Event \{
+	Confirm
+	Cancel
+}
+
+func apply(status: Status, event: Event): Status \{
+	if status is Status.Cancelled \{
+		return status
+	}
+	if event is Event.Cancel \{
+		return Status.Cancelled()
+	}
+	return Status.Confirmed()
+}
+
+// Proved for every status and event, while compiling.
+law cancelledIsFinal(status: Status, event: Event) \{
+	if status is Status.Cancelled \{
+		assert apply(status, event) == status
+	}
+}
+
+proc main(): void \{
+	echo apply(Status.Requested(), Event.Confirm())
+}`, codePt: `type Status \{
+	Requested
+	Confirmed
+	Cancelled
+}
+
+type Event \{
+	Confirm
+	Cancel
+}
+
+func apply(status: Status, event: Event): Status \{
+	if status is Status.Cancelled \{
+		return status
+	}
+	if event is Event.Cancel \{
+		return Status.Cancelled()
+	}
+	return Status.Confirmed()
+}
+
+// Provada para todo status e evento, durante a compilação.
+law cancelledIsFinal(status: Status, event: Event) \{
+	if status is Status.Cancelled \{
+		assert apply(status, event) == status
+	}
+}
+
+proc main(): void \{
+	echo apply(Status.Requested(), Event.Confirm())
+}`),
+			],
 		),
 		Point(
 			title: "Start as one process, grow to many machines",
 			titlePt: "Comece como um processo, cresça para muitas máquinas",
-			text: "Concurrency in Hive is built around services: a piece of state that handles one message at a time, so there are no locks to get wrong. Calling a service on another machine is the same line of code as calling one in the same process, over connections that are encrypted and authenticated for you.\n\nA system can start as a single executable and be spread across machines later, without being rewritten around a message queue or an RPC framework.",
-			textPt: "A concorrência no Hive é construída em torno de serviços: um pedaço de estado que trata uma mensagem por vez, então não há locks para errar. Chamar um serviço em outra máquina é a mesma linha de código que chamar um no mesmo processo, sobre conexões que já vêm criptografadas e autenticadas.\n\nUm sistema pode começar como um único executável e ser espalhado por várias máquinas depois, sem ser reescrito em torno de uma fila de mensagens ou de um framework de RPC.",
+			text: "Concurrency in Hive is built on services: a piece of state that handles one message at a time, so there are no locks to get wrong. Calling a service on another machine is the same line of code as calling one in the same process, and the connection is encrypted and authenticated for you.\n\nA system can start as one executable and spread across machines later, without being rewritten around a message queue or an RPC framework.",
+			textPt: "A concorrência no Hive é construída sobre serviços: um pedaço de estado que trata uma mensagem por vez, então não há locks para errar. Chamar um serviço em outra máquina é a mesma linha de código que chamar um no mesmo processo, e a conexão já vem criptografada e autenticada.\n\nUm sistema pode começar como um único executável e se espalhar por várias máquinas depois, sem ser reescrito em torno de uma fila de mensagens ou de um framework de RPC.",
 			reads: ["Services", "Services across nodes", "Concurrency: async"],
 			examples: [
 				slides.Example(caption: "The same service, here and on another machine", captionPt: "O mesmo serviço, aqui e em outra máquina", code: `type Note \{
@@ -418,19 +481,27 @@ proc main(): void \{
 			],
 		),
 		Point(
+			title: "One codebase, every platform",
+			titlePt: "Um código, todas as plataformas",
+			text: "The same Hive code runs on Windows, Linux, macOS and Android, in the browser through WebAssembly, and in a container. The platform is a build flag, not a port: no second toolchain and no C compiler. On the desktop and the server, a build is one native executable with no runtime beside it.\n\nInterfaces come along: a `hive.ui` view runs unchanged as a desktop window, a web page or an Android app.",
+			textPt: "O mesmo código Hive roda no Windows, Linux, macOS e Android, no navegador via WebAssembly, e em um contêiner. A plataforma é uma flag na build, não uma reescrita: nenhuma segunda toolchain e nenhum compilador C. No desktop e no servidor, uma build é um único executável nativo, sem runtime junto.\n\nAs interfaces vão junto: uma view do `hive.ui` roda sem mudanças como janela de desktop, página web ou app Android.",
+			reads: ["Building for another platform", "Containers", "Packaging an app"],
+			examples: [],
+		),
+		Point(
 			title: "Less to install, less to audit",
 			titlePt: "Menos para instalar, menos para auditar",
-			text: "The standard library covers what most services need, so a project starts with no dependencies and tends to stay with few. Its defaults are the safe ones: SQL values are always sent as parameters, secrets cannot end up in a log by accident, and machines only talk to each other over TLS.\n\nWhen you do need a package, it is imported straight from its git repository and pinned to a commit — there is no registry in between. And a Go file can be imported directly, bringing the whole Go ecosystem with it.",
-			textPt: "A biblioteca padrão cobre o que a maioria dos serviços precisa, então um projeto começa sem dependências e tende a continuar com poucas. Os padrões dela são os seguros: valores de SQL sempre vão como parâmetros, segredos não vão parar num log por acidente, e as máquinas só conversam entre si sobre TLS.\n\nQuando você precisa de um pacote, ele é importado direto do repositório git dele e fixado em um commit — não há nenhum registro no meio. E um arquivo Go pode ser importado diretamente, trazendo junto todo o ecossistema Go.",
+			text: "The standard library covers what most services need, so a project starts with no dependencies. Its defaults are the safe ones: SQL values always go as parameters, secrets can't reach a log by accident, and machines talk to each other only over TLS.\n\nWhen you need a package, you import it straight from its git repository, pinned to a commit, with no registry in between. A Go file can be imported directly too, which brings the Go ecosystem with it.",
+			textPt: "A biblioteca padrão cobre o que a maioria dos serviços precisa, então um projeto começa sem dependências. Os padrões dela são os seguros: valores de SQL sempre vão como parâmetros, segredos não chegam a um log por acidente, e as máquinas só conversam entre si sobre TLS.\n\nQuando você precisa de um pacote, ele é importado direto do repositório git dele, fixado em um commit, sem nenhum registro no meio. Um arquivo Go também pode ser importado diretamente, o que traz junto o ecossistema Go.",
 			reads: ["SQL", "Secrets", "Modules", "Importing a Go file"],
 			examples: [],
 		),
 		Point(
 			title: "One tool, from the first line to production",
 			titlePt: "Uma ferramenta, da primeira linha à produção",
-			text: "The `hive` command checks, runs, tests and builds, and the only other thing it needs is Go. Tests are part of the language and every run reports coverage, so there is no test framework to choose.\n\n`hive analyze` points out code that will be expensive to run before it ever runs, and every error the compiler reports names the problem and says how to fix it.",
-			textPt: "O comando `hive` checa, roda, testa e constrói, e a única outra coisa de que ele precisa é o Go. Testes fazem parte da linguagem e toda execução reporta a cobertura, então não há framework de testes para escolher.\n\nO `hive analyze` aponta o código que vai sair caro antes mesmo dele rodar, e todo erro que o compilador reporta diz qual é o problema e como corrigir.",
-			reads: ["Testing", "Every command", "What an error looks like"],
+			text: "One `hive` command checks, runs, tests and builds, and the only other thing it needs is Go. Tests are part of the language and every run reports coverage, so there is no test framework to pick.\n\n`hive analyze` points out code that will be expensive before it runs, `hive lsp` shows errors in your editor as you type, and every compiler error names the problem and how to fix it.",
+			textPt: "Um único comando `hive` checa, roda, testa e constrói, e a única outra coisa de que ele precisa é o Go. Testes fazem parte da linguagem e toda execução reporta a cobertura, então não há framework de testes para escolher.\n\nO `hive analyze` aponta o código que vai sair caro antes de ele rodar, o `hive lsp` mostra os erros no seu editor enquanto você digita, e todo erro do compilador diz qual é o problema e como corrigir.",
+			reads: ["Testing", "Hive in your editor", "What an error looks like"],
 			examples: [],
 		),
 	]
@@ -505,8 +576,8 @@ func proof(): Point {
 	return Point(
 		title: "This site is a Hive program",
 		titlePt: "Este site é um programa Hive",
-		text: "Every page here is served by an HTTP server written in Hive and laid out with Hive's own UI library — no web framework, and no JavaScript but the one script that runs the tour's examples in your browser. The whole site is one executable, deployed in a container.",
-		textPt: "Toda página aqui é servida por um servidor HTTP escrito em Hive e montada com a própria biblioteca de UI do Hive — sem framework web, e sem JavaScript além do único script que roda os exemplos do tour no seu navegador. O site inteiro é um único executável, publicado em um contêiner.",
+		text: "Every page here is served by an HTTP server written in Hive and laid out with Hive's own UI library: no web framework, and no JavaScript except the one script that runs examples in your browser. The whole site is one executable in a container.",
+		textPt: "Toda página aqui é servida por um servidor HTTP escrito em Hive e montada com a própria biblioteca de UI do Hive: sem framework web, e sem JavaScript além do único script que roda os exemplos no seu navegador. O site inteiro é um único executável em um contêiner.",
 		reads: ["HTTP servers", "Views", "Containers"],
 		examples: [],
 	)
@@ -521,7 +592,7 @@ func closingTitle(lang: Str, n: Int): Str {
 
 func closingText(lang: Str): Str {
 	if lang == "pt" {
-		return "Cada exemplo é um programa completo, que você pode copiar e rodar. Comece do início, ou vá direto ao que precisa pelo sumário."
+		return "Cada exemplo é um programa completo que você pode copiar e rodar, e muitos rodam na própria página. Comece do início, ou vá direto ao que precisa pelo sumário."
 	}
-	return "Every example is a complete program you can copy and run. Start at the beginning, or go straight to what you need from the contents."
+	return "Every example is a complete program you can copy and run, and many run right on the page. Start at the beginning, or go straight to what you need from the contents."
 }

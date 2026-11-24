@@ -1,0 +1,91 @@
+// The Markdown a post is written in, rendered.
+import ../src/markdown
+
+func same(target: Str): Str {
+	return target
+}
+
+func refuse(target: Str): Str {
+	return ""
+}
+
+func md(text: Str): Str {
+	return markdown.html(text, same)
+}
+
+test "paragraphs run their lines together and end at a blank line" {
+	assert md("one\ntwo\n\nthree") == "<p>one two</p><p>three</p>"
+}
+
+test "headings, with a lone # read as a section and #### as the deepest" {
+	assert md("# A\n## B\n### C\n###### D") == "<h2>A</h2><h2>B</h2><h3>C</h3><h4>D</h4>"
+}
+
+test "a #word is not a heading" {
+	assert md("#hashtag") == "<p>#hashtag</p>"
+}
+
+test "lists, bulleted and numbered, with a lead-in and an indented carry-on" {
+	assert md("Two:\n- a\n  still a\n* b\n\n1. one\n2. two") == "<p>Two:</p><ul><li>a still a</li><li>b</li></ul><ol><li>one</li><li>two</li></ol>"
+}
+
+test "a line that is not indented ends a list" {
+	assert md("- a\nafter") == "<ul><li>a</li></ul><p>after</p>"
+}
+
+test "a quotation holds blocks of its own" {
+	assert md("> one\n> two\n>\n> - x") == "<blockquote><p>one two</p><ul><li>x</li></ul></blockquote>"
+}
+
+test "a fence is a program: painted when it says hive, escaped as it is otherwise" {
+	assert md("```\na < b\n\n  c\n```") == "<pre class=\"tour-code\"><code>a &lt; b\n\n  c</code></pre>"
+	painted := md("```hive\nlaw x() \{}\n```")
+	assert indexOf(painted, "<pre class=\"tour-code\"><code><span") is Result.Ok(0)
+}
+
+test "a fence never closed runs to the end" {
+	assert md("text\n```\ncode") == "<p>text</p><pre class=\"tour-code\"><code>code</code></pre>"
+}
+
+test "code, bold and italic, and nothing inside code is markup" {
+	assert markdown.inline("a `*b*` **c** *d*", same) == "a <code>*b*</code> <strong>c</strong> <em>d</em>"
+	assert markdown.inline("**a `**` b**", same) == "<strong>a <code>**</code> b</strong>"
+	assert markdown.inline("*a **b** c*", same) == "<em>a <strong>b</strong> c</em>"
+}
+
+test "a star that closes nothing is a star" {
+	assert markdown.inline("2 * 3 and *x", same) == "2 * 3 and *x"
+	assert markdown.inline("a ** b", same) == "a ** b"
+}
+
+test "double backticks hold a single one, padding dropped" {
+	assert markdown.inline("`` ` ``", same) == "<code>`</code>"
+	assert markdown.inline("a ` b", same) == "a ` b"
+}
+
+test "a link goes where the caller says, and nowhere when it says nothing" {
+	assert markdown.inline("[the *tour*](/1)", same) == "<a href=\"/1\">the <em>tour</em></a>"
+	assert markdown.inline("[gone](/x)", refuse) == "gone"
+	assert markdown.inline("[a](b_(c)) [d] (e)", same) == "<a href=\"b_(c)\">a</a> [d] (e)"
+}
+
+test "a backslash makes punctuation plain" {
+	assert markdown.inline("\\*not\\* \\[a\\](b)", same) == "*not* [a](b)"
+}
+
+test "everything is escaped, inside spans and out" {
+	assert markdown.inline("<b> & `<i>`", same) == "&lt;b&gt; &amp; <code>&lt;i&gt;</code>"
+	assert markdown.inline("[x](\"y)", same) == "<a href=\"&quot;y\">x</a>"
+}
+
+test "plain text keeps the words and loses the markup" {
+	assert markdown.plain("**Laws** in `hive`, see [the tour](/1).") == "Laws in hive, see the tour."
+}
+
+test "every target, in order, code spans passed over" {
+	assert markdown.targets("[a](x) `[b](y)` [c [d](z)](w)") == ["x", "z", "w"]
+}
+
+test "unicode passes through" {
+	assert md("é — `ç`…") == "<p>é — <code>ç</code>…</p>"
+}

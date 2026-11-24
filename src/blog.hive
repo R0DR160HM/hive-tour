@@ -1,0 +1,190 @@
+// The blog: what has changed in Hive, and why, a post at a time.
+//
+// A post is two Markdown files under assets/blog/ — `<name>.md` in English and
+// `<name>.pt.md` in Portuguese, because Portuguese is never a page short here —
+// and its name on one line of `names` below. Writing one is writing those two
+// files; ./markdown says what may be in them.
+//
+// The name is the day the post went up and then its slug: `2026-11-19-laws` is
+// /blog/laws, dated 19 November 2026. The first line is the title, `# ` and
+// all, in plain text; the paragraph under it is the abstract, which is what the
+// blog's index shows under the title and what a search result and a pasted link
+// show for the post; the rest is the post.
+//
+// The build puts the assets/ beside main.hive inside the executable, and
+// `hive.file.asset` reads it back from there, so a post is served out of the
+// binary like every other byte of this site. What that cannot do is list the
+// folder, which is why the names are written out below; tests/blog.test.hive
+// fails the build on a name with either of its files missing, and on a link
+// into the tour that names a slide the tour does not have.
+//
+// A test is a program of its own, built from tests/, with no assets/ beside it
+// and so nothing embedded, which is why every call that reads a post has a
+// twin ending in `From` that is handed what to read the files with. The server
+// reads them out of itself with `embedded`; the test reads the same files off
+// the disk.
+import ./markdown
+
+type Post {
+	slug:     Str
+	date:     Str
+	title:    Str
+	abstract: Str
+	body:     Str
+}
+
+// Every post, by its files' name under assets/blog/. The order is not this
+// list's: `all` puts the newest first.
+func names(): Str[dyn] {
+	return [
+		"2026-11-25-laws",
+	]
+}
+
+// Every post in a language, the newest first. One that cannot be read is left
+// out rather than shown broken, and tests/blog.test.hive is what keeps that
+// from ever happening quietly.
+// Who wrote a post, as its byline names them: a name, and the page it links to.
+type Author {
+	name: Str
+	url:  Str
+}
+
+// The author of each post, by its slug. Every post so far is by the language's
+// author; a post by someone else names them here.
+func authorOf(slug: Str): Author {
+	return Author("Rodrigo Heinzen de Moraes", "https://rhm.dev")
+}
+
+func all(lang: Str): Post[dyn] {
+	return allFrom(lang, embedded)
+}
+
+func allFrom(lang: Str, source: func(Str): Result<Str, Str>): Post[dyn] {
+	mut Post[dyn] posts = []
+	for each name in sort(names(), later) {
+		if readFrom(name, lang, source) is Result.Ok(post) {
+			append(posts, post)
+		}
+	}
+	return posts
+}
+
+func later(a: Str, b: Str): Bool {
+	return a > b
+}
+
+// The post a path names, in a language.
+func find(slug: Str, lang: Str): Result<Post, Str> {
+	for each post in all(lang) {
+		if post.slug == slug {
+			return Result.Ok(post)
+		}
+	}
+	return Result.Error("the blog has no post called \"{slug}\"")
+}
+
+// One post, read and taken apart: the name into its date and slug, the text
+// into its title, its abstract and the rest.
+func read(name: Str, lang: Str): Result<Post, Str> {
+	return readFrom(name, lang, embedded)
+}
+
+func readFrom(name: Str, lang: Str, source: func(Str): Result<Str, Str>): Result<Post, Str> {
+	if name is "{date is (\d{4}-\d{2}-\d{2})}-{slug is ([a-z0-9-]+)}" {
+		file := path(name, lang)
+		got := source(file)
+		if got is Result.Ok(text) {
+			return parse(slug, date, text, file)
+		}
+		if got is Result.Error(why) {
+			return Result.Error(why)
+		}
+	}
+	return Result.Error("\"{name}\" is not a date and a slug, as in 2026-11-19-laws")
+}
+
+// A file under assets/, out of the executable the build put it in.
+func embedded(file: Str): Result<Str, Str> {
+	if hive.file.asset(file) is Result.Ok(text) {
+		return Result.Ok(text)
+	}
+	return Result.Error("assets/{file} is not in the program")
+}
+
+func path(name: Str, lang: Str): Str {
+	if lang == "pt" {
+		return "blog/{name}.pt.md"
+	}
+	return "blog/{name}.md"
+}
+
+// The title is the first line that says anything, and has to be one; the
+// abstract is the paragraph that comes after it, and has to be there too.
+func parse(slug: Str, date: Str, text: Str, file: Str): Result<Post, Str> {
+	lines := split(replaceAll(text, "\r", ""), "\n")
+	mut title := ""
+	mut Str[dyn] rest = []
+	for each line in lines {
+		if title == "" && len(rest) == 0 {
+			if markdown.trim(line) == "" {
+				continue
+			}
+			if line is "# {words}" {
+				title = markdown.trim(words)
+				continue
+			}
+			return Result.Error("assets/{file} does not open with a `# ` title")
+		}
+		append(rest, line)
+	}
+	body := join(rest, "\n")
+	abstract := opening(body)
+	if title == "" || abstract == "" {
+		return Result.Error("assets/{file} needs a title and a paragraph under it")
+	}
+	return Result.Ok(Post(slug: slug, date: date, title: title, abstract: abstract, body: body))
+}
+
+// The first paragraph of a post's body, its lines run together.
+func opening(body: Str): Str {
+	mut Str[dyn] para = []
+	for each line in split(body, "\n") {
+		bare := markdown.trim(line)
+		if bare == "" {
+			if len(para) > 0 {
+				return join(para, " ")
+			}
+			continue
+		}
+		append(para, bare)
+	}
+	return join(para, " ")
+}
+
+// The day a post went up, as a reader says it: "19 November 2026", "19 de
+// novembro de 2026". What it is given is always a date `read` checked.
+func longDate(date: Str, lang: Str): Str {
+	if date is "{year is (\d{4})}-{month is (\d{2})}-{day is (\d{2})}" {
+		if hive.conv.sti(month) is Result.Ok(m) && hive.conv.sti(day) is Result.Ok(d) {
+			months := monthNames(lang)
+			idx := m - 1
+			if months bounds idx {
+				if lang == "pt" {
+					return "{d} de {months[idx]} de {year}"
+				}
+				return "{d} {months[idx]} {year}"
+			}
+		}
+	}
+	return date
+}
+
+func monthNames(lang: Str): Str[12] {
+	if lang == "pt" {
+		return ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
+			"agosto", "setembro", "outubro", "novembro", "dezembro"]
+	}
+	return ["January", "February", "March", "April", "May", "June", "July",
+		"August", "September", "October", "November", "December"]
+}

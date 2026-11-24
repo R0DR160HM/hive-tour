@@ -1,8 +1,8 @@
 ---
 version: 1
 slug: "home-hive"
-primary_target: "home.hive"
-related_targets: ["theme.hive","main.hive","chart.hive"]
+primary_target: "src/home.hive"
+related_targets: ["src/theme.hive","main.hive","src/chart.hive"]
 ---
 
 # Surface: the front page (`/`, `/?lang=pt`)

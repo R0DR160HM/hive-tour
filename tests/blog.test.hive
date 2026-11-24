@@ -1,0 +1,148 @@
+// The blog: every post it names is there in both languages and in one piece,
+// every slide a post links to is in the tour, and every page of it renders.
+//
+// The posts are read off the disk rather than out of the program. A test is a
+// program of its own, built from this folder, which has no assets/ beside it
+// to embed; it runs in the folder its build was written to, tests/<name>-build,
+// so the project's assets/ is two folders up from there. These are the same
+// files the server's build embeds, read by the same code once they are read.
+import ../main as tour
+import ../src/blog
+import ../src/markdown
+import ../src/slides
+
+func onDisk(file: Str): Result<Str, Str> {
+	if hive.file.read("../../assets/" + file) is Result.Ok(text) {
+		return Result.Ok(text)
+	}
+	return Result.Error("assets/{file} is not on the disk")
+}
+
+func posts(lang: Str): blog.Post[dyn] {
+	return blog.allFrom(lang, onDisk)
+}
+
+func languages(): Str[2] {
+	return ["en", "pt"]
+}
+
+test "every post is there in both languages, with a title and an abstract" {
+	for each name in blog.names() {
+		for each lang in languages() {
+			read := blog.readFrom(name, lang, onDisk)
+			if read is Result.Error(why) {
+				echo why
+			}
+			assert read is Result.Ok(_)
+		}
+	}
+	assert len(posts("en")) == len(blog.names())
+	assert len(posts("pt")) == len(blog.names())
+}
+
+test "no two posts share a slug" {
+	all := posts("en")
+	for i := 0; i < len(all); i++ {
+		for j := i + 1; j < len(all); j++ {
+			if all bounds i && all bounds j {
+				assert all[i].slug != all[j].slug
+			}
+		}
+	}
+}
+
+test "the newest post comes first" {
+	all := posts("en")
+	for i := 1; i < len(all); i++ {
+		before := i - 1
+		if all bounds before && all bounds i {
+			assert all[before].date >= all[i].date
+		}
+	}
+}
+
+test "every slide a post links to is in the tour" {
+	all := slides.all()
+	for each lang in languages() {
+		for each post in posts(lang) {
+			for each target in markdown.targets(post.body) {
+				if target is "tour:{title}" {
+					found := tour.slideIndex(all, title)
+					if found is Result.Error(why) {
+						echo "{post.slug} ({lang}): {why}"
+					}
+					assert found is Result.Ok(_)
+				}
+			}
+		}
+	}
+}
+
+test "a name that is not a date and a slug is refused" {
+	assert blog.readFrom("laws", "en", onDisk) is Result.Error(_)
+	assert blog.readFrom("2026-11-19-nothing-here", "en", onDisk) is Result.Error(_)
+}
+
+test "a title, then the paragraph under it, then the rest" {
+	got := blog.parse("x", "2026-01-02", "\n# A title\n\nThe first\nparagraph.\n\nMore.", "x.md")
+	assert got is Result.Ok(_)
+	if got is Result.Ok(post) {
+		assert post.title == "A title"
+		assert post.abstract == "The first paragraph."
+	}
+	assert blog.parse("x", "2026-01-02", "No title.\n\nText.", "x.md") is Result.Error(_)
+	assert blog.parse("x", "2026-01-02", "# Only a title\n", "x.md") is Result.Error(_)
+}
+
+test "a date as a reader says it, in either language" {
+	assert blog.longDate("2026-11-19", "en") == "19 November 2026"
+	assert blog.longDate("2026-03-01", "pt") == "1 de março de 2026"
+}
+
+test "a link into the tour goes to the slide by its title, in the reader's language" {
+	all := slides.all()
+	laws := tour.slideIndex(all, "Laws")
+	assert laws is Result.Ok(_)
+	if laws is Result.Ok(idx) {
+		assert tour.postLink("tour:Laws", all, "pt") == "/tour/laws?lang=pt"
+	}
+	assert tour.postLink("tour:No such slide", all, "en") == ""
+	assert tour.postLink("/blog/laws#types", all, "pt") == "/blog/laws?lang=pt#types"
+	assert tour.postLink("https://example.com/x", all, "pt") == "https://example.com/x"
+}
+
+test "the blog and every post render whole, in both languages" {
+	for each lang in languages() {
+		all := posts(lang)
+		index := tour.blogPage(all, lang)
+		assert index.status == 200
+		assert indexOf(index.body, "HIVE_TOUR_") is Result.Error(_)
+		for each post in all {
+			assert indexOf(index.body, "/blog/" + post.slug) is Result.Ok(_)
+			page := tour.postResponse(post, lang)
+			assert page.status == 200
+			assert indexOf(page.body, "HIVE_TOUR_") is Result.Error(_)
+			assert indexOf(page.body, "\"@type\":\"BlogPosting\"") is Result.Ok(_)
+			assert indexOf(page.body, "tour:") is Result.Error(_)
+		}
+	}
+}
+
+test "a blog with no posts says so rather than showing an empty list" {
+	blog.Post[0] none = []
+	page := tour.blogPage(none, "pt")
+	assert indexOf(page.body, "Ainda não há nada aqui.") is Result.Ok(_)
+}
+
+test "a post the blog does not have is a 404 that says so" {
+	missing := tour.route("/blog/no-such-post")
+	assert missing.status == 404
+	assert indexOf(missing.body, "That post does not exist.") is Result.Ok(_)
+}
+
+test "the blog is on the sitemap, and in the running head of every page" {
+	sitemap := tour.sitemapResponse().body
+	assert indexOf(sitemap, "https://hive-lang.run/blog</loc>") is Result.Ok(_)
+	assert indexOf(tour.route("/").body, "href=\"/blog\"") is Result.Ok(_)
+	assert indexOf(tour.route("/tour/hello-world?lang=pt").body, "href=\"/blog?lang=pt\"") is Result.Ok(_)
+}
