@@ -10,7 +10,7 @@
 // which is the whole of what this file is for.
 //
 // Everything about *what* may be compiled — which imports, how long a
-// program, which examples get a Run button at all — is decided in main.hive
+// program, which examples get a Run button at all — is decided in ./site
 // before anything reaches here. This file only builds what it is handed.
 package compile
 

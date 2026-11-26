@@ -35,7 +35,7 @@
 import ./icon
 
 // Where the picture lives, and what it is. The path is here rather than in
-// main.hive for the same reason the bytes are: a slide names the picture it
+// ./site for the same reason the bytes are: a slide names the picture it
 // wants, and this is the file that knows which pictures there are.
 func scenePath(): Str {
 	return "/shot/three-dimensions.png"

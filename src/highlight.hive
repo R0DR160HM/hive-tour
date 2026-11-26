@@ -313,10 +313,10 @@ func isBuiltin(word: Str): Bool {
 	return indexOf(builtins(), word) is Result.Ok(_)
 }
 
-func builtins(): Str[16] {
+func builtins(): Str[17] {
 	return [
 		"len", "bytes", "append", "prepend", "drop", "join", "split",
-		"replaceFirst", "replaceAll", "indexOf", "row", "column", "map",
+		"replaceFirst", "replaceAll", "trim", "indexOf", "row", "column", "map",
 		"filter", "filterMap", "sort",
 	]
 }
@@ -385,7 +385,7 @@ func span(class: Str, text: Str): Str {
 }
 
 // The three characters that would otherwise be markup. This is the same job
-// main.hive's `escapeHtml` does, and it is here rather than borrowed from
+// ./site's `escapeHtml` does, and it is here rather than borrowed from
 // there because ./theme is the only import this file has and a painter that
 // reached back into the server for one function would be the wrong way round:
 // the server uses this, not the other way about.

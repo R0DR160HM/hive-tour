@@ -1,0 +1,178 @@
+// The news: every release of Hive, newest first, with its changelog.
+//
+// None of it is written here, and none of it is fetched while the site runs.
+// main.hive calls `fetch() with compiler`, so the build asks GitHub for the
+// releases and reads each one's changelog; what came back is built into the
+// executable in the call's place. A release is news the next time the site is
+// built, and a build that cannot reach GitHub fails rather than ship a News
+// page with holes in it. One 404 is forgiven, because the history explains it:
+// a changelog file that is not there, since the oldest releases predate the
+// CHANGELOG folder.
+//
+// Whoever helped make a release is thanked in its changelog, under `Thanks`,
+// with a link to them — written there once, by hand, so the release notes on
+// GitHub say it too and this page sets it as it sets the rest of the notes.
+//
+// The build makes one request of api.github.com, for the list of releases, and
+// reads every changelog off raw.githubusercontent.com, which that API's limit
+// does not count. That limit is 60 an hour to a machine that does not say who
+// it is, shared with everything else on its address; a `GITHUB_TOKEN` in the
+// environment of the build, or in a `.env` beside it, is sent with the request
+// and raises it to 5,000. ./main says nothing about it, because nothing but
+// the build machine ever reads it.
+//
+// Everything here takes what to read the web with, as ./blog takes what to read
+// its files with, so tests/news.test.hive can hand it GitHub's answers off the
+// disk instead.
+type Release {
+	tag:   Str
+	date:  Str
+	notes: Str
+}
+
+// What a URL answered: its status, and its body.
+type Answer {
+	status: Int
+	body:   Str
+}
+
+// A release as GitHub lists it, before anything else is fetched for it.
+type Listed {
+	tag:  Str
+	date: Str
+}
+
+func repo(): Str {
+	return "R0DR160HM/hive-lang"
+}
+
+// What the build runs.
+func fetch(): Release[dyn] {
+	return fetchFrom(fromGitHub)
+}
+
+// Every release, the newest first, as GitHub lists them.
+func fetchFrom(source: func(Str): Result<Answer, Str>): Release[dyn] {
+	mut Release[dyn] out = []
+	for each release in releasesIn(must(source(releasesUrl()), releasesUrl())) {
+		notes := forgiving(source(changelogUrl(release.tag)), changelogUrl(release.tag))
+		append(out, Release(tag: release.tag, date: release.date, notes: notes))
+	}
+	return out
+}
+
+func releasesUrl(): Str {
+	return "https://api.github.com/repos/{repo()}/releases?per_page=100"
+}
+
+// The changelog as it stands on master rather than as it was tagged, so a
+// note corrected after its release is read corrected.
+func changelogUrl(tag: Str): Str {
+	return "https://raw.githubusercontent.com/{repo()}/master/CHANGELOG/{tag}.md"
+}
+
+// Where a release is on GitHub, for the reader who wants its downloads.
+func releaseUrl(tag: Str): Str {
+	return "https://github.com/{repo()}/releases/tag/{tag}"
+}
+
+// What a URL answered, or why it answered nothing.
+func fromGitHub(url: Str): Result<Answer, Str> {
+	mut got := hive.net.httpRequest(hive.net.HttpRequest("GET", url, [
+		["User-Agent", "hive-tour"],
+		["Accept", "application/vnd.github+json"],
+	], ""))
+	if indexOf(url, "https://api.github.com/") is Result.Ok(0) && hive.env.get("GITHUB_TOKEN") is Result.Ok(token) {
+		got = hive.net.httpRequest(hive.net.HttpRequest("GET", url, [
+			["User-Agent", "hive-tour"],
+			["Accept", "application/vnd.github+json"],
+			["Authorization", "Bearer " + token],
+		], ""))
+	}
+	if got is Result.Ok(answer) {
+		return Result.Ok(Answer(status: answer.status, body: answer.body))
+	}
+	if got is Result.Error(why) {
+		return Result.Error("cannot reach {url}: {why.message}")
+	}
+	return Result.Error("cannot reach {url}")
+}
+
+// The body of a 200, and a failed build otherwise.
+func must(got: Result<Answer, Str>, url: Str): Str {
+	Result.Ok(answer) := got else {
+		Result.Error(why) { panic why }
+	}
+	if answer.status != 200 {
+		panic "{url} answered {answer.status}"
+	}
+	return answer.body
+}
+
+// The same, but a 404 is "" rather than a failed build.
+func forgiving(got: Result<Answer, Str>, url: Str): Str {
+	if got is Result.Ok(answer) && answer.status == 404 {
+		return ""
+	}
+	return must(got, url)
+}
+
+// GitHub's list of releases is a bare array, which no declared type decodes.
+// A draft has no `published_at` and is not a release yet.
+func releasesIn(listing: Str): Listed[dyn] {
+	Result.Ok(hive.json.JsonValue.Array(releases)) := hive.json.JsonValue.decode(listing, hive.json.codec()) else {
+		_ { panic "GitHub's list of releases is not a JSON array" }
+	}
+	mut Listed[dyn] out = []
+	for each release in releases {
+		if release is hive.json.JsonValue.Object(fields) {
+			if hive.map.get(fields, "tag_name") is Result.Ok(hive.json.JsonValue.String(tag)) && hive.map.get(fields, "published_at") is Result.Ok(hive.json.JsonValue.String(published)) {
+				if published is "{day is (\d{4}-\d{2}-\d{2})}T{rest}" {
+					append(out, Listed(tag: tag, date: day))
+				}
+			}
+		}
+	}
+	return out
+}
+
+// A release's changelog, ready to set under the release's own heading: its
+// `# v0.5.0` title gone, since the page already says which release it is, and
+// every heading after it a level deeper, so a `## Language` is a section of
+// the release rather than a release of its own.
+func notesBody(notes: Str): Str {
+	mut Str[dyn] out = []
+	mut titled := false
+	mut fenced := false
+	for each raw in split(replaceAll(notes, "\r", ""), "\n") {
+		if indexOf(raw, "```") is Result.Ok(0) {
+			fenced = !fenced
+		}
+		if !fenced && raw is "{marks is (#{1,6})} {words}" {
+			if !titled && marks == "#" {
+				titled = true
+				continue
+			}
+			append(out, "#" + raw)
+			continue
+		}
+		append(out, raw)
+	}
+	return join(out, "\n")
+}
+
+// Where a link in a changelog goes: anywhere it names outright, and a path
+// with nothing in front of it — `[LSP.md](LSP.md)` — into the repository as it
+// was at that release, since that is where the changelog's own links point.
+func notesLink(target: Str, tag: Str): Str {
+	if indexOf(target, "://") is Result.Ok(_) || indexOf(target, "#") is Result.Ok(0) || indexOf(target, "mailto:") is Result.Ok(0) {
+		return target
+	}
+	return "https://github.com/{repo()}/blob/{tag}/" + replaceFirst(target, "./", "")
+}
+
+// A tag as a fragment: `v0.5.0` is `#v0-5-0`, which survives every reader
+// that is particular about dots in an id.
+func anchor(tag: Str): Str {
+	return replaceAll(tag, ".", "-")
+}

@@ -9,6 +9,9 @@
 //   - item, * item, 1. item   a list, bulleted or numbered; an indented line
 //                             carries on the item above it
 //   > quoted                  a quotation, which may hold any of these
+//   | a | b |                 a table: the first row is its head when a row of
+//   | --- | --- |             dashes comes under it, and the cells are split on
+//   | 1 | 2 |                 every `|` outside a code span or after a `\`
 //   ```hive … ```             a program, painted by ./highlight; a fence that
 //                             names another language, or none, is set as it is
 //
@@ -22,15 +25,16 @@
 // plain text.
 import ./highlight
 
-// A whole document, a block at a time. Paragraph, list and quotation lines are
-// held until whatever ends them, and starting any one of the three ends the
-// other two first, so at most one is ever being held and `flush` can let go of
-// all three in any order.
+// A whole document, a block at a time. Paragraph, list, quotation and table
+// lines are held until whatever ends them, and starting any one of the four
+// ends the others first, so at most one is ever being held and `flush` can let
+// go of all four in any order.
 func html(text: Str, link: func(Str): Str): Str {
 	mut Str[dyn] out = []
 	mut Str[dyn] para = []
 	mut Str[dyn] items = []
 	mut Str[dyn] quote = []
+	mut Str[dyn] table = []
 	mut Str[dyn] fence = []
 	mut ordered := false
 	mut fenced := false
@@ -48,22 +52,30 @@ func html(text: Str, link: func(Str): Str): Str {
 			continue
 		}
 		if startsWith(line, "```") {
-			flush(out, para, items, ordered, quote, link)
+			flush(out, para, items, ordered, quote, table, link)
 			fenced = true
 			fenceLang = trim(replaceFirst(line, "```", ""))
 			continue
 		}
 		bare := trim(line)
 		if bare == "" {
-			flush(out, para, items, ordered, quote, link)
+			flush(out, para, items, ordered, quote, table, link)
 			continue
 		}
 		if line is "{marks is (#{1,6})} {words}" {
-			flush(out, para, items, ordered, quote, link)
+			flush(out, para, items, ordered, quote, table, link)
 			level := headingLevel(len(marks))
 			append(out, "<h{level}>" + inline(trim(words), link) + "</h{level}>")
 			continue
 		}
+		if startsWith(bare, "|") {
+			flushPara(out, para, link)
+			flushList(out, items, ordered, link)
+			flushQuote(out, quote, link)
+			append(table, bare)
+			continue
+		}
+		flushTable(out, table, link)
 		if listItem(line) is Result.Ok(item) {
 			numbered := listNumbered(line)
 			if numbered != ordered {
@@ -77,6 +89,12 @@ func html(text: Str, link: func(Str): Str): Str {
 		}
 		if startsWith(line, " ") || startsWith(line, "\t") {
 			last := len(items) - 1
+			// An indented item is set as an item of the list it is under: a
+			// list inside a list is one level more than anything here needs.
+			if len(para) == 0 && len(items) > 0 && listItem(bare) is Result.Ok(sub) {
+				append(items, sub)
+				continue
+			}
 			if len(para) == 0 && items bounds last {
 				items[last] = items[last] + " " + bare
 				continue
@@ -89,22 +107,23 @@ func html(text: Str, link: func(Str): Str): Str {
 			continue
 		}
 		if len(items) > 0 || len(quote) > 0 {
-			flush(out, para, items, ordered, quote, link)
+			flush(out, para, items, ordered, quote, table, link)
 		}
 		append(para, bare)
 	}
 	if fenced {
 		append(out, codeHtml(join(fence, "\n"), fenceLang))
 	}
-	flush(out, para, items, ordered, quote, link)
+	flush(out, para, items, ordered, quote, table, link)
 	return join(out, "")
 }
 
 // Whatever is being held, written out and let go of.
-proc flush(out: mut Str[dyn], para: mut Str[dyn], items: mut Str[dyn], ordered: Bool, quote: mut Str[dyn], link: func(Str): Str): void {
+proc flush(out: mut Str[dyn], para: mut Str[dyn], items: mut Str[dyn], ordered: Bool, quote: mut Str[dyn], table: mut Str[dyn], link: func(Str): Str): void {
 	flushPara(out, para, link)
 	flushList(out, items, ordered, link)
 	flushQuote(out, quote, link)
+	flushTable(out, table, link)
 }
 
 proc flushPara(out: mut Str[dyn], para: mut Str[dyn], link: func(Str): Str): void {
@@ -136,6 +155,102 @@ proc flushQuote(out: mut Str[dyn], quote: mut Str[dyn], link: func(Str): Str): v
 		append(out, "<blockquote>" + html(join(quote, "\n"), link) + "</blockquote>")
 		quote = []
 	}
+}
+
+// A table, in a wrapper that lets it scroll sideways on a screen too narrow
+// for it rather than push the page wider. Its head is the first row when the
+// second is the row of dashes that says so; without one, every row is body.
+proc flushTable(out: mut Str[dyn], table: mut Str[dyn], link: func(Str): Str): void {
+	if len(table) > 0 {
+		mut Str[dyn] head = []
+		mut Str[dyn] body = []
+		mut headed := false
+		if table bounds 1 {
+			headed = isRule(table[1])
+		}
+		for i := 0; i < len(table); i++ {
+			if table bounds i {
+				if headed && i == 0 {
+					append(head, "<tr>" + cellsHtml(table[i], "th", link) + "</tr>")
+				} else if !(headed && i == 1) {
+					append(body, "<tr>" + cellsHtml(table[i], "td", link) + "</tr>")
+				}
+			}
+		}
+		mut html := "<div class=\"md-table\"><table>"
+		if len(head) > 0 {
+			html = html + "<thead>" + join(head, "") + "</thead>"
+		}
+		append(out, html + "<tbody>" + join(body, "") + "</tbody></table></div>")
+		table = []
+	}
+}
+
+// The row of dashes under a table's head: nothing but `|`, `-`, `:` and
+// spaces, with at least one dash.
+func isRule(row: Str): Bool {
+	mut dashes := 0
+	for each c in split(row, "") {
+		if c == "-" {
+			dashes += 1
+		} else if c != "|" && c != ":" && !isSpace(c) {
+			return false
+		}
+	}
+	return dashes > 0
+}
+
+func cellsHtml(row: Str, tag: Str, link: func(Str): Str): Str {
+	mut Str[dyn] tds = []
+	for each cell in cells(row) {
+		append(tds, "<{tag}>" + inline(cell, link) + "</{tag}>")
+	}
+	return join(tds, "")
+}
+
+// A row's cells, trimmed, without the empty ones the pipes at either end of
+// it leave. A `|` inside a code span, or after a backslash, is the character
+// and not the edge of a cell; the backslash stays, for `inline` to read.
+func cells(row: Str): Str[dyn] {
+	cs := split(trim(row), "")
+	mut Str[dyn] out = []
+	mut Str[dyn] cell = []
+	mut inCode := false
+	mut escaped := false
+	for each c in cs {
+		if escaped {
+			// `\|` is a pipe that is not the edge of a cell, inside a code
+			// span as much as outside one, so its backslash has done its job
+			// and goes; before anything else it stays, for `inline` to read.
+			slash := len(cell) - 1
+			if c == "|" && cell bounds slash {
+				drop(cell, slash, slash)
+			}
+			append(cell, c)
+			escaped = false
+		} else if c == "\\" {
+			append(cell, c)
+			escaped = true
+		} else if c == "`" {
+			append(cell, c)
+			inCode = !inCode
+		} else if c == "|" && !inCode {
+			append(out, trim(join(cell, "")))
+			cell = []
+		} else {
+			append(cell, c)
+		}
+	}
+	append(out, trim(join(cell, "")))
+	first := 0
+	if out bounds first && out[first] == "" && len(out) > 1 {
+		drop(out, 0, 0)
+	}
+	last := len(out) - 1
+	if out bounds last && out[last] == "" && len(out) > 1 {
+		drop(out, last, last)
+	}
+	return out
 }
 
 // The heading a run of `#`s stands for: the page's title is its only h1, so a

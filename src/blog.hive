@@ -1,9 +1,9 @@
 // The blog: what has changed in Hive, and why, a post at a time.
 //
-// A post is two Markdown files under assets/blog/ — `<name>.md` in English and
-// `<name>.pt.md` in Portuguese, because Portuguese is never a page short here —
-// and its name on one line of `names` below. Writing one is writing those two
-// files; ./markdown says what may be in them.
+// A post is one Markdown file under assets/blog/, `<name>.md`, in English —
+// the blog is the one part of this site that is not in Portuguese as well —
+// and its name on one line of `names` below. Writing one is writing that
+// file; ./markdown says what may be in it.
 //
 // The name is the day the post went up and then its slug: `2026-11-19-laws` is
 // /blog/laws, dated 19 November 2026. The first line is the title, `# ` and
@@ -15,8 +15,8 @@
 // `hive.file.asset` reads it back from there, so a post is served out of the
 // binary like every other byte of this site. What that cannot do is list the
 // folder, which is why the names are written out below; tests/blog.test.hive
-// fails the build on a name with either of its files missing, and on a link
-// into the tour that names a slide the tour does not have.
+// fails the build on a name with its file missing, and on a link into the tour
+// that names a slide the tour does not have.
 //
 // A test is a program of its own, built from tests/, with no assets/ beside it
 // and so nothing embedded, which is why every call that reads a post has a
@@ -33,7 +33,7 @@ type Post {
 	body:     Str
 }
 
-// Every post, by its files' name under assets/blog/. The order is not this
+// Every post, by its file's name under assets/blog/. The order is not this
 // list's: `all` puts the newest first.
 func names(): Str[dyn] {
 	return [
@@ -41,9 +41,6 @@ func names(): Str[dyn] {
 	]
 }
 
-// Every post in a language, the newest first. One that cannot be read is left
-// out rather than shown broken, and tests/blog.test.hive is what keeps that
-// from ever happening quietly.
 // Who wrote a post, as its byline names them: a name, and the page it links to.
 type Author {
 	name: Str
@@ -56,14 +53,17 @@ func authorOf(slug: Str): Author {
 	return Author("Rodrigo Heinzen de Moraes", "https://rhm.dev")
 }
 
-func all(lang: Str): Post[dyn] {
-	return allFrom(lang, embedded)
+// Every post, the newest first. One that cannot be read is left out rather
+// than shown broken, and tests/blog.test.hive is what keeps that from ever
+// happening quietly.
+func all(): Post[dyn] {
+	return allFrom(embedded)
 }
 
-func allFrom(lang: Str, source: func(Str): Result<Str, Str>): Post[dyn] {
+func allFrom(source: func(Str): Result<Str, Str>): Post[dyn] {
 	mut Post[dyn] posts = []
 	for each name in sort(names(), later) {
-		if readFrom(name, lang, source) is Result.Ok(post) {
+		if readFrom(name, source) is Result.Ok(post) {
 			append(posts, post)
 		}
 	}
@@ -74,9 +74,9 @@ func later(a: Str, b: Str): Bool {
 	return a > b
 }
 
-// The post a path names, in a language.
-func find(slug: Str, lang: Str): Result<Post, Str> {
-	for each post in all(lang) {
+// The post a path names.
+func find(slug: Str): Result<Post, Str> {
+	for each post in all() {
 		if post.slug == slug {
 			return Result.Ok(post)
 		}
@@ -86,13 +86,13 @@ func find(slug: Str, lang: Str): Result<Post, Str> {
 
 // One post, read and taken apart: the name into its date and slug, the text
 // into its title, its abstract and the rest.
-func read(name: Str, lang: Str): Result<Post, Str> {
-	return readFrom(name, lang, embedded)
+func read(name: Str): Result<Post, Str> {
+	return readFrom(name, embedded)
 }
 
-func readFrom(name: Str, lang: Str, source: func(Str): Result<Str, Str>): Result<Post, Str> {
+func readFrom(name: Str, source: func(Str): Result<Str, Str>): Result<Post, Str> {
 	if name is "{date is (\d{4}-\d{2}-\d{2})}-{slug is ([a-z0-9-]+)}" {
-		file := path(name, lang)
+		file := "blog/{name}.md"
 		got := source(file)
 		if got is Result.Ok(text) {
 			return parse(slug, date, text, file)
@@ -110,13 +110,6 @@ func embedded(file: Str): Result<Str, Str> {
 		return Result.Ok(text)
 	}
 	return Result.Error("assets/{file} is not in the program")
-}
-
-func path(name: Str, lang: Str): Str {
-	if lang == "pt" {
-		return "blog/{name}.pt.md"
-	}
-	return "blog/{name}.md"
 }
 
 // The title is the first line that says anything, and has to be one; the
@@ -162,17 +155,14 @@ func opening(body: Str): Str {
 	return join(para, " ")
 }
 
-// The day a post went up, as a reader says it: "19 November 2026", "19 de
-// novembro de 2026". What it is given is always a date `read` checked.
-func longDate(date: Str, lang: Str): Str {
+// The day a post went up, as a reader says it: "19 November 2026". What it is
+// given is always a date `read` checked.
+func longDate(date: Str): Str {
 	if date is "{year is (\d{4})}-{month is (\d{2})}-{day is (\d{2})}" {
 		if hive.conv.sti(month) is Result.Ok(m) && hive.conv.sti(day) is Result.Ok(d) {
-			months := monthNames(lang)
+			months := monthNames()
 			idx := m - 1
 			if months bounds idx {
-				if lang == "pt" {
-					return "{d} de {months[idx]} de {year}"
-				}
 				return "{d} {months[idx]} {year}"
 			}
 		}
@@ -180,11 +170,7 @@ func longDate(date: Str, lang: Str): Str {
 	return date
 }
 
-func monthNames(lang: Str): Str[12] {
-	if lang == "pt" {
-		return ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
-			"agosto", "setembro", "outubro", "novembro", "dezembro"]
-	}
+func monthNames(): Str[12] {
 	return ["January", "February", "March", "April", "May", "June", "July",
 		"August", "September", "October", "November", "December"]
 }

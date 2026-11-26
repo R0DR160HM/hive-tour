@@ -48,7 +48,7 @@ import hive.crypto
 // The three, decoded. Each answers with a Result because base64Decode does,
 // and the honest thing to do with a decode that cannot fail is to say out
 // loud that it could: the text below is a constant, so an Error here is a
-// broken build rather than a bad request, and main.hive is where that
+// broken build rather than a bad request, and ./site is where that
 // distinction gets acted on.
 func png(): Result<Str, hive.crypto.CryptoError> {
 	return decode(pngBase64())

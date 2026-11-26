@@ -1,5 +1,5 @@
 // What the front page says, in both languages, and the shapes it is held in.
-// Nothing here knows anything about HTML or HTTP: main.hive lays it out and
+// Nothing here knows anything about HTML or HTTP: ./site lays it out and
 // ./theme decides what it looks like. It is apart from the server for the
 // reason ./slides is — a page of prose about a language, interleaved with the
 // code that serves it, reads as neither.
@@ -285,7 +285,7 @@ func readsLabel(lang: Str): Str {
 // The reasons at length, in the order the six above give them, minus the
 // one the closing line of the page makes on its own: that it can be learned
 // in a day, and plus the tooling. Reliability, laws and scale carry a program.
-// The other three are about everything around a program, and main.hive sets a
+// The other three are about everything around a program, and ./site sets a
 // list beside each of them instead — the platforms, what is in the box, and
 // the commands.
 func points(): Point[6] {

@@ -1,11 +1,11 @@
 // The content of the tour, one feature at a time, and the two shapes it is
 // held in. Nothing here knows anything about HTTP, about HTML, or about the
 // interface that shows it: a slide is a title, an explanation and some
-// examples, and what a reader eventually sees is main.hive's business rather
+// examples, and what a reader eventually sees is ./site's business rather
 // than this file's.
 //
 // It lives apart from the server for the reason the drawing in ./logo does.
-// The tour is 85 slides of prose in two languages, and a server is about
+// The tour is 86 slides of prose in two languages, and a server is about
 // two hundred lines; kept in one file, the second is a footnote to the first.
 //
 // Every code example below is a complete program: copy it into a `.hive` file
@@ -15,7 +15,7 @@
 //
 // An explanation is paragraphs separated by a blank line. Inside one, a name
 // written in backticks is set as code, and a paragraph whose every line opens
-// with "- " is a list; main.hive draws both.
+// with "- " is a list; ./site draws both.
 //
 // `all` is the whole tour, in order, and its length is part of its type. Each
 // chapter answers with a vector of a known length and `all` adds them up, so a
@@ -40,7 +40,7 @@ type Slide {
 	shot:          Str
 }
 
-func all(): Slide[85] {
+func all(): Slide[86] {
 	return start()
 		+ flow()
 		+ collections()
@@ -3142,7 +3142,7 @@ proc main(): void \{
 }
 
 // The standard library
-func library(): Slide[27] {
+func library(): Slide[28] {
 	return [
 		Slide(
 			title: "Maps",
@@ -3546,6 +3546,68 @@ proc main(): void \{
 	} else if read is Result.Error(why) \{
 		echo why.message
 	}
+}`),
+			],
+		),
+		Slide(
+			title: "Running a call while it builds",
+			titlePt: "Rodando uma chamada enquanto compila",
+			download: false,
+			shot: "",
+			explanation: "`f(x) with compiler` runs the call once, while the program builds, and builds its answer into the executable in place of the call. Running the program then reads the value and does nothing else: no file is opened again, nothing is fetched again, nothing is worked out again.\n\n- Only the entrypoint, the file handed to `hive build`, may write one, so everything that runs on the building machine is named in that one file. The function it calls may come from any module.\n- Every argument is known before the program runs: a literal, a vector or a constructor of literals, or what another `with compiler` call answered — written in place, or through a name bound to it once with `:=`.\n- What it answers is built in, so it has to be data: numbers, text, vectors, maps, `Result`s and declared types made of them. A function, a `Secret` or a type the library owns is refused.\n- It runs on every `hive build`, `run` and `test`, from the entrypoint's folder, before the program itself is compiled; `hive check` and the editor never run it. A panic in it is a compile error at the call, and what it prints is shown under the line it was written on.\n\nIt runs code while the program builds, so the tour's own server, which builds programs for the browser and runs none of a reader's code, refuses one.",
+			explanationPt: "`f(x) with compiler` roda a chamada uma vez, enquanto o programa compila, e põe a resposta dentro do executável no lugar da chamada. Rodar o programa depois só lê o valor e mais nada: nenhum arquivo é aberto de novo, nada é buscado de novo, nada é calculado de novo.\n\n- Só o ponto de entrada, o arquivo entregue ao `hive build`, pode escrever uma, então tudo o que roda na máquina que compila está nomeado nesse único arquivo. A função chamada pode vir de qualquer módulo.\n- Todo argumento é conhecido antes de o programa rodar: um literal, um vetor ou um construtor de literais, ou o que outra chamada `with compiler` respondeu — escrita no lugar, ou por um nome ligado a ela uma única vez com `:=`.\n- O que ela responde vai para dentro do programa, então tem de ser dado: números, texto, vetores, mapas, `Result`s e tipos declarados feitos deles. Uma função, um `Secret` ou um tipo que pertence à biblioteca é recusado.\n- Ela roda em todo `hive build`, `run` e `test`, a partir da pasta do ponto de entrada, antes de o próprio programa ser compilado; o `hive check` e o editor nunca a rodam. Um pânico nela é um erro de compilação na chamada, e o que ela imprime aparece sob a linha onde foi escrita.\n\nEla roda código enquanto o programa compila, então o próprio servidor do tour, que compila programas para o navegador e não roda nada do código de um leitor, recusa uma.",
+			examples: [
+				Example(caption: "A version, from git", captionPt: "Uma versão, do git", code: `// The version, read from git once, while the program builds.
+func described(): Str \{
+	Result.Ok(said) := hive.term.exec("git", ["describe", "--tags"], ".") else \{
+		Result.Error(why) \{ panic why.message }
+	}
+	return trim(said)
+}
+
+proc main(): void \{
+	version := described() with compiler
+	echo "running \{version}"
+}`, codePt: `// A versão, lida do git uma vez, enquanto o programa compila.
+func described(): Str \{
+	Result.Ok(said) := hive.term.exec("git", ["describe", "--tags"], ".") else \{
+		Result.Error(why) \{ panic why.message }
+	}
+	return trim(said)
+}
+
+proc main(): void \{
+	version := described() with compiler
+	echo "rodando \{version}"
+}`),
+				Example(caption: "A table, from a file", captionPt: "Uma tabela, de um arquivo", code: `// countries.csv, beside this file: a code and a name on every row.
+func countries(): hive.map.Map<Str, Str> \{
+	Result.Ok(rows) := hive.file.csv("countries.csv", ",") else \{
+		Result.Error(why) \{ panic why.message }
+	}
+	return hive.map.fromTable(rows)
+}
+
+proc main(): void \{
+	names := countries() with compiler
+	if hive.map.get(names, "BR") is Result.Ok(name) \{
+		echo name
+	}
+	echo "\{len(names)} countries, built in"
+}`, codePt: `// countries.csv, ao lado deste arquivo: um código e um nome em cada linha.
+func countries(): hive.map.Map<Str, Str> \{
+	Result.Ok(rows) := hive.file.csv("countries.csv", ",") else \{
+		Result.Error(why) \{ panic why.message }
+	}
+	return hive.map.fromTable(rows)
+}
+
+proc main(): void \{
+	names := countries() with compiler
+	if hive.map.get(names, "BR") is Result.Ok(name) \{
+		echo name
+	}
+	echo "\{len(names)} países, já dentro do programa"
 }`),
 			],
 		),

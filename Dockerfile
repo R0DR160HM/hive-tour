@@ -87,7 +87,7 @@ RUN rm -rf /usr/local/go/test /usr/local/go/api /usr/local/go/doc
 # Stage 2 — runtime
 ##############################################################################
 # What the program ships in: the binary, and what the playground builds with —
-# Go, and the compiler under the name its own messages use, `hive`. main.hive
+# Go, and the compiler under the name its own messages use, `hive`. src/site.hive
 # serves Go's js/wasm loader out of this Go, so the loader a browser is sent
 # always matches the toolchain that compiled the program it loads.
 #

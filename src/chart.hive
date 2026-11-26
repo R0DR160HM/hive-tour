@@ -85,6 +85,7 @@ func symbols(): Symbol[dyn] {
 		Symbol(title: "A document with no declared shape", symbol: "Json"),
 		Symbol(title: "Files", symbol: "file"),
 		Symbol(title: "Where a program is", symbol: "asset"),
+		Symbol(title: "Running a call while it builds", symbol: "compiler"),
 		Symbol(title: "Pictures", symbol: "image"),
 		Symbol(title: "Spreadsheets", symbol: "xlsx"),
 		Symbol(title: "The terminal", symbol: "term"),

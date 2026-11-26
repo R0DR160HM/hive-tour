@@ -14,7 +14,7 @@
 // controls are written into the page hidden, and only the script uncovers them.
 //
 // Two halves follow. The first decides which programs can run in a browser at
-// all, and what to say about one that cannot; main.hive asks it both before it
+// all, and what to say about one that cannot; ./site asks it both before it
 // puts a Run button under a sample and before it hands a program to the
 // compiler. The second is the script.
 
@@ -95,6 +95,14 @@ func runnable(code: Str): Bool {
 // anything a reader's program should be able to make it do. The library is
 // built into the compiler, so `import hive.ui` is the one kind that passes.
 func refusal(code: Str, lang: Str): Result<Str, Bool> {
+	// A `with compiler` call runs while the program builds, which here would be on
+	// this server. Nothing else spells the clause, so the word alone is enough.
+	if indexOf(code, "compiler") is Result.Ok(_) {
+		if lang == "pt" {
+			return Result.Ok("Uma chamada with compiler roda enquanto o programa compila, e este servidor não roda nada do código de um leitor. Salve o programa em um arquivo .hive e rode-o com hive run.")
+		}
+		return Result.Ok("A with compiler call runs while the program builds, and this server runs none of a reader's code. Save it as a .hive file and run it with hive run instead.")
+	}
 	if foreignImport(code) is Result.Ok(path) {
 		if lang == "pt" {
 			return Result.Ok("Aqui só a biblioteca padrão pode ser importada, e {path} não faz parte dela. Salve o programa em um arquivo .hive e rode-o com hive run.")
@@ -208,7 +216,7 @@ func startsWith(text: Str, prefix: Str): Bool {
 // The script
 //
 // One file, served at /play/play.js, that is two programs depending on where
-// it finds itself. On a page it wires up every sample main.hive marked as
+// it finds itself. On a page it wires up every sample ./site marked as
 // runnable; inside a Web Worker it is what runs a compiled program. The worker
 // is what lets Stop mean stop: a program spinning in a loop never hands the
 // thread back, so it is run on a thread of its own that can be thrown away,
@@ -218,7 +226,7 @@ func startsWith(text: Str, prefix: Str): Bool {
 // a brace if it is written `\{` — and a script has a great many of them.
 
 // The three things the script asks this server for, named here and nowhere
-// else: main.hive routes each of them, and the script is written with them.
+// else: ./site routes each of them, and the script is written with them.
 // All three sit under one prefix, which is the prefix robots.txt keeps a
 // crawler out of.
 func scriptPath(): Str {
@@ -269,7 +277,7 @@ func worker(): Str {
 
 // The page's half: every runnable sample made editable in place, with its Run
 // button, its output under it, and the words for every state of it read off
-// the controls main.hive wrote, so the script holds no language of its own.
+// the controls ./site wrote, so the script holds no language of its own.
 //
 // The sample stays highlighted until its first edit and turns plain ink from
 // then on, because a highlighter that ran on every keystroke would be a second

@@ -26,7 +26,7 @@
 import ./icon
 
 // Where each one is served, and the one place the paths are spelled: ./theme
-// names them in its @font-face rules and main.hive routes them, and both ask
+// names them in its @font-face rules and ./site routes them, and both ask
 // here.
 func serifPath(): Str {
 	return "/font/serif.woff2"

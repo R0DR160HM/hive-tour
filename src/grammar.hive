@@ -482,8 +482,8 @@ func powExpr(): Rule {
 
 func withExpr(): Rule {
 	return spec("with-expr", "2.6",
-		"with-expr = postfix-expr [ \"with\" \"timeout\" add-expr ] ;",
-		[seq([rule("postfix-expr"), opt(seq([sign("with"), sign("timeout"), rule("add-expr")]))])])
+		"with-expr = postfix-expr [ \"with\" ( \"timeout\" add-expr | \"compiler\" ) ] ;",
+		[seq([rule("postfix-expr"), opt(seq([sign("with"), either([seq([sign("timeout"), rule("add-expr")]), sign("compiler")])]))])])
 }
 
 func callSuffix(): Rule {
@@ -709,6 +709,7 @@ func slideRules(): SlideRules[dyn] {
 		SlideRules(title: "Concurrency: async", rules: [asyncStmt(), varDecl()]),
 		SlideRules(title: "Concurrency: await", rules: [awaitAll()]),
 		SlideRules(title: "Concurrency: with timeout", rules: [withExpr()]),
+		SlideRules(title: "Running a call while it builds", rules: [withExpr()]),
 		SlideRules(title: "Field annotations", rules: [field(), annotations(), annotation()]),
 		SlideRules(title: "SQL", rules: [queryDecl(), sqlBody(), sqlParam()]),
 		SlideRules(title: "Optional filters: WHERE \{ }", rules: [whereBlock(), sqlItem()]),

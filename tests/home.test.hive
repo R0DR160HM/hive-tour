@@ -1,6 +1,6 @@
 // The front page, rendered: every slide it points at is in the tour, and
 // every hole it leaves for a sample or a paragraph is filled.
-import ../main as tour
+import ../src/site as tour
 import ../src/home
 import ../src/slides
 
@@ -39,8 +39,8 @@ test "every slide has an address of its own, made from its title" {
 		assert path != "/tour/"
 		assert indexOf(seen, path) is Result.Error(_)
 		append(seen, path)
-		assert tour.route(path).status == 200
+		assert tour.route(path, []).status == 200
 	}
 	assert tour.slideSlug("Result<T, E>") == "result-t-e"
-	assert tour.route("/1").status == 301
+	assert tour.route("/1", []).status == 301
 }

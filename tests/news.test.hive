@@ -1,0 +1,99 @@
+// The news: what the build makes of GitHub's answers, and the page it sets.
+//
+// Nothing here goes near the network. `fake` answers the URLs ./news asks for
+// with documents shaped like GitHub's, so the test is the same every time and
+// costs nothing of the build's 60 requests an hour.
+import ../src/site as tour
+import ../src/news
+
+func ok(body: Str): Result<news.Answer, Str> {
+	return Result.Ok(news.Answer(status: 200, body: body))
+}
+
+func missing(): Result<news.Answer, Str> {
+	return Result.Ok(news.Answer(status: 404, body: "\{\"message\":\"Not Found\"}"))
+}
+
+// Four releases, newest first, and a draft that is not one yet. v0.5.0
+// thanks somebody, and v0.3.0 has no changelog.
+func fake(url: Str): Result<news.Answer, Str> {
+	if url == news.releasesUrl() {
+		return ok("[\{\"tag_name\":\"v0.5.0\",\"published_at\":\"2026-11-24T21:57:12Z\"},"
+			+ "\{\"tag_name\":\"v0.6.0\",\"published_at\":null,\"draft\":true},"
+			+ "\{\"tag_name\":\"v0.4.0\",\"published_at\":\"2026-11-18T10:00:00Z\"},"
+			+ "\{\"tag_name\":\"v0.3.0\",\"published_at\":\"2026-10-28T10:00:00Z\"},"
+			+ "\{\"tag_name\":\"v0.2.0\",\"published_at\":\"2026-09-08T10:00:00Z\"}]")
+	}
+	if url == news.changelogUrl("v0.5.0") {
+		return ok("# v0.5.0\n\n## Language\n\n* **Shifts** are [shifts](LSP.md).\n\n## Breaking\n\n| was | is |\n| --- | --- |\n| `<<a>>` | `<<<a>>>` |\n\n## Thanks\n\n* **[Nukeer](https://github.com/Nukeer)** wrote the shifts.\n")
+	}
+	if url == news.changelogUrl("v0.4.0") {
+		return ok("# v0.4.0\n\n* One thing.\n")
+	}
+	return missing()
+}
+
+func releases(): news.Release[dyn] {
+	return news.fetchFrom(fake)
+}
+
+test "every published release, newest first, a draft left out" {
+	all := releases()
+	assert len(all) == 4
+	if all bounds 0 && all bounds 3 {
+		assert all[0].tag == "v0.5.0"
+		assert all[0].date == "2026-11-24"
+		assert all[3].tag == "v0.2.0"
+	}
+}
+
+test "a release with no changelog has no notes, rather than failing the build" {
+	all := releases()
+	if all bounds 2 {
+		assert all[2].notes == ""
+	}
+}
+
+test "a changelog loses its title and its headings go a level deeper" {
+	assert news.notesBody("# v0.5.0\n\n## Language\n\n* x\n") == "\n### Language\n\n* x\n"
+	assert news.notesBody("# v1\n```\n## not a heading\n```\n#tag") == "```\n## not a heading\n```\n#tag"
+}
+
+test "a changelog's own links go into the repository as it was at that release" {
+	assert news.notesLink("LSP.md", "v0.5.0") == "https://github.com/R0DR160HM/hive-lang/blob/v0.5.0/LSP.md"
+	assert news.notesLink("https://example.com", "v0.5.0") == "https://example.com"
+	assert news.notesLink("#breaking", "v0.5.0") == "#breaking"
+}
+
+test "the news page sets every release, its changelog, its table and its thanks" {
+	page := tour.newsResponse(releases(), "en")
+	assert page.status == 200
+	assert indexOf(page.body, "HIVE_TOUR_") is Result.Error(_)
+	assert indexOf(page.body, "id=\"v0-5-0\"") is Result.Ok(_)
+	assert indexOf(page.body, "<h3>Language</h3>") is Result.Ok(_)
+	assert indexOf(page.body, "<table>") is Result.Ok(_)
+	assert indexOf(page.body, "https://github.com/R0DR160HM/hive-lang/blob/v0.5.0/LSP.md") is Result.Ok(_)
+	assert indexOf(page.body, "<h3>Thanks</h3>") is Result.Ok(_)
+	assert indexOf(page.body, "<a href=\"https://github.com/Nukeer\">Nukeer</a>") is Result.Ok(_)
+	assert indexOf(page.body, "This release predates the changelog.") is Result.Ok(_)
+}
+
+test "the news is English with no Portuguese alternate, its running head the reader's" {
+	page := tour.newsResponse(releases(), "pt").body
+	assert indexOf(page, "<html lang=\"en\">") is Result.Ok(_)
+	assert indexOf(page, "hreflang=\"pt-BR\"") is Result.Error(_)
+	assert indexOf(page, "href=\"/news?lang=pt\"") is Result.Ok(_)
+}
+
+test "an empty news page says so" {
+	news.Release[0] none = []
+	assert indexOf(tour.newsResponse(none, "en").body, "There are no releases yet.") is Result.Ok(_)
+}
+
+test "the news is routed, in the running head, and on the sitemap once" {
+	assert tour.route("/news", releases()).status == 200
+	assert indexOf(tour.route("/", []).body, "href=\"/news\"") is Result.Ok(_)
+	sitemap := tour.sitemapResponse().body
+	assert indexOf(sitemap, "https://hive-lang.run/news</loc>") is Result.Ok(_)
+	assert indexOf(sitemap, "https://hive-lang.run/news?lang=pt") is Result.Error(_)
+}

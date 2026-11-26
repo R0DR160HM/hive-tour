@@ -89,3 +89,19 @@ test "every target, in order, code spans passed over" {
 test "unicode passes through" {
 	assert md("é — `ç`…") == "<p>é — <code>ç</code>…</p>"
 }
+
+test "a table, its head the row above the dashes" {
+	assert md("| was | is |\n| --- | --- |\n| `a | b` | c |") == "<div class=\"md-table\"><table><thead><tr><th>was</th><th>is</th></tr></thead><tbody><tr><td><code>a | b</code></td><td>c</td></tr></tbody></table></div>"
+}
+
+test "an escaped pipe in a table is a pipe, in a code span or out of one" {
+	assert md("| `x \\| f` | a \\| b |") == "<div class=\"md-table\"><table><tbody><tr><td><code>x | f</code></td><td>a | b</td></tr></tbody></table></div>"
+}
+
+test "a table with no row of dashes is all body, and ends at the first line that is not a row" {
+	assert md("| a | b |\nafter") == "<div class=\"md-table\"><table><tbody><tr><td>a</td><td>b</td></tr></tbody></table></div><p>after</p>"
+}
+
+test "an indented item is an item of the list it is under" {
+	assert md("* a\n  * b\n  * c\n* d") == "<ul><li>a</li><li>b</li><li>c</li><li>d</li></ul>"
+}
